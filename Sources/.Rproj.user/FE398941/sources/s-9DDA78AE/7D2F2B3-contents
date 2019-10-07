@@ -1,0 +1,70 @@
+library(rlist)
+
+convert.node.to.enreg=function(rat){
+  enr=list()
+  i=1
+  for (s in rat$children) {
+    enr[[i]]=list.append(list(POS=s$POS,SPIKES=s$SPIKES,EVENTS=s$EVENTS))
+    i=i+1
+  }
+  return(enr)
+}
+
+# Compute the neuron activity in each box of a right path
+# a list where the indexes are the neuron numbers
+# and for each neuron there is a vector of activity in boxes
+add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg){
+  #attention ses, pour une session donc !
+  short=shortcut(Enreg, ses, myboxes)
+  spolygons=getSpatialPolygons(myboxes)
+  
+  spikyBoxes=getBoxesInPath(ses,Enreg,spolygons,short,rightPath)
+ 
+  neuronThruBoxes=list()
+  #Create an activity vector
+  string_split <- strsplit(str_sub(rightPath,0,-2), "")[[1]]
+  bxs=replicate(length(string_split),0)
+  #The indexes of the vector are the right path boxes
+  names(bxs)=string_split
+  
+  #For each box
+  for(bx in string_split){
+    #Get the index of neurons
+    #neurons=spikyBoxes[[nm]]$spikes[,3][(spikyBoxes[[nm]]$spikes[,3]!=0)]
+    neurons=unique(spikyBoxes[[ses]][[bx]]$spikes[,3][(spikyBoxes[[ses]][[bx]]$spikes[,3]!=0)])
+
+    for(n in neurons){
+      #if(is.null(neuronThruBoxes[[toString(n)]])){
+        if(is.null(FindNode(tree,toString(n))$Get )){ 
+        #names(bxs)=string_split
+        #bxs=list.append(bxs,right)
+        neuronThruBoxes[[toString(n)]]=bxs
+      }
+      a=neuronThruBoxes[[toString(n)]][bx]
+      a=a+1
+      neuronThruBoxes[[toString(n)]][bx]=a
+    }
+  }
+  
+  tree$Set()
+  
+  tree$Set(spatialPolygons = boites,filterFun = function(x) x$level == 1)
+  
+  return(tree)
+}
+
+# Compute the nb of spikes for each neuron in the 
+# boxes for a right path and store it 
+set.neurons.to.boxes=function(tree,rightPath,boites){
+  # rightPath='abcdefg'
+  # For each rat
+  rat=tree$Get('name', filterFun = function(x) x$level == 3)
+  for (i in length(rat)) {
+    n=FindNode(tree,rat[[i]])
+    enreg=convert.node.to.enreg(n)
+    for(s in 1:length(enreg)){
+      tree=add.neuron.in.path(tree,s,rightPath,boites,enreg)
+    }
+  }
+  return(tree)
+}

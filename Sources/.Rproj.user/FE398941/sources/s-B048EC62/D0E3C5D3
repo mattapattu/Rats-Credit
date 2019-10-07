@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1569845536279.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D0E3C5D3",
+    "lastKnownWriteTime" : 1570179002,
+    "last_content_update" : 1570179002113,
+    "path" : "~/Dropbox/Prog/ExpComputabrain/Sources/aca.R",
+    "project_path" : "aca.R",
+    "properties" : {
+        "cursorPosition" : "113,4",
+        "scrollLine" : "104"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1569837210395.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "77B9149B",
+    "lastKnownWriteTime" : 1570178827,
+    "last_content_update" : 1570178827263,
+    "path" : "~/Dropbox/Prog/ExpComputabrain/Sources/rats-credit.R",
+    "project_path" : "rats-credit.R",
+    "properties" : {
+        "cursorPosition" : "73,22",
+        "scrollLine" : "60"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,51 @@
+{
+    "debugBreakpointsState" : {
+        "breakpoints" : [
+            {
+                "editor_line_number" : 36,
+                "editor_state" : 1,
+                "function_name" : "add.neuron.in.path",
+                "function_steps" : "9,4,3",
+                "id" : 15,
+                "is_package_breakpoint" : false,
+                "is_pending_debug_completion" : true,
+                "line_number" : 36,
+                "needs_updated_steps" : false,
+                "package_name" : "",
+                "path" : "~/Dropbox/Prog/ExpComputabrain/Sources/aca.R",
+                "state" : 1,
+                "type" : 0
+            },
+            {
+                "editor_line_number" : 102,
+                "editor_state" : 1,
+                "function_name" : "getSpatialPolygons",
+                "function_steps" : "18",
+                "id" : 16,
+                "is_package_breakpoint" : false,
+                "is_pending_debug_completion" : false,
+                "line_number" : 102,
+                "needs_updated_steps" : false,
+                "package_name" : "",
+                "path" : "~/Dropbox/Prog/ExpComputabrain/Sources/plot-data.R",
+                "state" : 1,
+                "type" : 0
+            },
+            {
+                "editor_line_number" : 668,
+                "editor_state" : 1,
+                "function_name" : "getBoxesInPath",
+                "function_steps" : "5,4,2,4,2",
+                "id" : 17,
+                "is_package_breakpoint" : false,
+                "is_pending_debug_completion" : false,
+                "line_number" : 668,
+                "needs_updated_steps" : false,
+                "package_name" : "",
+                "path" : "~/Dropbox/Prog/ExpComputabrain/Sources/Old/func.R",
+                "state" : 1,
+                "type" : 0
+            }
+        ]
+    }
+}

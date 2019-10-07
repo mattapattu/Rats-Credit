@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1569845689950.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2040254347",
+    "id" : "5A512F24",
+    "lastKnownWriteTime" : 1570172555,
+    "last_content_update" : 1570172555788,
+    "path" : "~/Dropbox/Prog/ExpComputabrain/Sources/func.R",
+    "project_path" : "func.R",
+    "properties" : {
+        "cursorPosition" : "717,0",
+        "scrollLine" : "709"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

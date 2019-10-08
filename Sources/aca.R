@@ -1,4 +1,7 @@
 library(rlist)
+library(data.table)
+
+
 
 convert.node.to.enreg=function(rat){
   enr=list()
@@ -81,6 +84,7 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
   #The indexes of the vector are the right path boxes
   #names(bxs)=string_split
   
+  count =0
   #For each box
   for(bx in string_split){
     #Get the index of neurons
@@ -89,15 +93,35 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
     trial=1
     sb=spikyBoxes[[ses]][[bx]]
     for(t in seq(from=1, to=length(sb$pass)-1, by=2) ){
+      
       duration=sb$pass[t+1]-sb$pass[t]
       neurons=sb$spikes[,3][(sb$spikes[,3]!=0)]
       a=length(neurons)/duration
-      trial=trial+1
+      
       #pth=list("trial"=1, "path"="", "boxNm"="", "activity"="")
-      enreg[[ses]]$PATHS.append("trial"=1, "path"=rightPath, "boxNm"=bx, 
-                              "activity"=a)
+      #print("Appending")
+      #print(enreg[[ses]])
+      #enreg[[ses]][4] <- PATHS
+      #enreg[[ses]] <- c(enreg[[ses]],PATHS)
+      if(count==0){
+        enreg[[ses]]$PATHS <-append(enreg[[ses]]$PATHS, c("trial"=trial, "path"=rightPath, "boxNm"=bx,"activity"=a))
+      }else{
+        values <- list(trial, rightPath, bx,a)
+#        print(values)
+        enreg[[ses]]$PATHS <- mapply(append, enreg[[ses]]$PATHS, values, SIMPLIFY = FALSE)
+        #enreg[[ses]]$PATHS.append("trial"=trial, "path"=rightPath, "boxNm"=bx,"activity"=a)
+      }
+      trial=trial+1
+      count = count+1
+      
+#      enreg[[ses]]$PATHS <-append(enreg[[ses]]$PATH, c("trial"=1, "path"=rightPath, "boxNm"=bx,"activity"=a))
+      
     }
+    
   }
+  df1 <- data.frame(sapply(enreg[[ses]]$PATHS,c))
+  enreg[[ses]]$PATHS = list(df1)
+  print(enreg[[ses]]$PATHS, pruneMethod = NULL)
   return(enreg)
 }
 
@@ -134,7 +158,20 @@ add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
   spikyBoxes=getBoxesInPath(ses,Enreg,spolygons,short,rightPath)
   
   enreg=set.activity.to.boxes(ses,spikyBoxes,Enreg,rightPath)
+  
+  
+  ## 1) By space - Do neurons encode according to boxes ? 
+  ##    Info required : Activity of every neuron for every box
+  ## 2) By time - Do neurons fire after fixed time ?
+  ##    Info required : Activity of every neuron at each elapsed time  
+  ## By distance - Do neurons fire after a fixed distance is covered ?
+  ##    Info required : Activity if every neuron after fixed distance is covered
+  
+  
+  
   enreg=set.boxes.to.neurons(ses,spikyBoxes,Enreg,spolygons,rightPath)
+  
+  
   
   #tree$Set(spatialPolygons = boites,filterFun = function(x) x$level == 1)
   
@@ -146,6 +183,10 @@ add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
 set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
+  #cat("tree:")
+  #print(tree)
+  #cat("RightPath:")
+  #print(rightPath)
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
   for (i in length(rat)) {
     n=FindNode(tree,rat[[i]])

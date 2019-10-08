@@ -10,6 +10,9 @@ library(sp) #for spatial polygons
 
 setwd("~/intership2/ProgR/Sources")
 
+options(error = recover)
+
+
 # Load all source files from working directory
 for (f in list.files(pattern="*.R$")) {
   if(!strcmp(f,"rats-credit.R"))
@@ -17,7 +20,7 @@ for (f in list.files(pattern="*.R$")) {
 }
 
 #Load SDM and SDL folders (SDM113,SDL101, etc.)
-setwd("intership2/Data/")
+setwd("~/intership2/Data/")
 # Experiment in Marseille   
 #    ¦--SDL                   
 #    ¦   °--rat_103           
@@ -29,7 +32,7 @@ setwd("intership2/Data/")
 #           ¦--113_session_2 
 #           ¦--113_session_3...
 DATA=buildDataTree()
-print(DATA)
+#print(DATA)
 
 #save(DATA,file="exptree.Rdata")
 
@@ -48,7 +51,9 @@ print(DATA)
 
 # ### the boxes to make the plot and to decide where to go
 resalex=leo.boxes()
+#print(resalex$boxes)
 boites=alex.mergeBoxes(resalex$boxes)
+#print(boites)
 
 # print one rat/session if node is session, e;g., DATA$SDL$rat_3$session_1
 # or all sessions of one rat if node is one rat, eg, DATA$SDL$rat_3
@@ -63,6 +68,7 @@ print.plot.journeys(DATA,FindNode(DATA,"Experiment in Marseille"),boites)
 #Add the spatial polygons to the root
 DATA$Set(spatialPolygons = boites,filterFun = function(x) x$level == 1)
 #print(DATA,"spatialPolygons")
+
 
 # set spatial polygons of boites
 # On obtient tous les indexes par : getSpPPolygonsIDSlots(spol)
@@ -349,7 +355,7 @@ DATA=set.neurons.to.boxes(DATA,rightPath,boites)
 #
 # for(i in 1:lb)
 # {
-#   boites[[i]]=rbind(resalex$boxes[[i]][1,]-shiftx,resalex$boxes[[i]][2,]-shifty)
+#   boites[[i]]=rbind(resalex$boxes[[i]][1,]-shiftx,3resalex$boxes[[i]][2,]-shifty)
 # }
 #
 #

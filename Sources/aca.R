@@ -1,7 +1,34 @@
 library(rlist)
 library(data.table)
+library(data.tree)
 
 
+###TO DO : Linearization
+## Classify neuron activity :
+## 1) By space (Allocentric firing) - Do the same neurons fire everytime when the rat is in the same box for different trials? 
+##    How to : Dissociate each trial and calulate the average Pearson correlation coefficient of cell activity between each trial.
+##    Info required : For each trial get the activity of the neurons in  every box.
+## 2) By time - Do neurons fire after fixed time ?
+##    How to : Sum up the spike-time series for each neuron and average the total firing activity in bins of size 1s    
+##    Info required : Spike-time series of neurons for every session  
+## 3) By distance - Do neurons fire when the rat travels a fixed distance ?
+##    How to : Sum up the total distance travelled by the rat and average the cell activity in bins of size 10 cm . 
+##    Info required : Neuron activity as a function of distance covered
+
+get_str_recur <- function(x,text2,y){
+  
+  text <- paste0(text2,"Element[",y,"] is a List of length ",length(x), " --> ")
+  
+  for (i in (1:(length(x)))){
+    subs <- x[[i]]
+    if (is.list(subs)){
+      get_str_recur(subs,text,i)
+      
+    }else{
+      print(paste0(text," Element [",i,"] is a ",class(subs)," of length ",length(subs)))
+    }
+  }
+}
 
 convert.node.to.enreg=function(rat){
   enr=list()
@@ -39,36 +66,70 @@ in.right.path=function(ses,spikyBoxes,time,rpath){
   return(inPath)
 }
 
+
+add.box.to.pos=function(ses,enreg,spolygons){
+  enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,boxname="")
+  prev_nbx="NoBox"
+  count = 0
+  for(idx in 1:length(enreg[[ses]]$POS[,1])){
+    #n=enreg$SPIKES[idx,3]
+    #time=enreg[[ses]]$POS[[idx,1]]
+    #nbx=get.box(enreg[[ses]]$POS,spolygons,time)
+    nbx=get.box(enreg,ses,spolygons,idx)
+    enreg[[ses]]$POS[idx,4] = nbx
+    if(prev_nbx != nbx){
+      print(sprintf("New box reached after %i recordings is %s",count, nbx))
+      count = 0
+      prev_nbx = nbx
+      #print(nbx)
+    }else{
+      count = count+1
+    }
+    
+ #   enreg[[ses]]$POS[idx,"boxName"]   = nbx
+  }
+  
+  print(enreg[[ses]]$POS)
+  capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
+  return(enreg)
+  
+}
+
+
 # Return the box the neuron belongs to
 # "noBox" otherwise
-get.box=function(position,spol,time){
+get.box=function(enreg,ses,spolygons,index){
   nbx="noBox"
-  for(id in getSpPPolygonsIDSlots(spol)){
+  for(id in getSpPPolygonsIDSlots(spolygons)){
     coord=spolygons[id,]@polygons[[1]]@Polygons[[1]]@coords
-    within=point.in.polygon(position[time,1],position[time,2], coord)
+    within=point.in.polygon(enreg[[ses]]$POS[index,2],enreg[[ses]]$POS[index,3], coord[,1],coord[,2])
     if(within == 1){
       nbx=convertToLetter(toString(id))
+      break
     }
   }
   return(nbx)
 }
 
 # spikyBoxes$h$spikes (time,tetrod neuron rightPath boxName boxSensitivity)
-set.boxes.to.neurons=function(spikyBoxes,enreg,spolygons,rightPath){
+#enreg=set.boxes.to.neurons(ses,spikyBoxes,Enreg,spolygons,rightPath)
+set.boxes.to.neurons=function(ses,spikyBoxes,enreg,spolygons,rightPath){
   #neurons=spikyBoxes[[ses]][[bx]]$spikes[,3][(spikyBoxes[[ses]][[bx]]$spikes[,3]!=0)]
   
-  for(idx in 0:length(enreg$SPIKES[,1])){
+  for(idx in 1:length(enreg[[ses]]$SPIKES[,1])){
       #n=enreg$SPIKES[idx,3]
-      nbx=get.box(enreg$POS,spolygons,time)
-      enreg$SPIKES[idx,"boxName"]   = nbx
+      time=enreg[[ses]]$SPIKES[[idx,1]]
+      #nbx=get.box(enreg[[ses]]$POS,spolygons,time)
+      nbx=get.box(enreg,ses,spolygons,time)
       
-      time=enreg$SPIKES[idx,1]
+      enreg[[ses]]$SPIKES[idx,"boxName"]   = nbx
       
+     
       if(in.right.path(ses,spikyBoxes,time)){
-        enreg$SPIKES[idx,"rightPath"] = rightPath
+        enreg[[ses]]$SPIKES[idx,"rightPath"] = rightPath
       }
     }
-    # }
+  
   return(enreg)
 }
 #Change in enreg$PATHS
@@ -92,7 +153,7 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
     #For each trial
     trial=1
     sb=spikyBoxes[[ses]][[bx]]
-    for(t in seq(from=1, to=length(sb$pass)-1, by=2) ){
+    for(t in seq(from=1, to=length(sb$pass)-1, by=2)){
       
       duration=sb$pass[t+1]-sb$pass[t]
       neurons=sb$spikes[,3][(sb$spikes[,3]!=0)]
@@ -121,7 +182,7 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
   }
   df1 <- data.frame(sapply(enreg[[ses]]$PATHS,c))
   enreg[[ses]]$PATHS = list(df1)
-  print(enreg[[ses]]$PATHS, pruneMethod = NULL)
+  #print(enreg[[ses]]$PATHS, pruneMethod = NULL)
   return(enreg)
 }
 
@@ -156,20 +217,20 @@ add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
   #spikyBoxes$h$pass (column i: entering time, i+1: exiting time),
   #spikyBoxes$h$spikes (time,tetrod neuron rightPath boxName boxSensitivity)
   spikyBoxes=getBoxesInPath(ses,Enreg,spolygons,short,rightPath)
+  dt <- FromListSimple(spikyBoxes)
+  print(dt)
   
+  get_str_recur(spikyBoxes,"",0)
+  
+  #print(spikyBoxes)
+  
+  
+  add.box.to.pos(ses,Enreg,spolygons)
   enreg=set.activity.to.boxes(ses,spikyBoxes,Enreg,rightPath)
   
   
-  ## 1) By space - Do neurons encode according to boxes ? 
-  ##    Info required : Activity of every neuron for every box
-  ## 2) By time - Do neurons fire after fixed time ?
-  ##    Info required : Activity of every neuron at each elapsed time  
-  ## By distance - Do neurons fire after a fixed distance is covered ?
-  ##    Info required : Activity if every neuron after fixed distance is covered
-  
-  
-  
   enreg=set.boxes.to.neurons(ses,spikyBoxes,Enreg,spolygons,rightPath)
+  
   
   
   
@@ -191,6 +252,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   for (i in length(rat)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
+    print(enreg)
     for(s in 1:length(enreg)){
       enreg=add.neuron.in.path(tree,s,rightPath,boites,enreg,i)
       tree=change.tree.node(rat,i,tree,enreg,s)

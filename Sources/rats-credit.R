@@ -8,7 +8,7 @@ library(data.tree)
 library(pracma)
 library(sp) #for spatial polygons
 
-setwd("~/intership2/ProgR/Sources")
+setwd("C:\\Users\\M4NC\\Documents\\Rats-Credit\\Sources")
 
 options(error = recover)
 
@@ -20,7 +20,7 @@ for (f in list.files(pattern="*.R$")) {
 }
 
 #Load SDM and SDL folders (SDM113,SDL101, etc.)
-setwd("~/intership2/Data/")
+setwd("C:\\Users\\M4NC\\Documents\\Rats-Credit\\Data")
 # Experiment in Marseille   
 #    ¦--SDL                   
 #    ¦   °--rat_103           
@@ -63,7 +63,7 @@ boites=alex.mergeBoxes(resalex$boxes)
 # "region_SDM" plot all rat journeys of all rats recorded in SDM region
 # "rat_113" plot the rat journey
 # "113_session_6" plot one session of one rat
-print.plot.journeys(DATA,FindNode(DATA,"Experiment in Marseille"),boites)
+#print.plot.journeys(DATA,FindNode(DATA,"Experiment in Marseille"),boites)
 
 #Add the spatial polygons to the root
 DATA$Set(spatialPolygons = boites,filterFun = function(x) x$level == 1)

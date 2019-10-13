@@ -437,7 +437,7 @@ shortcut=function(Enreg, session, myboxes)
 extract.spikes=function(Enreg,session,short,box.ref,path)
 { #get indices of path (the pattern to match in reg expression journey)
   indices=gregexpr(path,short$journey)[[1]]
-  print(indices)
+  #print(indices)
   if(length(indices)==1)
   {
     if(indices==-1){

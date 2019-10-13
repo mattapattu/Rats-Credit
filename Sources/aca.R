@@ -69,8 +69,10 @@ in.right.path=function(ses,spikyBoxes,time,rpath){
 
 add.box.to.pos=function(ses,enreg,spolygons){
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,boxname="")
+  enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,trial="")
   prev_nbx="NoBox"
   count = 0
+  trial=1
   for(idx in 1:length(enreg[[ses]]$POS[,1])){
     #n=enreg$SPIKES[idx,3]
     #time=enreg[[ses]]$POS[[idx,1]]
@@ -78,21 +80,52 @@ add.box.to.pos=function(ses,enreg,spolygons){
     nbx=get.box(enreg,ses,spolygons,idx)
     enreg[[ses]]$POS[idx,4] = nbx
     if(prev_nbx != nbx){
-      print(sprintf("New box reached after %i recordings is %s",count, nbx))
+      #print(sprintf("New box reached after %i recordings is %s",count, nbx))
+      #### New trial starts if prev box is e or i 
+      if(identical(prev_nbx,"e")||identical(prev_nbx,"i")){
+        trial=trial+1
+      }
       count = 0
       prev_nbx = nbx
       #print(nbx)
     }else{
       count = count+1
     }
-    
- #   enreg[[ses]]$POS[idx,"boxName"]   = nbx
+    enreg[[ses]]$POS[idx,5] = trial
   }
+  #debug(add.rewards.to.pos)
+  enreg=add.rewards.to.pos(ses,enreg)
   
-  print(enreg[[ses]]$POS)
-  capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
+  #print(enreg[[ses]]$POS)
+  # capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
+   write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
+  # write.table(as.data.frame(enreg[[ses]]$EVENTS),file=sprintf("POS_session%i",ses), quote=F,sep=",",row.names=F)
+   
+   print("Returning enreg from add.box.to.pos")
   return(enreg)
   
+}
+
+add.rewards.to.pos=function(ses,enreg){
+  enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Reward=0)
+  
+  for(idx in 1:length(enreg[[ses]]$EVENTS[,1])){
+    #browser()
+    if(enreg[[ses]]$EVENTS[idx,2] == 49){
+      #print(sprintf("Event = 49 for index %i",idx))
+      index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= enreg[[ses]]$EVENTS[idx,1]))
+      #print(sprintf("%f,%i",enreg[[ses]]$EVENTS[idx,1],index))
+      enreg[[ses]]$POS[index,6] = 49
+      
+    }else if(enreg[[ses]]$EVENTS[idx,2] == 51){
+      #print(sprintf("Event = 51 for index %i",idx))
+      index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= enreg[[ses]]$EVENTS[idx,1]))
+      #print(sprintf("%f,%i",enreg[[ses]]$EVENTS[idx,1],index))
+      enreg[[ses]]$POS[index,6] = 51
+    }
+  }
+  print("Returning enreg from add.rewards.to.pos")
+  return(enreg)
 }
 
 
@@ -217,25 +250,23 @@ add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
   #spikyBoxes$h$pass (column i: entering time, i+1: exiting time),
   #spikyBoxes$h$spikes (time,tetrod neuron rightPath boxName boxSensitivity)
   spikyBoxes=getBoxesInPath(ses,Enreg,spolygons,short,rightPath)
-  dt <- FromListSimple(spikyBoxes)
-  print(dt)
+  #dt <- FromListSimple(spikyBoxes)
+  #print(dt)
   
-  get_str_recur(spikyBoxes,"",0)
+  #get_str_recur(spikyBoxes,"",0)
   
   #print(spikyBoxes)
   
   
-  add.box.to.pos(ses,Enreg,spolygons)
-  enreg=set.activity.to.boxes(ses,spikyBoxes,Enreg,rightPath)
-  
-  
-  enreg=set.boxes.to.neurons(ses,spikyBoxes,Enreg,spolygons,rightPath)
+  enreg=add.box.to.pos(ses,Enreg,spolygons)
+  # enreg=set.activity.to.boxes(ses,spikyBoxes,Enreg,rightPath)
+  # enreg=set.boxes.to.neurons(ses,spikyBoxes,Enreg,spolygons,rightPath)
   
   
   
   
   #tree$Set(spatialPolygons = boites,filterFun = function(x) x$level == 1)
-  
+  print("Returning enreg from add.neuron.in.path")
   return(enreg)
 }
 
@@ -244,18 +275,15 @@ add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
 set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
-  #cat("tree:")
-  #print(tree)
-  #cat("RightPath:")
-  #print(rightPath)
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
   for (i in length(rat)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
-    print(enreg)
+    #print(enreg)
     for(s in 1:length(enreg)){
+      print(sprintf("Rat = %i , Session = %i",i,s))
       enreg=add.neuron.in.path(tree,s,rightPath,boites,enreg,i)
-      tree=change.tree.node(rat,i,tree,enreg,s)
+      #tree=change.tree.node(rat,i,tree,enreg,s)
     }
   }
   return(tree)

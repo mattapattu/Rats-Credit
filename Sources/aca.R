@@ -79,11 +79,14 @@ add.box.to.pos=function(ses,enreg,spolygons){
     #nbx=get.box(enreg[[ses]]$POS,spolygons,time)
     nbx=get.box(enreg,ses,spolygons,idx)
     enreg[[ses]]$POS[idx,4] = nbx
-    if(prev_nbx != nbx){
+    if(nbx=="noBox"){
+      next
+    }
+    else if(prev_nbx != nbx){
       #print(sprintf("New box reached after %i recordings is %s",count, nbx))
       #### New trial starts if prev box is e or i 
-      if(identical(prev_nbx,"e")||identical(prev_nbx,"i")){
-        trial=trial+1
+      if(prev_nbx=="e"|| prev_nbx=="i" ){
+          trial=trial+1
       }
       count = 0
       prev_nbx = nbx
@@ -276,7 +279,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in length(rat)) {
+  for (i in 1:length(rat)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)

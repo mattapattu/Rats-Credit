@@ -80,20 +80,20 @@ add.box.to.pos=function(ses,enreg,spolygons){
     #time=enreg[[ses]]$POS[[idx,1]]
     #nbx=get.box(enreg[[ses]]$POS,spolygons,time)
     nbx=get.box(enreg,ses,spolygons,idx)
-    enreg[[ses]]$POS[idx,4] = nbx
+    enreg[[ses]]$POS[idx,"boxname"] = nbx
     if(nbx=="noBox"){
       next
     }
     else if(prev_nbx != nbx){
       if(nbx==prev_2_nbx){
-        print(sprintf("Rat moves backwards from %s to %s in trial %i at time %s", prev_nbx, nbx, trial, enreg[[ses]]$POS[idx, 1]))
+        #print(sprintf("Rat moves backwards from %s to %s in trial %i at time %s", prev_nbx, nbx, trial, enreg[[ses]]$POS[idx, 1]))
         neg_displacement = neg_displacement+1
         
       }
       #print(sprintf("New box reached after %i recordings is %s",count, nbx))
       #### New trial starts if prev box is e or i 
       if(prev_nbx=="e"|| prev_nbx=="i" ){
-          print(sprintf("Total negative displacement for trial %i is %i", trial, neg_displacement))
+          #print(sprintf("Total negative displacement for trial %i is %i", trial, neg_displacement))
           trial=trial+1
           neg_displacement = 0
       }
@@ -108,6 +108,8 @@ add.box.to.pos=function(ses,enreg,spolygons){
   }
   #debug(add.rewards.to.pos)
   enreg=add.rewards.to.pos(ses,enreg)
+  
+  enreg=add.spikes.to.pos(ses,enreg)
   
   #print(enreg[[ses]]$POS)
   # capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
@@ -128,16 +130,29 @@ add.rewards.to.pos=function(ses,enreg){
       #print(sprintf("Event = 49 for index %i",idx))
       index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= enreg[[ses]]$EVENTS[idx,1]))
       #print(sprintf("%f,%i",enreg[[ses]]$EVENTS[idx,1],index))
-      enreg[[ses]]$POS[index,6] = 49
+      enreg[[ses]]$POS[index,"Reward"] = 49
       
     }else if(enreg[[ses]]$EVENTS[idx,2] == 51){
       #print(sprintf("Event = 51 for index %i",idx))
       index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= enreg[[ses]]$EVENTS[idx,1]))
       #print(sprintf("%f,%i",enreg[[ses]]$EVENTS[idx,1],index))
-      enreg[[ses]]$POS[index,6] = 51
+      enreg[[ses]]$POS[index,"Reward"] = 51
     }
   }
   print("Returning enreg from add.rewards.to.pos")
+  return(enreg)
+}
+
+add.spikes.to.pos=function(ses,enreg){
+  enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Spikes=0)
+  
+  for(idx in 1:length(enreg[[ses]]$SPIKES[,1])){
+    if(enreg[[ses]]$SPIKES[idx,"neuron"] != "0"){
+      index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= as.numeric(enreg[[ses]]$SPIKES[idx,1])))
+      index = index-1
+      enreg[[ses]]$POS[index,"Spikes"] = as.numeric(enreg[[ses]]$POS[index,"Spikes"]) +1 
+    }
+  }
   return(enreg)
 }
 

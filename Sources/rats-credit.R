@@ -8,7 +8,7 @@ library(data.tree)
 library(pracma)
 library(sp) #for spatial polygons
 
-setwd("C:\\Users\\M4NC\\Documents\\Rats-Credit\\Sources")
+setwd("~/intership2/ProgR/Sources")
 
 options(error = recover)
 
@@ -20,7 +20,7 @@ for (f in list.files(pattern="*.R$")) {
 }
 
 #Load SDM and SDL folders (SDM113,SDL101, etc.)
-setwd("C:\\Users\\M4NC\\Documents\\Rats-Credit\\Data")
+setwd("~/intership2/Data")
 # Experiment in Marseille   
 #    ¦--SDL                   
 #    ¦   °--rat_103           

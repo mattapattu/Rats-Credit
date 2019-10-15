@@ -71,7 +71,9 @@ add.box.to.pos=function(ses,enreg,spolygons){
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,boxname="")
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,trial="")
   prev_nbx="NoBox"
+  prev_2_nbx="unknown"
   count = 0
+  neg_displacement = 0
   trial=1
   for(idx in 1:length(enreg[[ses]]$POS[,1])){
     #n=enreg$SPIKES[idx,3]
@@ -83,12 +85,20 @@ add.box.to.pos=function(ses,enreg,spolygons){
       next
     }
     else if(prev_nbx != nbx){
+      if(nbx==prev_2_nbx){
+        print(sprintf("Rat moves backwards from %s to %s in trial %i at time %s", prev_nbx, nbx, trial, enreg[[ses]]$POS[idx, 1]))
+        neg_displacement = neg_displacement+1
+        
+      }
       #print(sprintf("New box reached after %i recordings is %s",count, nbx))
       #### New trial starts if prev box is e or i 
       if(prev_nbx=="e"|| prev_nbx=="i" ){
+          print(sprintf("Total negative displacement for trial %i is %i", trial, neg_displacement))
           trial=trial+1
+          neg_displacement = 0
       }
       count = 0
+      prev_2_nbx = prev_nbx
       prev_nbx = nbx
       #print(nbx)
     }else{
@@ -177,7 +187,7 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
   
   neuronThruBoxes=list()
   string_split <- strsplit(str_sub(rightPath,0,-2), "")[[1]]
-  #bxs=replicate(length(string_split),0)
+  #bxs=replicate(length(string_split),0)  
   #The indexes of the vector are the right path boxes
   #names(bxs)=string_split
   
@@ -279,7 +289,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in 1:length(rat)) {
+  for (i in length(rat)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)

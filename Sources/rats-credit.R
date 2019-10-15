@@ -16,7 +16,7 @@ options(error = recover)
 # Load all source files from working directory
 for (f in list.files(pattern="*.R$")) {
   if(!strcmp(f,"rats-credit.R"))
-    source(f)
+   source(f)
 }
 
 #Load SDM and SDL folders (SDM113,SDL101, etc.)

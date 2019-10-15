@@ -108,12 +108,12 @@ add.box.to.pos=function(ses,enreg,spolygons){
   }
   #debug(add.rewards.to.pos)
   enreg=add.rewards.to.pos(ses,enreg)
-  
+  #debug(add.spikes.to.pos)
   enreg=add.spikes.to.pos(ses,enreg)
   
   #print(enreg[[ses]]$POS)
   # capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
-   write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
+  write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
   # write.table(as.data.frame(enreg[[ses]]$EVENTS),file=sprintf("POS_session%i",ses), quote=F,sep=",",row.names=F)
    
    print("Returning enreg from add.box.to.pos")
@@ -151,6 +151,8 @@ add.spikes.to.pos=function(ses,enreg){
       index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= as.numeric(enreg[[ses]]$SPIKES[idx,1])))
       index = index-1
       enreg[[ses]]$POS[index,"Spikes"] = as.numeric(enreg[[ses]]$POS[index,"Spikes"]) +1 
+      #enreg[[ses]]$POS[index,"Spikes"] = paste(enreg[[ses]]$POS[index,"Spikes"],enreg[[ses]]$SPIKES[idx,1],sep=" ")
+      #print(enreg[[ses]]$POS[index,"Spikes"])
     }
   }
   return(enreg)

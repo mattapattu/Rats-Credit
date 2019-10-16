@@ -108,7 +108,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
   }
   #debug(add.rewards.to.pos)
   enreg=add.rewards.to.pos(ses,enreg)
-  debug(add.boxes.to.spikes)
+  #debug(add.boxes.to.spikes)
   enreg=add.boxes.to.spikes(ses,enreg)
   
   #print(enreg[[ses]]$POS)

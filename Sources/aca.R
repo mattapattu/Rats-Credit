@@ -104,19 +104,19 @@ add.box.to.pos=function(ses,enreg,spolygons){
     }else{
       count = count+1
     }
-    enreg[[ses]]$POS[idx,5] = trial
+    enreg[[ses]]$POS[idx,"trial"] = trial
   }
   #debug(add.rewards.to.pos)
   enreg=add.rewards.to.pos(ses,enreg)
-  #debug(add.spikes.to.pos)
-  enreg=add.spikes.to.pos(ses,enreg)
+  debug(add.boxes.to.spikes)
+  enreg=add.boxes.to.spikes(ses,enreg)
   
   #print(enreg[[ses]]$POS)
   # capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
-  write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
+  #write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
   # write.table(as.data.frame(enreg[[ses]]$EVENTS),file=sprintf("POS_session%i",ses), quote=F,sep=",",row.names=F)
    
-   print("Returning enreg from add.box.to.pos")
+   print("Returning enreg from add.boxes.to.spikes")
   return(enreg)
   
 }
@@ -143,14 +143,19 @@ add.rewards.to.pos=function(ses,enreg){
   return(enreg)
 }
 
-add.spikes.to.pos=function(ses,enreg){
-  enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Spikes=0)
+## Use POS data to add boxes to spikes
+## Spikes of neuron 0 are ignored
+add.boxes.to.spikes=function(ses,enreg){
+  #enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Spikes=0)
+  enreg[[ses]]$SPIKES = cbind(enreg[[ses]]$SPIKES,trial=-1)
   
   for(idx in 1:length(enreg[[ses]]$SPIKES[,1])){
     if(enreg[[ses]]$SPIKES[idx,"neuron"] != "0"){
       index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= as.numeric(enreg[[ses]]$SPIKES[idx,1])))
       index = index-1
-      enreg[[ses]]$POS[index,"Spikes"] = as.numeric(enreg[[ses]]$POS[index,"Spikes"]) +1 
+      #enreg[[ses]]$POS[index,"boxname"] = as.numeric(enreg[[ses]]$POS[index,"Spikes"]) +1 
+      enreg[[ses]]$SPIKES[idx,"boxName"] = enreg[[ses]]$POS[index,"boxname"]
+      enreg[[ses]]$SPIKES[idx,"trial"]  =  enreg[[ses]]$POS[index,"trial"]
       #enreg[[ses]]$POS[index,"Spikes"] = paste(enreg[[ses]]$POS[index,"Spikes"],enreg[[ses]]$SPIKES[idx,1],sep=" ")
       #print(enreg[[ses]]$POS[index,"Spikes"])
     }
@@ -250,6 +255,7 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
 }
 
 change.tree.node=function(rat,animalNb,tree,enreg,ses){
+  animalNb  = gsub("rat_", "", animalNb)
   for(rec in enreg){
     #temps, tetrode, neurone, remove last voltage values
     spks=rec$SPIKES[,1:3] 
@@ -287,14 +293,10 @@ add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
   
   #print(spikyBoxes)
   
-  
   enreg=add.box.to.pos(ses,Enreg,spolygons)
   # enreg=set.activity.to.boxes(ses,spikyBoxes,Enreg,rightPath)
   # enreg=set.boxes.to.neurons(ses,spikyBoxes,Enreg,spolygons,rightPath)
-  
-  
-  
-  
+
   #tree$Set(spatialPolygons = boites,filterFun = function(x) x$level == 1)
   print("Returning enreg from add.neuron.in.path")
   return(enreg)
@@ -310,10 +312,11 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
-    for(s in 1:length(enreg)){
-      print(sprintf("Rat = %i , Session = %i",i,s))
-      enreg=add.neuron.in.path(tree,s,rightPath,boites,enreg,i)
-      #tree=change.tree.node(rat,i,tree,enreg,s)
+    for(ses in length(enreg)){
+      print(sprintf("Rat = %i , Session = %i",i,ses))
+      enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
+      plot.spikes.by.boxes(ses,enreg)
+      tree=change.tree.node(n,rat[i],tree,enreg,ses)
     }
   }
   return(tree)

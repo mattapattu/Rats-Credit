@@ -78,6 +78,7 @@ DATA$Set(spatialPolygons = boites,filterFun = function(x) x$level == 1)
 # #Collect all spiky boxes in a right path
 rightPath="efgabchi"
 DATA=set.neurons.to.boxes(DATA,rightPath,boites)
+#plot.spikes.by.boxes(DATA,1)
 
 #rightPath="ijkabcde"
 #DATA=set.neurons.to.boxes(DATA,rightPath,spolygons)

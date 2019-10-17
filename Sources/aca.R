@@ -317,6 +317,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
       plot.spikes.by.boxes(ses,enreg)
       tree=change.tree.node(n,rat[i],tree,enreg,ses)
+      
     }
   }
   return(tree)

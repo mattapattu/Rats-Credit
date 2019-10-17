@@ -65,9 +65,12 @@ plot.spikes.by.boxes=function(ses,enreg){
   }
   print("HERE8")
   m <-as.matrix(spiketrain[[ses]]$trials[[100]]) 
+  filename = paste("barplot_",ses,"_trial_100",sep="")
+  jpeg(filename)
   par(mfrow=c(4,1))
   barplot(as.numeric(m[,"Neuron1"]),col = "red",width = 0.3,xlim=c(0,10))
   barplot(as.numeric(m[,"Neuron2"]),col = "red",width = 0.3,xlim=c(0,10))
   barplot(as.numeric(m[,"Neuron3"]),col = "red",width = 0.3,xlim=c(0,10))
   barplot(as.numeric(m[,"Sum"]),col = "red",width = 0.3,xlim=c(0,10))
+  dev.off()
 }

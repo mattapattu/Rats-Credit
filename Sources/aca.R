@@ -152,7 +152,9 @@ add.boxes.to.spikes=function(ses,enreg){
   for(idx in 1:length(enreg[[ses]]$SPIKES[,1])){
     if(enreg[[ses]]$SPIKES[idx,"neuron"] != "0"){
       index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= as.numeric(enreg[[ses]]$SPIKES[idx,1])))
-      index = index-1
+      if (index>1) {
+        index = index-1
+      }
       #enreg[[ses]]$POS[index,"boxname"] = as.numeric(enreg[[ses]]$POS[index,"Spikes"]) +1 
       enreg[[ses]]$SPIKES[idx,"boxName"] = enreg[[ses]]$POS[index,"boxname"]
       enreg[[ses]]$SPIKES[idx,"trial"]  =  enreg[[ses]]$POS[index,"trial"]
@@ -216,9 +218,6 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
   count =0
   #For each box
   for(bx in string_split){
-    #Get the index of neurons
-    #neurons=spikyBoxes[[nm]]$spikes[,3][(spikyBoxes[[nm]]$spikes[,3]!=0)]
-    #For each trial
     trial=1
     sb=spikyBoxes[[ses]][[bx]]
     for(t in seq(from=1, to=length(sb$pass)-1, by=2)){
@@ -227,11 +226,6 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
       neurons=sb$spikes[,3][(sb$spikes[,3]!=0)]
       a=length(neurons)/duration
       
-      #pth=list("trial"=1, "path"="", "boxNm"="", "activity"="")
-      #print("Appending")
-      #print(enreg[[ses]])
-      #enreg[[ses]][4] <- PATHS
-      #enreg[[ses]] <- c(enreg[[ses]],PATHS)
       if(count==0){
         enreg[[ses]]$PATHS <-append(enreg[[ses]]$PATHS, c("trial"=trial, "path"=rightPath, "boxNm"=bx,"activity"=a))
       }else{
@@ -242,11 +236,8 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
       }
       trial=trial+1
       count = count+1
-      
 #      enreg[[ses]]$PATHS <-append(enreg[[ses]]$PATH, c("trial"=1, "path"=rightPath, "boxNm"=bx,"activity"=a))
-      
     }
-    
   }
   df1 <- data.frame(sapply(enreg[[ses]]$PATHS,c))
   enreg[[ses]]$PATHS = list(df1)
@@ -288,9 +279,7 @@ add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
   spikyBoxes=getBoxesInPath(ses,Enreg,spolygons,short,rightPath)
   #dt <- FromListSimple(spikyBoxes)
   #print(dt)
-  
   #get_str_recur(spikyBoxes,"",0)
-  
   #print(spikyBoxes)
   
   enreg=add.box.to.pos(ses,Enreg,spolygons)
@@ -312,7 +301,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
-    for(ses in length(enreg)){
+    for(ses in 1:length(enreg)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
       plot.spikes.by.boxes(ses,enreg)

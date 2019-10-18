@@ -1,13 +1,14 @@
 library(rlist)
 library(data.table)
 library(data.tree)
+library(ggplot2)
 
 
 plot.spikes.by.boxes=function(ses,enreg){
   trial = 0
   spiketrain = list()
   print("HERE1")
-  size =length(enreg[[ses]]$SPIKES[,1])
+  size =length(enreg[[ses]]$POS[,1])
   max_trial = enreg[[ses]]$POS[size,"trial"]
   spiketrain[[ses]]=list("trials"= c(1:max_trial))
   print("HERE2")
@@ -25,35 +26,35 @@ plot.spikes.by.boxes=function(ses,enreg){
        boxname = sub_enreg[sp,"boxName"]
        if(boxname == "a"){
          spiketrain[[ses]]$trials[[idx]][1,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][1,neuron]) + 1
-         spiketrain[[ses]]$trials[[idx]][9,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][1,"Sum"])+1  
+         spiketrain[[ses]]$trials[[idx]][1,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][1,"Sum"])+1  
          
        }else if(boxname == "b"){
          spiketrain[[ses]]$trials[[idx]][2,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][2,neuron]) + 1
-         spiketrain[[ses]]$trials[[idx]][9,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][2,"Sum"])+1
+         spiketrain[[ses]]$trials[[idx]][2,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][2,"Sum"])+1
          
        }else if(boxname == "c"){
          spiketrain[[ses]]$trials[[idx]][3,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][3,neuron]) + 1
-         spiketrain[[ses]]$trials[[idx]][9,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][3,"Sum"])+1
+         spiketrain[[ses]]$trials[[idx]][3,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][3,"Sum"])+1
          
        }else if(boxname == "d"){
          spiketrain[[ses]]$trials[[idx]][4,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][4,neuron]) + 1
-         spiketrain[[ses]]$trials[[idx]][9,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][4,"Sum"])+1 
+         spiketrain[[ses]]$trials[[idx]][4,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][4,"Sum"])+1 
          
        }else if(boxname == "e"){
          spiketrain[[ses]]$trials[[idx]][5,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][5,neuron]) + 1
-         spiketrain[[ses]]$trials[[idx]][9,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][5,"Sum"])+1
+         spiketrain[[ses]]$trials[[idx]][5,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][5,"Sum"])+1
          
        }else if(boxname == "f"){
          spiketrain[[ses]]$trials[[idx]][6,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][6,neuron]) + 1
-         spiketrain[[ses]]$trials[[idx]][9,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][6,"Sum"])+1
+         spiketrain[[ses]]$trials[[idx]][6,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][6,"Sum"])+1
          
        }else if(boxname == "g"){
          spiketrain[[ses]]$trials[[idx]][7,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][7,neuron]) + 1
-         spiketrain[[ses]]$trials[[idx]][9,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][7,"Sum"])+1
+         spiketrain[[ses]]$trials[[idx]][7,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][7,"Sum"])+1
          
        }else if(boxname == "h"){
          spiketrain[[ses]]$trials[[idx]][8,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][8,neuron]) + 1
-         spiketrain[[ses]]$trials[[idx]][9,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][8,"Sum"])+1
+         spiketrain[[ses]]$trials[[idx]][8,"Sum"] = as.numeric(spiketrain[[ses]]$trials[[idx]][8,"Sum"])+1
          
        }else if(boxname == "i"){
          spiketrain[[ses]]$trials[[idx]][9,neuron] =  as.numeric(spiketrain[[ses]]$trials[[idx]][9,neuron]) + 1
@@ -65,12 +66,20 @@ plot.spikes.by.boxes=function(ses,enreg){
   }
   print("HERE8")
   m <-as.matrix(spiketrain[[ses]]$trials[[100]]) 
-  filename = paste("barplot_",ses,"_trial_100",sep="")
+  filename = paste("barplot_session",ses,"_trial_100.jpg",sep="")
   jpeg(filename)
-  par(mfrow=c(4,1))
-  barplot(as.numeric(m[,"Neuron1"]),col = "red",width = 0.3,xlim=c(0,10))
-  barplot(as.numeric(m[,"Neuron2"]),col = "red",width = 0.3,xlim=c(0,10))
-  barplot(as.numeric(m[,"Neuron3"]),col = "red",width = 0.3,xlim=c(0,10))
-  barplot(as.numeric(m[,"Sum"]),col = "red",width = 0.3,xlim=c(0,10))
+  par(mfrow=c(2,2))
+  barplot(as.numeric(m[,"Neuron1"]),col = "red",width = 0.3,xlim=c(0,9),main="Neuron 1 spikes",
+          xlab="Boxes", ylab="Neuron 1 spikes")
+  barplot(as.numeric(m[,"Neuron2"]),col = "red",width = 0.3,xlim=c(0,9),main="Neuron 2 spikes",
+          xlab="Boxes", ylab="Neuron 2 spikes")
+  barplot(as.numeric(m[,"Neuron3"]),col = "red",width = 0.3,xlim=c(0,9),main="Neuron 3 spikes",
+          xlab="Boxes", ylab="Neuron 3 spikes")
+  barplot(as.numeric(m[,"Sum"]),col = "red",width = 0.3,xlim=c(0,9),main="Total activity",
+          xlab="Boxes", ylab="Total Activity")
+  #ggsave(final.plot, file = paste0(filename), scale = 2) 
+  #print(final.plot)
   dev.off()
+  print("HERE9")
+  
 }

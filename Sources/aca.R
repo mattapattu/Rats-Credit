@@ -33,8 +33,14 @@ get_str_recur <- function(x,text2,y){
 convert.node.to.enreg=function(rat){
   enr=list()
   i=1
+  TRIAL <- array(rep(0, 365*6*11), dim=c(365, 6, 11),dimnames = list(c(1:365),
+                                                                   c("Neuron1", "Neuron2", "Neuron3","Neuron4","Neuron5","Neuron6"),
+                                                                   c("a","b","c","d", "e", "f","g","h","i","j","k")))
   for (s in rat$children) {
-    enr[[i]]=list.append(list(POS=s$POS,SPIKES=s$SPIKES,EVENTS=s$EVENTS))
+    
+    enr[[i]]=list.append(list(POS=s$POS,SPIKES=s$SPIKES,EVENTS=s$EVENTS, TRIAL=TRIAL))
+    #TRIALS = as.matrix(list(trial,Neuron1,Neuron2,Neuron3,Neuron4,Neuron5,Neuron6))
+    
     i=i+1
   }
   return(enr)
@@ -70,15 +76,15 @@ in.right.path=function(ses,spikyBoxes,time,rpath){
 add.box.to.pos=function(ses,enreg,spolygons){
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,boxname="")
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,trial="")
+ 
+  
   prev_nbx="NoBox"
   prev_2_nbx="unknown"
   count = 0
   neg_displacement = 0
   trial=1
   for(idx in 1:length(enreg[[ses]]$POS[,1])){
-    #n=enreg$SPIKES[idx,3]
-    #time=enreg[[ses]]$POS[[idx,1]]
-    #nbx=get.box(enreg[[ses]]$POS,spolygons,time)
+
     nbx=get.box(enreg,ses,spolygons,idx)
     enreg[[ses]]$POS[idx,"boxname"] = nbx
     if(nbx=="noBox"){
@@ -116,7 +122,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
   #write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
   # write.table(as.data.frame(enreg[[ses]]$EVENTS),file=sprintf("POS_session%i",ses), quote=F,sep=",",row.names=F)
    
-   print("Returning enreg from add.boxes.to.spikes")
+   print("Returning enreg from add.boxes.to.pos")
   return(enreg)
   
 }
@@ -146,22 +152,34 @@ add.rewards.to.pos=function(ses,enreg){
 ## Use POS data to add boxes to spikes
 ## Spikes of neuron 0 are ignored
 add.boxes.to.spikes=function(ses,enreg){
+ # print("Inside1")
   #enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Spikes=0)
   enreg[[ses]]$SPIKES = cbind(enreg[[ses]]$SPIKES,trial=-1)
-  
+  trial = 0
   for(idx in 1:length(enreg[[ses]]$SPIKES[,1])){
-    if(enreg[[ses]]$SPIKES[idx,"neuron"] != "0"){
-      index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= as.numeric(enreg[[ses]]$SPIKES[idx,1])))
-      if (index>1) {
-        index = index-1
+      spike_time = as.numeric(enreg[[ses]]$SPIKES[idx,1])
+      index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= spike_time))
+      boxname = enreg[[ses]]$POS[index,"boxname"]
+      if(boxname == "noBox" && index < length(enreg[[ses]]$POS[,1])){
+        while(enreg[[ses]]$POS[index,"boxname"] == "noBox"){
+          index = index+1
+          boxname = enreg[[ses]]$POS[index,"boxname"]
+        }
       }
-      #enreg[[ses]]$POS[index,"boxname"] = as.numeric(enreg[[ses]]$POS[index,"Spikes"]) +1 
-      enreg[[ses]]$SPIKES[idx,"boxName"] = enreg[[ses]]$POS[index,"boxname"]
-      enreg[[ses]]$SPIKES[idx,"trial"]  =  enreg[[ses]]$POS[index,"trial"]
-      #enreg[[ses]]$POS[index,"Spikes"] = paste(enreg[[ses]]$POS[index,"Spikes"],enreg[[ses]]$SPIKES[idx,1],sep=" ")
-      #print(enreg[[ses]]$POS[index,"Spikes"])
-    }
+      neuron = enreg[[ses]]$SPIKES[idx,"neuron"]
+      trialnb = enreg[[ses]]$POS[index,"trial"]
+      enreg[[ses]]$SPIKES[idx,"boxName"] = boxname
+      trial = as.numeric(trialnb)
+     if(as.numeric(enreg[[ses]]$SPIKES[idx,"neuron"]) != 0){
+       enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname] = as.numeric(enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname])+1
+      }
   }
+  last_valid_trial_index = max(which(enreg[[ses]]$POS[,"boxname"] != "noBox"))
+  last_vald_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
+  print(sprintf("All spikes processed, last trial is  %i,", trial))
+  enreg[[ses]]$TRIAL<- enreg[[ses]]$TRIAL[-(last_vald_trial+1):-365, , ]
+  #print(enreg[[ses]]$TRIAL)
+  
   return(enreg)
 }
 
@@ -246,7 +264,9 @@ set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
 }
 
 change.tree.node=function(rat,animalNb,tree,enreg,ses){
+  #print(paste("rat",animalNb,sep=","))
   animalNb  = gsub("rat_", "", animalNb)
+  print(paste("rat",animalNb,sep=","))
   for(rec in enreg){
     #temps, tetrode, neurone, remove last voltage values
     spks=rec$SPIKES[,1:3] 
@@ -297,17 +317,39 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in length(rat)) {
+  for (i in length(rat):1) {
     n=FindNode(tree,rat[[i]])
+    #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
-    for(ses in 1:length(enreg)){
+    for(ses in 8:length(enreg)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
-      enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
-      plot.spikes.by.boxes(ses,enreg)
-      tree=change.tree.node(n,rat[i],tree,enreg,ses)
       
+      ### Shift boxes if first POS recording is negative
+      if(as.numeric(enreg[[ses]]$POS[1,2]) < 0 || as.numeric(enreg[[ses]]$POS[1,3]) < 0){
+        Print("Shifting boxes as first position recording has negative coordinates")
+        shiftx=153.5
+        shifty=129.5
+        shift=c(shiftx,shifty)
+        resalex=leo.boxes()
+        lb=length(resalex$boxes)
+        boites=resalex$boxes
+        for(j in 1:lb)
+        {
+          boites[[j]]=rbind(resalex$boxes[[j]][1,]-shiftx,resalex$boxes[[j]][2,]-shifty)
+        }
+      }
+     
+      enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
+      tree=change.tree.node(n,rat[i],tree,enreg,ses)
+      #debug(plot.spikes.by.boxes.by.session)
+      plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
+      plot.spikes.by.time(rat[i],enreg,ses)
     }
+    #debug(plot.spikes.by.boxes)
+    #plot.spikes.by.boxes.by.rat(rat[i],enreg)
+    
+    
   }
   return(tree)
 }

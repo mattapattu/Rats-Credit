@@ -322,7 +322,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
-    for(ses in 8:length(enreg)){
+    for(ses in 1:length(enreg)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       ### Shift boxes if first POS recording is negative

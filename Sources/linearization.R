@@ -170,7 +170,7 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     }
     
     
-    x <- c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0)
+    #x <- c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0)
     
     neuron1 = neuron1/length(unrewarded_trials)
     neuron2 = neuron2/length(unrewarded_trials)

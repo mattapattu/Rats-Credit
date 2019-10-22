@@ -327,12 +327,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in 1) {
+  for (i in length(rat):1) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
-    for(ses in 1:length(enreg)){
+    for(ses in c(1,length(enreg))){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       ### Shift boxes if first POS recording is negative
@@ -354,6 +354,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       tree=change.tree.node(n,rat[i],tree,enreg,ses)
       #debug(plot.spikes.by.boxes.by.session)
       plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
+      plot.average.frequency.by.boxes(rat[i],enreg,ses)
       plot.spikes.by.time(rat[i],enreg,ses)
     }
     #debug(plot.spikes.by.boxes)

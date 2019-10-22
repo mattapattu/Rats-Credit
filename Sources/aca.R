@@ -160,9 +160,17 @@ add.boxes.to.spikes=function(ses,enreg){
       spike_time = as.numeric(enreg[[ses]]$SPIKES[idx,1])
       index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= spike_time))
       boxname = enreg[[ses]]$POS[index,"boxname"]
-      if(boxname == "noBox" && index < length(enreg[[ses]]$POS[,1])){
+      
+      #### Assign spike to the next valid boxname if curr boxname = "noBox",
+      #### if last POS, then assign to previous valid boxname
+      if(boxname == "noBox"){
         while(enreg[[ses]]$POS[index,"boxname"] == "noBox"){
-          index = index+1
+          if((index+1) < length(enreg[[ses]]$POS[,1])){
+            index = index+1
+          }else{
+            index = index-1
+          }
+          
           boxname = enreg[[ses]]$POS[index,"boxname"]
         }
       }
@@ -292,7 +300,9 @@ change.tree.node=function(rat,animalNb,tree,enreg,ses){
 # and for each neuron there is a vector of activity in boxes
 add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
   short=shortcut(Enreg, ses, myboxes)
+  #print(myboxes)
   spolygons=getSpatialPolygons(myboxes)
+  
   #For each box of the right path, eg h: spikyBoxes$h$duration (total duration), 
   #spikyBoxes$h$pass (column i: entering time, i+1: exiting time),
   #spikyBoxes$h$spikes (time,tetrod neuron rightPath boxName boxSensitivity)
@@ -317,7 +327,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in length(rat):1) {
+  for (i in 1) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
@@ -327,19 +337,19 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       
       ### Shift boxes if first POS recording is negative
       if(as.numeric(enreg[[ses]]$POS[1,2]) < 0 || as.numeric(enreg[[ses]]$POS[1,3]) < 0){
-        Print("Shifting boxes as first position recording has negative coordinates")
+        print("Shifting boxes as first position recording has negative coordinates")
         shiftx=153.5
         shifty=129.5
         shift=c(shiftx,shifty)
         resalex=leo.boxes()
-        lb=length(resalex$boxes)
-        boites=resalex$boxes
+        lb=length(boites)
+        #boites=resalex$boxes
         for(j in 1:lb)
         {
-          boites[[j]]=rbind(resalex$boxes[[j]][1,]-shiftx,resalex$boxes[[j]][2,]-shifty)
+          boites[[j]]=rbind(boites[[j]][1,]-shiftx,boites[[j]][2,]-shifty)
         }
       }
-     
+      #print(boites)
       enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
       tree=change.tree.node(n,rat[i],tree,enreg,ses)
       #debug(plot.spikes.by.boxes.by.session)

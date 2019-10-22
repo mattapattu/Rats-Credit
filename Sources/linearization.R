@@ -19,17 +19,17 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     #### For right trials
     right_corr_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "49"),"trial"])
     right_corr_trials = right_corr_trials[!is.na(right_corr_trials)]
-    # count_a_49 = 0
-    # count_b_49 = 0
-    # count_c_49 = 0
-    # count_d_49 = 0
-    # count_e_49 = 0
-    # count_f_49 = 0
-    # count_g_49 = 0
-    # count_h_49 = 0
-    # count_i_49 = 0
-    # count_j_49 = 0
-    # count_k_49 = 0
+    count_a_49 = 0
+    count_b_49 = 0
+    count_c_49 = 0
+    count_d_49 = 0
+    count_e_49 = 0
+    count_f_49 = 0
+    count_g_49 = 0
+    count_h_49 = 0
+    count_i_49 = 0
+    count_j_49 = 0
+    count_k_49 = 0
     
     neuron1_49 = 0
     neuron2_49 = 0
@@ -43,27 +43,30 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
       neuron3_49 = neuron3_49+enreg[[ses]]$TRIAL[trial,3,]
       
       
-      # count_a_49 = count_a_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
-      # count_b_49 = count_b_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b"])
-      # count_c_49 = count_c_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c"])
-      # count_d_49 = count_d_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d"])
-      # count_e_49 = count_e_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e"])
-      # count_f_49 = count_f_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f"])
-      # count_g_49 = count_g_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g"])
-      # count_h_49 = count_h_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h"])
-      # count_i_49 = count_i_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i"])
-      # count_j_49 = count_j_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "j"])
-      # count_k_49 = count_k_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "k"])
+      count_a_49 = count_a_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
+      count_b_49 = count_b_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b"])
+      count_c_49 = count_c_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c"])
+      count_d_49 = count_d_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d"])
+      count_e_49 = count_e_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e"])
+      count_f_49 = count_f_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f"])
+      count_g_49 = count_g_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g"])
+      count_h_49 = count_h_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h"])
+      count_i_49 = count_i_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i"])
+      count_j_49 = count_j_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "j"])
+      count_k_49 = count_k_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "k"])
       
     }
     
     
-    # x <- c(count_a_49,count_b_49,count_c_49,count_d_49,count_e_49,count_f_49,count_g_49,count_h_49,count_i_49)
+     x <- c(count_a_49,count_b_49,count_c_49,count_d_49,count_e_49,count_f_49,count_g_49,count_h_49,count_i_49,count_j_49,count_k_49)
+     ### Prevent division by 0
+     x[x == 0] <- 1
+
     
-    neuron1_49 = neuron1_49/length(right_corr_trials)
-    neuron2_49 = neuron2_49/length(right_corr_trials)
-    neuron3_49 = neuron3_49/length(right_corr_trials)
-    total_49 =  neuron1_49+neuron2_49+neuron3_49/(length(right_corr_trials))
+    neuron1_49 = neuron1_49*50/x
+    neuron2_49 = neuron2_49*50/x
+    neuron3_49 = neuron3_49*50/x
+    #total_49 =  (neuron1_49+neuron2_49+neuron3_49)*50/x
     
     filename = paste(rat,"_reward_49_session",ses,".jpg",sep="")
     jpeg(filename)
@@ -71,7 +74,7 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     if(length(neuron1_49) !=0) barplot(neuron1_49,main=paste("Neuron 1 event 49,session ",ses))
     if(length(neuron2_49) !=0) barplot(neuron2_49,main=paste("Neuron 2 event 49,session ",ses))
     if(length(neuron3_49) !=0) barplot(neuron3_49,main=paste("Neuron 3 event 49,session ",ses))
-    barplot(total_49,main=paste("Total spikes event 49,session ",ses))
+    #barplot(total_49,main=paste("Total spikes event 49,session ",ses))
     dev.off()
     
     
@@ -79,30 +82,34 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     
     left_corr_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "51"),"trial"])
     left_corr_trials = left_corr_trials[!is.na(left_corr_trials)]
-    # count_a_51 = 0
-    # count_b_51 = 0
-    # count_c_51 = 0
-    # count_d_51 = 0
-    # count_e_51 = 0
-    # count_f_51 = 0
-    # count_g_51 = 0
-    # count_h_51 = 0
-    # count_i_51 = 0
+     count_a_51 = 0
+     count_b_51 = 0
+     count_c_51 = 0
+     count_d_51 = 0
+     count_e_51 = 0
+     count_f_51 = 0
+     count_g_51 = 0
+     count_h_51 = 0
+     count_i_51 = 0
+     count_j_51 = 0
+     count_k_51 = 0
     
     neuron1_51 = 0
     neuron2_51 = 0
     neuron3_51 = 0
     
     for(trial in left_corr_trials){
-      # count_a_51 = count_a_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
-      # count_b_51 = count_b_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b"])
-      # count_c_51 = count_c_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c"])
-      # count_d_51 = count_d_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d"])
-      # count_e_51 = count_e_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e"])
-      # count_f_51 = count_f_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f"])
-      # count_g_51 = count_g_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g"])
-      # count_h_51 = count_h_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h"])
-      # count_i_51 = count_i_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i"])
+       count_a_51 = count_a_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
+       count_b_51 = count_b_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b"])
+       count_c_51 = count_c_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c"])
+       count_d_51 = count_d_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d"])
+       count_e_51 = count_e_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e"])
+       count_f_51 = count_f_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f"])
+       count_g_51 = count_g_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g"])
+       count_h_51 = count_h_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h"])
+       count_i_51 = count_i_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i"])
+       count_j_51 = count_j_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "j"])
+       count_k_51 = count_j_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "k"])
        
       ##neuron1 firing activity for each box for each 51 reward trial
       neuron1_51 = neuron1_51+enreg[[ses]]$TRIAL[trial,1,]
@@ -111,12 +118,12 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     }
     
     
-    # x <- c(count_a_51,count_b_51,count_c_51,count_d_51,count_e_51,count_f_51,count_g_51,count_h_51,count_i_51)
-    
-    neuron1_51 = neuron1_51/length(left_corr_trials)
-    neuron2_51 = neuron2_51/length(left_corr_trials)
-    neuron3_51 = neuron3_51/length(left_corr_trials)
-    total_51 =  neuron1_51+neuron2_51+neuron3_51/length(left_corr_trials)
+    x_51 <- c(count_a_51,count_b_51,count_c_51,count_d_51,count_e_51,count_f_51,count_g_51,count_h_51,count_i_51,count_j_51,count_k_51)
+    x_51[x_51 == 0] <- 1
+    neuron1_51 = neuron1_51*50/x_51
+    neuron2_51 = neuron2_51*50/x_51
+    neuron3_51 = neuron3_51*50/x_51
+    #total_51 =  (neuron1_51+neuron2_51+neuron3_51)*50/x_51
     
     filename = paste(rat,"_reward_51_session",ses,".jpg",sep="")
     jpeg(filename)
@@ -124,7 +131,7 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     if(length(neuron1_51) !=0) barplot(neuron1_51,main=paste("Neuron 1 event 51,session ",ses))
     if(length(neuron2_51) !=0) barplot(neuron2_51,main=paste("Neuron 2 event 51,session ",ses))
     if(length(neuron3_51) !=0) barplot(neuron3_51,main=paste("Neuron 3 event 51,session ",ses))
-    barplot(total_51,main=paste("Total spikes event 51,session ",ses))
+    #barplot(total_51,main=paste("Total spikes event 51,session ",ses))
     dev.off()
     
     
@@ -138,30 +145,34 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     unrewarded_trials <-  unrewarded_trials[!unrewarded_trials %in% right_corr_trials]
     unrewarded_trials = unrewarded_trials[!is.na(unrewarded_trials)]
     
-    # count_a_0 = 0
-    # count_b_0 = 0
-    # count_c_0 = 0
-    # count_d_0 = 0
-    # count_e_0 = 0
-    # count_f_0 = 0
-    # count_g_0 = 0
-    # count_h_0 = 0
-    # count_i_0 = 0
+     count_a_0 = 0
+     count_b_0 = 0
+     count_c_0 = 0
+     count_d_0 = 0
+     count_e_0 = 0
+     count_f_0 = 0
+     count_g_0 = 0
+     count_h_0 = 0
+     count_i_0 = 0
+     count_j_0 = 0
+     count_k_0 = 0
     
     neuron1 = 0
     neuron2 = 0
     neuron3 = 0
     
     for(trial in unrewarded_trials){
-      # count_a_0 = count_a_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
-      # count_b_0 = count_b_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b"])
-      # count_c_0 = count_c_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c"])
-      # count_d_0 = count_d_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d"])
-      # count_e_0 = count_e_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e"])
-      # count_f_0 = count_f_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f"])
-      # count_g_0 = count_g_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g"])
-      # count_h_0 = count_h_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h"])
-      # count_i_0 = count_i_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i"])
+       count_a_0 = count_a_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
+       count_b_0 = count_b_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b"])
+       count_c_0 = count_c_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c"])
+       count_d_0 = count_d_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d"])
+       count_e_0 = count_e_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e"])
+       count_f_0 = count_f_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f"])
+       count_g_0 = count_g_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g"])
+       count_h_0 = count_h_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h"])
+       count_i_0 = count_i_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i"])
+       count_j_0 = count_j_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "j"])
+       count_k_0 = count_k_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "k"])
       
       ##neuron1 firing activity for each box for each 51 reward trial
       neuron1 = neuron1+enreg[[ses]]$TRIAL[trial,1,]
@@ -170,12 +181,12 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     }
     
     
-    #x <- c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0)
+    x_0 <- c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0,count_j_0,count_k_0)
     
-    neuron1 = neuron1/length(unrewarded_trials)
-    neuron2 = neuron2/length(unrewarded_trials)
-    neuron3 = neuron3/length(unrewarded_trials)
-    total =  neuron1+neuron2+neuron3/length(unrewarded_trials)
+    neuron1 = neuron1*50/x_0
+    neuron2 = neuron2*50/x_0
+    neuron3 = neuron3*50/x_0
+    #total =  (neuron1+neuron2+neuron3)*50/x_0
     
     filename = paste(rat,"_no_reward_session",ses,".jpg",sep="")
     jpeg(filename)
@@ -183,7 +194,7 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     if(length(neuron1) !=0) barplot(neuron1,main=paste("Neuron 1 no rewards,session ",ses))
     if(length(neuron2) !=0) barplot(neuron2,main=paste("Neuron 2 no rewards,session ",ses))
     if(length(neuron3) !=0) barplot(neuron3,main=paste("Neuron 3 no rewards,session ",ses))
-    barplot(total,main=paste("Total spikes when no rewards,session ",ses))
+    #barplot(total,main=paste("Total spikes when no rewards,session ",ses))
     dev.off()
 
   

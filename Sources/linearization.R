@@ -244,9 +244,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   for(trial in right_corr_trials){
     
     ##neuron1 firing activity for each box for each 49 reward trial
-    neuron1_49 = neuron1_49+enreg[[ses]]$TRIAL[trial,1,]
-    neuron2_49 = neuron2_49+enreg[[ses]]$TRIAL[trial,2,]
-    neuron3_49 = neuron3_49+enreg[[ses]]$TRIAL[trial,3,]
+    neuron1_49 = enreg[[ses]]$TRIAL[trial,1,]
+    neuron2_49 = enreg[[ses]]$TRIAL[trial,2,]
+    neuron3_49 = enreg[[ses]]$TRIAL[trial,3,]
     
     
     count_a_49 = count_a_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
@@ -306,9 +306,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   for(trial in left_corr_trials){
     
     ##neuron1 firing activity for each box for each 51 reward trial
-    neuron1_51 = neuron1_51+enreg[[ses]]$TRIAL[trial,1,]
-    neuron2_51 = neuron2_51+enreg[[ses]]$TRIAL[trial,2,]
-    neuron3_51 = neuron3_51+enreg[[ses]]$TRIAL[trial,3,]
+    neuron1_51 = enreg[[ses]]$TRIAL[trial,1,]
+    neuron2_51 = enreg[[ses]]$TRIAL[trial,2,]
+    neuron3_51 = enreg[[ses]]$TRIAL[trial,3,]
     
     
     count_a_51 = count_a_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
@@ -373,9 +373,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   for(trial in unrewarded_trials){
     
     ##neuron1 firing activity for each box for each 51 reward trial
-    neuron1 = neuron1+enreg[[ses]]$TRIAL[trial,1,]
-    neuron2 = neuron2+enreg[[ses]]$TRIAL[trial,2,]
-    neuron3 = neuron3+enreg[[ses]]$TRIAL[trial,3,]
+    neuron1 = enreg[[ses]]$TRIAL[trial,1,]
+    neuron2 = enreg[[ses]]$TRIAL[trial,2,]
+    neuron3 = enreg[[ses]]$TRIAL[trial,3,]
     
     count_a_0 = count_a_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a"])
     count_b_0 = count_b_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b"])

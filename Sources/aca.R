@@ -156,34 +156,25 @@ add.rewards.to.pos=function(ses,enreg){
   #enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Spikes=0)
   enreg[[ses]]$SPIKES = cbind(enreg[[ses]]$SPIKES,trial=-1)
   trial = 0
-  for(idx in 1:length(enreg[[ses]]$SPIKES[,1])){
-      spike_time = as.numeric(enreg[[ses]]$SPIKES[idx,1])
-      index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= spike_time))
+  index=1
+  total_spikes = length(enreg[[ses]]$SPIKES[,1])
+  total_pos = length(enreg[[ses]]$POS[,1])
+  i <- findInterval(as.numeric(enreg[[ses]]$SPIKES[,1]),as.numeric(enreg[[ses]]$POS[,1]))
+  enreg[[ses]]$SPIKES[x,"boxName"] = enreg[[ses]]$POS[i[x],"boxname"]
+  idx=0
+  for(index in i){
+      idx = idx +1
       boxname = enreg[[ses]]$POS[index,"boxname"]
-      
-      #### Assign spike to the next valid boxname if curr boxname = "noBox",
-      #### if last POS, then assign to previous valid boxname
-      if(boxname == "noBox"){
-        while(enreg[[ses]]$POS[index,"boxname"] == "noBox"){
-          if((index+1) < length(enreg[[ses]]$POS[,1])){
-            index = index+1
-          }else{
-            index = index-1
-          }
-          
-          boxname = enreg[[ses]]$POS[index,"boxname"]
-        }
-      }
       neuron = enreg[[ses]]$SPIKES[idx,"neuron"]
       trialnb = enreg[[ses]]$POS[index,"trial"]
       enreg[[ses]]$SPIKES[idx,"boxName"] = boxname
       trial = as.numeric(trialnb)
-     if(as.numeric(enreg[[ses]]$SPIKES[idx,"neuron"]) != 0){
+     if(as.numeric(neuron) != 0 && boxname != "noBox" ){
        enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname] = as.numeric(enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname])+1
       }
   }
   last_valid_trial_index = max(which(enreg[[ses]]$POS[,"boxname"] != "noBox"))
-  last_vald_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
+  last_valid_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
   print(sprintf("All spikes processed, last trial is  %i,", trial))
   enreg[[ses]]$TRIAL<- enreg[[ses]]$TRIAL[-(last_vald_trial+1):-365, , ]
   #print(enreg[[ses]]$TRIAL)

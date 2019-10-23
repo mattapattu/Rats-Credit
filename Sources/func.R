@@ -604,7 +604,10 @@ convertToLetter=function(i){
     else if(strcmp(i,"9")) return("a")
     else if(strcmp(i,"10")) return("b")
     else if(strcmp(i,"11")) return("k") 
-    else return(-1)
+    else {
+      print(sprintf("Recevied unknown boxnumber %s, returning -1", i))
+      return(-1)
+    }
 }
 
 convertToIndex=function(i){

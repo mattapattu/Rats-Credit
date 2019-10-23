@@ -130,7 +130,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
 add.rewards.to.pos=function(ses,enreg){
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Reward=0)
   
-  for(idx in 1:length(enreg[[ses]]$EVENTS[,1])){
+   for(idx in 1:length(enreg[[ses]]$EVENTS[,1])){
     #browser()
     if(enreg[[ses]]$EVENTS[idx,2] == 49){
       #print(sprintf("Event = 49 for index %i",idx))
@@ -299,14 +299,14 @@ change.tree.node=function(rat,animalNb,tree,enreg,ses){
 # a list where the indexes are the neuron numbers
 # and for each neuron there is a vector of activity in boxes
 add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
-  short=shortcut(Enreg, ses, myboxes)
+  #short=shortcut(Enreg, ses, myboxes)
   #print(myboxes)
   spolygons=getSpatialPolygons(myboxes)
   
   #For each box of the right path, eg h: spikyBoxes$h$duration (total duration), 
   #spikyBoxes$h$pass (column i: entering time, i+1: exiting time),
   #spikyBoxes$h$spikes (time,tetrod neuron rightPath boxName boxSensitivity)
-  spikyBoxes=getBoxesInPath(ses,Enreg,spolygons,short,rightPath)
+  #spikyBoxes=getBoxesInPath(ses,Enreg,spolygons,short,rightPath)
   #dt <- FromListSimple(spikyBoxes)
   #print(dt)
   #get_str_recur(spikyBoxes,"",0)

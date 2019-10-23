@@ -122,10 +122,10 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     
     x_51 <- c(count_a_51,count_b_51,count_c_51,count_d_51,count_e_51,count_f_51,count_g_51,count_h_51,count_i_51,count_j_51,count_k_51)
     x_51[x_51 == 0] <- 1
-    neuron1_51 = neuron1_51*50/x_51
-    neuron2_51 = neuron2_51*50/x_51
-    neuron3_51 = neuron3_51*50/x_51
-    total_51 =  (neuron1_51+neuron2_51+neuron3_51)*50/3
+    neuron1_51 = neuron1_51/x_51
+    neuron2_51 = neuron2_51/x_51
+    neuron3_51 = neuron3_51/x_51
+    total_51 =  (neuron1_51+neuron2_51+neuron3_51)/3
     
     filename = paste(rat,"_reward_51_session",ses,".jpg",sep="")
     jpeg(filename)
@@ -187,10 +187,10 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     
     x_0 <- c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0,count_j_0,count_k_0)
     
-    neuron1 = neuron1*50/x_0
-    neuron2 = neuron2*50/x_0
-    neuron3 = neuron3*50/x_0
-    total =  (neuron1+neuron2+neuron3)*50/3
+    neuron1 = neuron1/x_0
+    neuron2 = neuron2/x_0
+    neuron3 = neuron3/x_0
+    total =  (neuron1+neuron2+neuron3)/3
     
     filename = paste(rat,"_no_reward_session",ses,".jpg",sep="")
     jpeg(filename)
@@ -271,8 +271,8 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
 
 
   freq_neuron1_49 = freq_neuron1_49/length(right_corr_trials)
-  freq_neuron2_49 = freq_neuron1_49/length(right_corr_trials)
-  freq_neuron3_49 = freq_neuron1_49/length(right_corr_trials)
+  freq_neuron2_49 = freq_neuron2_49/length(right_corr_trials)
+  freq_neuron3_49 = freq_neuron3_49/length(right_corr_trials)
   
   filename = paste(rat,"_reward_49_frequency_session",ses,".jpg",sep="")
   jpeg(filename)

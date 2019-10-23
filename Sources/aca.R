@@ -112,10 +112,10 @@ add.box.to.pos=function(ses,enreg,spolygons){
     }
     enreg[[ses]]$POS[idx,"trial"] = trial
   }
-  #debug(add.rewards.to.pos)
-  enreg=add.rewards.to.pos(ses,enreg)
-  #debug(add.boxes.to.spikes)
-  enreg=add.boxes.to.spikes(ses,enreg)
+  # #debug(add.rewards.to.pos)
+  # enreg=add.rewards.to.pos(ses,enreg)
+  # #debug(add.boxes.to.spikes)
+  # enreg=add.boxes.to.spikes(ses,enreg)
   
   #print(enreg[[ses]]$POS)
   # capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
@@ -151,7 +151,7 @@ add.rewards.to.pos=function(ses,enreg){
 
 ## Use POS data to add boxes to spikes
 ## Spikes of neuron 0 are ignored
-add.boxes.to.spikes=function(ses,enreg){
+  add.boxes.to.spikes=function(ses,enreg){
  # print("Inside1")
   #enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Spikes=0)
   enreg[[ses]]$SPIKES = cbind(enreg[[ses]]$SPIKES,trial=-1)
@@ -350,8 +350,16 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
         }
       }
       #print(boites)
-      enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
-      tree=change.tree.node(n,rat[i],tree,enreg,ses)
+      #enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
+      spolygons=getSpatialPolygons(boites)
+      enreg=add.box.to.pos(ses,Enreg,spolygons)
+      #debug(add.rewards.to.pos)
+      enreg=add.rewards.to.pos(ses,enreg)
+      #debug(add.boxes.to.spikes)
+      enreg=add.boxes.to.spikes(ses,enreg)
+      
+      #tree=change.tree.node(n,rat[i],tree,enreg,ses)
+      
       #debug(plot.spikes.by.boxes.by.session)
       plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
       plot.average.frequency.by.boxes(rat[i],enreg,ses)

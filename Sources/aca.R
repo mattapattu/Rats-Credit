@@ -161,18 +161,18 @@ add.rewards.to.pos=function(ses,enreg){
   total_pos = length(enreg[[ses]]$POS[,1])
   i <- findInterval(as.numeric(enreg[[ses]]$SPIKES[,1]),as.numeric(enreg[[ses]]$POS[,1]))
   enreg[[ses]]$SPIKES[x,"boxName"] = enreg[[ses]]$POS[i[x],"boxname"]
-  idx=0
-  for(index in i){
-      idx = idx +1
-      boxname = enreg[[ses]]$POS[index,"boxname"]
-      neuron = enreg[[ses]]$SPIKES[idx,"neuron"]
-      trialnb = enreg[[ses]]$POS[index,"trial"]
-      enreg[[ses]]$SPIKES[idx,"boxName"] = boxname
-      trial = as.numeric(trialnb)
-     if(as.numeric(neuron) != 0 && boxname != "noBox" ){
-       enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname] = as.numeric(enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname])+1
-      }
-  }
+  # idx=0
+  # for(index in i){
+  #     idx = idx +1
+  #     boxname = enreg[[ses]]$POS[index,"boxname"]
+  #     neuron = enreg[[ses]]$SPIKES[idx,"neuron"]
+  #     trialnb = enreg[[ses]]$POS[index,"trial"]
+  #     enreg[[ses]]$SPIKES[idx,"boxName"] = boxname
+  #     trial = as.numeric(trialnb)
+  #    if(as.numeric(neuron) != 0 && boxname != "noBox" ){
+  #      enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname] = as.numeric(enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname])+1
+  #     }
+  # }
   last_valid_trial_index = max(which(enreg[[ses]]$POS[,"boxname"] != "noBox"))
   last_valid_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
   print(sprintf("All spikes processed, last trial is  %i,", trial))

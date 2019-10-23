@@ -188,6 +188,7 @@ add.rewards.to.pos=function(ses,enreg){
   enreg[[ses]]$TRIAL<- enreg[[ses]]$TRIAL[-(last_vald_trial+1):-365, , ]
   #print(enreg[[ses]]$TRIAL)
   
+  print("Returning enreg from add.boxes.to.spikes")
   return(enreg)
 }
 
@@ -352,7 +353,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #print(boites)
       #enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
       spolygons=getSpatialPolygons(boites)
-      enreg=add.box.to.pos(ses,Enreg,spolygons)
+      enreg=add.box.to.pos(ses,enreg,spolygons)
       #debug(add.rewards.to.pos)
       enreg=add.rewards.to.pos(ses,enreg)
       #debug(add.boxes.to.spikes)
@@ -360,7 +361,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       
       #tree=change.tree.node(n,rat[i],tree,enreg,ses)
       
-      #debug(plot.spikes.by.boxes.by.session)
+      debug(plot.spikes.by.boxes.by.session)
       plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
       plot.average.frequency.by.boxes(rat[i],enreg,ses)
       plot.spikes.by.time(rat[i],enreg,ses)

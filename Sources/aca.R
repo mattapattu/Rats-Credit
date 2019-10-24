@@ -83,7 +83,9 @@ add.box.to.pos=function(ses,enreg,spolygons){
   count = 0
   neg_displacement = 0
   trial=1
-  for(idx in 1:length(enreg[[ses]]$POS[,1])){
+  y <- 1:length(enreg[[ses]]$POS[,1])
+  enreg[[ses]]$POS[y,"boxname"] = get.box(enreg,ses,spolygons,y)
+  for(idx in 1:length(enreg[[ses]]$POS[,"boxname"])){
 
     nbx=get.box(enreg,ses,spolygons,idx)
     enreg[[ses]]$POS[idx,"boxname"] = nbx
@@ -134,13 +136,16 @@ add.rewards.to.pos=function(ses,enreg){
     #browser()
     if(enreg[[ses]]$EVENTS[idx,2] == 49){
       #print(sprintf("Event = 49 for index %i",idx))
-      index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= enreg[[ses]]$EVENTS[idx,1]))
+      #index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= enreg[[ses]]$EVENTS[idx,1]))
+      index = which.min(abs(as.numeric(enreg[[ses]]$POS[,1]) - enreg[[ses]]$EVENTS[idx,1]))
+      
       #print(sprintf("%f,%i",enreg[[ses]]$EVENTS[idx,1],index))
       enreg[[ses]]$POS[index,"Reward"] = 49
       
     }else if(enreg[[ses]]$EVENTS[idx,2] == 51){
       #print(sprintf("Event = 51 for index %i",idx))
-      index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= enreg[[ses]]$EVENTS[idx,1]))
+      #index = min(which(as.numeric(enreg[[ses]]$POS[,1]) >= enreg[[ses]]$EVENTS[idx,1]))
+      index = which.min(abs(as.numeric(enreg[[ses]]$POS[,1]) - enreg[[ses]]$EVENTS[idx,1]))
       #print(sprintf("%f,%i",enreg[[ses]]$EVENTS[idx,1],index))
       enreg[[ses]]$POS[index,"Reward"] = 51
     }
@@ -160,7 +165,11 @@ add.rewards.to.pos=function(ses,enreg){
   total_spikes = length(enreg[[ses]]$SPIKES[,1])
   total_pos = length(enreg[[ses]]$POS[,1])
   i <- findInterval(as.numeric(enreg[[ses]]$SPIKES[,1]),as.numeric(enreg[[ses]]$POS[,1]))
+  x <- 1:length(enreg[[ses]]$SPIKES[,1])
+  i[i == 0] <- 1
   enreg[[ses]]$SPIKES[x,"boxName"] = enreg[[ses]]$POS[i[x],"boxname"]
+  enreg[[ses]]$SPIKES[x,"trial"] =  enreg[[ses]]$POS[i[x],"trial"]
+  
   # idx=0
   # for(index in i){
   #     idx = idx +1
@@ -173,11 +182,25 @@ add.rewards.to.pos=function(ses,enreg){
   #      enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname] = as.numeric(enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname])+1
   #     }
   # }
-  last_valid_trial_index = max(which(enreg[[ses]]$POS[,"boxname"] != "noBox"))
-  last_valid_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
-  print(sprintf("All spikes processed, last trial is  %i,", trial))
-  enreg[[ses]]$TRIAL<- enreg[[ses]]$TRIAL[-(last_vald_trial+1):-365, , ]
-  #print(enreg[[ses]]$TRIAL)
+  # boxname = enreg[[ses]]$SPIKES[,"boxname"]
+  # neuron = enreg[[ses]]$SPIKES[idx,"neuron"]
+  # trialnb = as.numeric(enreg[[ses]]$POS[index,"trial"])
+  # 
+  # last_valid_trial_index = max(which(enreg[[ses]]$POS[,"boxname"] != "noBox"))
+  # last_valid_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
+  # 
+  # spike_indices = which(enreg[[ses]]$SPIKES[,"neuron"]!=0)
+  # spike_trials = c(as.numeric(enreg[[ses]]$SPIKES[spike_indices,"trial"]))
+  # spike_neuron = c(as.numeric(enreg[[ses]]$SPIKES[spike_indices,"neuron"]))
+  # spike_boxes = c(enreg[[ses]]$SPIKES[spike_indices,"boxName"])
+  # 
+  # l <- l[!rowSums(!is.finite(l)),]
+  # 
+  # enreg[[ses]]$TRIAL[spike_trials,as.numeric(spike_neuron),spike_boxes] = as.numeric(enreg[[ses]]$TRIAL[spike_trials,as.numeric(spike_neuron),spike_boxes])+1
+  # 
+  # print(sprintf("All spikes processed, last trial is  %i,", trial))
+  # enreg[[ses]]$TRIAL<- enreg[[ses]]$TRIAL[-(last_valid_trial+1):-365, , ]
+  # #print(enreg[[ses]]$TRIAL)
   
   print("Returning enreg from add.boxes.to.spikes")
   return(enreg)
@@ -344,6 +367,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #print(boites)
       #enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
       spolygons=getSpatialPolygons(boites)
+      #debug(add.box.to.pos)
       enreg=add.box.to.pos(ses,enreg,spolygons)
       #debug(add.rewards.to.pos)
       enreg=add.rewards.to.pos(ses,enreg)
@@ -352,7 +376,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       
       #tree=change.tree.node(n,rat[i],tree,enreg,ses)
       
-      debug(plot.spikes.by.boxes.by.session)
+      #debug(plot.spikes.by.boxes.by.session)
       plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
       plot.average.frequency.by.boxes(rat[i],enreg,ses)
       plot.spikes.by.time(rat[i],enreg,ses)

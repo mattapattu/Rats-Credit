@@ -16,47 +16,104 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     #index = max(which(as.numeric(enreg[[ses]]$POS[,"trial"]) == trial))
   
     m <- enreg[[ses]]$POS
+    k <- enreg[[ses]]$SPIKES
     #### For right trials
     right_corr_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "49"),"trial"])
     right_corr_trials = right_corr_trials[!is.na(right_corr_trials)]
-    count_a_49 = 0
-    count_b_49 = 0
-    count_c_49 = 0
-    count_d_49 = 0
-    count_e_49 = 0
-    count_f_49 = 0
-    count_g_49 = 0
-    count_h_49 = 0
-    count_i_49 = 0
-    count_j_49 = 0
-    count_k_49 = 0
+    # count_a_49 = 0
+    # count_b_49 = 0
+    # count_c_49 = 0
+    # count_d_49 = 0
+    # count_e_49 = 0
+    # count_f_49 = 0
+    # count_g_49 = 0
+    # count_h_49 = 0
+    # count_i_49 = 0
+    # count_j_49 = 0
+    # count_k_49 = 0
+    # 
+    # neuron1_49 = 0
+    # neuron2_49 = 0
+    # neuron3_49 = 0
     
-    neuron1_49 = 0
-    neuron2_49 = 0
-    neuron3_49 = 0
+    # for(trial in right_corr_trials){
+    #   
+    #   ##neuron1 firing activity for each box for each 49 reward trial
+    #   neuron1_49 = neuron1_49+ length(k[ k[,"trial"]== trial & k[,"neuron"]== "1",])
+    #   neuron2_49 = neuron2_49+ length(k[ k[,"trial"]== trial & k[,"neuron"]== "2",])
+    #   neuron3_49 = neuron3_49+ length(k[ k[,"trial"]== trial & k[,"neuron"]== "3",])
+    #   
+    #   
+    #   count_a_49 = count_a_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "a",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1]),1)
+    #   count_b_49 = count_b_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "b",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1]),1)
+    #   count_c_49 = count_c_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "c",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1]),1)
+    #   count_d_49 = count_d_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "d",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1]),1)
+    #   count_e_49 = count_e_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "e",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1]),1)
+    #   count_f_49 = count_f_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "f",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1]),1)
+    #   count_g_49 = count_g_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "g",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1]),1)
+    #   count_h_49 = count_h_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "h",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1]),1)
+    #   count_i_49 = count_i_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "i",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1]),1)
+    #   count_j_49 = count_j_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "j",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1]),1)
+    #   count_k_49 = count_k_49 + ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "k",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1]),1)
+    #   
+    # }
     
-    for(trial in right_corr_trials){
-      
-      ##neuron1 firing activity for each box for each 49 reward trial
-      neuron1_49 = neuron1_49+enreg[[ses]]$TRIAL[trial,1,]
-      neuron2_49 = neuron2_49+enreg[[ses]]$TRIAL[trial,2,]
-      neuron3_49 = neuron3_49+enreg[[ses]]$TRIAL[trial,3,]
-      
-      
-      count_a_49 = count_a_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1])
-      count_b_49 = count_b_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1])
-      count_c_49 = count_c_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1])
-      count_d_49 = count_d_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1])
-      count_e_49 = count_e_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1])
-      count_f_49 = count_f_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1])
-      count_g_49 = count_g_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1])
-      count_h_49 = count_h_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1])
-      count_i_49 = count_i_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1])
-      count_j_49 = count_j_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1])
-      count_k_49 = count_k_49 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1])
-      
-    }
-    
+     box_a_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "a",])
+     box_b_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "b",])
+     box_c_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "c",])
+     box_d_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "d",])
+     box_e_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "e",])
+     box_f_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "f",])
+     box_g_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "g",])
+     box_h_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "h",])
+     box_i_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "i",])
+     box_j_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "j",])
+     box_k_neuron1_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "k",])
+     
+     neuron1_49 = c(box_a_neuron1_spikes_49,box_b_neuron1_spikes_49,box_c_neuron1_spikes_49,box_d_neuron1_spikes_49,box_e_neuron1_spikes_49,box_f_neuron1_spikes_49,box_g_neuron1_spikes_49,box_h_neuron1_spikes_49,box_i_neuron1_spikes_49,box_j_neuron1_spikes_49,box_k_neuron1_spikes_49)
+     
+     box_a_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "a",])
+     box_b_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "b",])
+     box_c_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "c",])
+     box_d_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "d",])
+     box_e_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "e",])
+     box_f_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "f",])
+     box_g_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "g",])
+     box_h_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "h",])
+     box_i_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "i",])
+     box_j_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "j",])
+     box_k_neuron2_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "k",])
+     
+     neuron2_49 = c(box_a_neuron2_spikes_49,box_b_neuron2_spikes_49,box_c_neuron2_spikes_49,box_d_neuron2_spikes_49,box_e_neuron2_spikes_49,box_f_neuron2_spikes_49,box_g_neuron2_spikes_49,box_h_neuron2_spikes_49,box_i_neuron2_spikes_49,box_j_neuron2_spikes_49,box_k_neuron2_spikes_49)
+     
+     
+     box_a_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "a",])
+     box_b_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "b",])
+     box_c_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "c",])
+     box_d_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "d",])
+     box_e_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "e",])
+     box_f_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "f",])
+     box_g_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "g",])
+     box_h_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "h",])
+     box_i_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "i",])
+     box_j_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "j",])
+     box_k_neuron3_spikes_49 = length(k[ k[,"trial"]== right_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "k",])
+     
+     neuron3_49 = c(box_a_neuron3_spikes_49,box_b_neuron3_spikes_49,box_c_neuron3_spikes_49,box_d_neuron3_spikes_49,box_e_neuron3_spikes_49,box_f_neuron3_spikes_49,box_g_neuron3_spikes_49,box_h_neuron3_spikes_49,box_i_neuron3_spikes_49,box_j_neuron3_spikes_49,box_k_neuron3_spikes_49)
+     
+     count_a_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "a",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "a",][,1]),1)
+     count_b_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "b",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "b",][,1]),1)
+     count_c_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "c",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "c",][,1]),1)
+     count_d_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "d",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "d",][,1]),1)
+     count_e_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "e",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "e",][,1]),1)
+     count_f_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "f",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "f",][,1]),1)
+     count_g_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "g",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "g",][,1]),1)
+     count_h_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "h",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "h",][,1]),1)
+     count_i_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "i",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "i",][,1]),1)
+     count_j_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "j",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "j",][,1]),1)
+     count_k_49 = ifelse(is.matrix(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "k",]),length(m[ m[,"trial"]== right_corr_trials & m[,"boxname"]== "k",][,1]),1)
+     
+     
     
      x <- c(count_a_49,count_b_49,count_c_49,count_d_49,count_e_49,count_f_49,count_g_49,count_h_49,count_i_49,count_j_49,count_k_49)
      ### Prevent division by 0
@@ -71,54 +128,72 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     filename = paste(rat,"_reward_49_session",ses,".jpg",sep="")
     jpeg(filename)
     par(mfrow=c(2,2))
-    barplot(neuron1_49,main=paste("Neuron 1 event 49,session ",ses))
-    barplot(neuron2_49,main=paste("Neuron 2 event 49,session ",ses))
-    barplot(neuron3_49,main=paste("Neuron 3 event 49,session ",ses))
-    barplot(total_49,main=paste("Total spikes event 49,session ",ses))
+    barplot(neuron1_49,main=paste("Neuron 1 event 49,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron2_49,main=paste("Neuron 2 event 49,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron3_49,main=paste("Neuron 3 event 49,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(total_49,main=paste("Total spikes event 49,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
     dev.off()
     
     
-    ### For Left trials,reward 51
+    ######### For Left trials,reward 51
     
     left_corr_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "51"),"trial"])
     left_corr_trials = left_corr_trials[!is.na(left_corr_trials)]
-     count_a_51 = 0
-     count_b_51 = 0
-     count_c_51 = 0
-     count_d_51 = 0
-     count_e_51 = 0
-     count_f_51 = 0
-     count_g_51 = 0
-     count_h_51 = 0
-     count_i_51 = 0
-     count_j_51 = 0
-     count_k_51 = 0
     
-    neuron1_51 = 0
-    neuron2_51 = 0
-    neuron3_51 = 0
+    box_a_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "a",])
+    box_b_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "b",])
+    box_c_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "c",])
+    box_d_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "d",])
+    box_e_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "e",])
+    box_f_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "f",])
+    box_g_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "g",])
+    box_h_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "h",])
+    box_i_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "i",])
+    box_j_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "j",])
+    box_k_neuron1_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "1" & k[,"boxName"]== "k",])
     
-    for(trial in left_corr_trials){
-      ##neuron1 firing activity for each box for each 51 reward trial
-      neuron1_51 = neuron1_51+enreg[[ses]]$TRIAL[trial,1,]
-      neuron2_51 = neuron2_51+enreg[[ses]]$TRIAL[trial,2,]
-      neuron3_51 = neuron3_51+enreg[[ses]]$TRIAL[trial,3,]
-      
-       count_a_51 = count_a_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1])
-       count_b_51 = count_b_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1])
-       count_c_51 = count_c_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1])
-       count_d_51 = count_d_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1])
-       count_e_51 = count_e_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1])
-       count_f_51 = count_f_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1])
-       count_g_51 = count_g_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1])
-       count_h_51 = count_h_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1])
-       count_i_51 = count_i_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1])
-       count_j_51 = count_j_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1])
-       count_k_51 = count_j_51 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1])
-       
-   
-    }
+    neuron1_51 = c(box_a_neuron1_spikes_51,box_b_neuron1_spikes_51,box_c_neuron1_spikes_51,box_d_neuron1_spikes_51,box_e_neuron1_spikes_51,box_f_neuron1_spikes_51,box_g_neuron1_spikes_51,box_h_neuron1_spikes_51,box_i_neuron1_spikes_51,box_j_neuron1_spikes_51,box_k_neuron1_spikes_51)
     
+    box_a_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "a",])
+    box_b_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "b",])
+    box_c_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "c",])
+    box_d_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "d",])
+    box_e_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "e",])
+    box_f_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "f",])
+    box_g_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "g",])
+    box_h_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "h",])
+    box_i_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "i",])
+    box_j_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "j",])
+    box_k_neuron2_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "2" & k[,"boxName"]== "k",])
+    
+    neuron2_51 = c(box_a_neuron2_spikes_51,box_b_neuron2_spikes_51,box_c_neuron2_spikes_51,box_d_neuron2_spikes_51,box_e_neuron2_spikes_51,box_f_neuron2_spikes_51,box_g_neuron2_spikes_51,box_h_neuron2_spikes_51,box_i_neuron2_spikes_51,box_j_neuron2_spikes_51,box_k_neuron2_spikes_51)
+    
+    
+    box_a_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "a",])
+    box_b_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "b",])
+    box_c_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "c",])
+    box_d_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "d",])
+    box_e_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "e",])
+    box_f_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "f",])
+    box_g_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "g",])
+    box_h_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "h",])
+    box_i_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "i",])
+    box_j_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "j",])
+    box_k_neuron3_spikes_51 = length(k[ k[,"trial"]== left_corr_trials & k[,"neuron"]== "3" & k[,"boxName"]== "k",])
+    
+    neuron3_51 = c(box_a_neuron3_spikes_51,box_b_neuron3_spikes_51,box_c_neuron3_spikes_51,box_d_neuron3_spikes_51,box_e_neuron3_spikes_51,box_f_neuron3_spikes_51,box_g_neuron3_spikes_51,box_h_neuron3_spikes_51,box_i_neuron3_spikes_51,box_j_neuron3_spikes_51,box_k_neuron3_spikes_51)
+    
+    count_a_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "a",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "a",][,1]),1)
+    count_b_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "b",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "b",][,1]),1)
+    count_c_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "c",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "c",][,1]),1)
+    count_d_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "d",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "d",][,1]),1)
+    count_e_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "e",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "e",][,1]),1)
+    count_f_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "f",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "f",][,1]),1)
+    count_g_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "g",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "g",][,1]),1)
+    count_h_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "h",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "h",][,1]),1)
+    count_i_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "i",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "i",][,1]),1)
+    count_j_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "j",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "j",][,1]),1)
+    count_k_51 = ifelse(is.matrix(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "k",]),length(m[ m[,"trial"]== left_corr_trials & m[,"boxname"]== "k",][,1]),1)
     
     x_51 <- c(count_a_51,count_b_51,count_c_51,count_d_51,count_e_51,count_f_51,count_g_51,count_h_51,count_i_51,count_j_51,count_k_51)
     x_51[x_51 == 0] <- 1
@@ -130,15 +205,15 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     filename = paste(rat,"_reward_51_session",ses,".jpg",sep="")
     jpeg(filename)
     par(mfrow=c(2,2))
-    if(length(neuron1_51) !=0) barplot(neuron1_51,main=paste("Neuron 1 event 51,session ",ses))
-    if(length(neuron2_51) !=0) barplot(neuron2_51,main=paste("Neuron 2 event 51,session ",ses))
-    if(length(neuron3_51) !=0) barplot(neuron3_51,main=paste("Neuron 3 event 51,session ",ses))
-    barplot(total_51,main=paste("Total spikes event 51,session ",ses))
+    barplot(neuron1_51,main=paste("Neuron 1 event 51,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron2_51,main=paste("Neuron 2 event 51,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron3_51,main=paste("Neuron 3 event 51,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(total_51,main=paste("Total spikes event 51,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
     dev.off()
     
     
      
-    ### For Unrewarded trials
+    ######## For Unrewarded trials
     
     last_valid_trial_index = max(which(enreg[[ses]]$POS[,"boxname"] != "noBox"))
     last_vald_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
@@ -147,58 +222,76 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     unrewarded_trials <-  unrewarded_trials[!unrewarded_trials %in% right_corr_trials]
     unrewarded_trials = unrewarded_trials[!is.na(unrewarded_trials)]
     
-     count_a_0 = 0
-     count_b_0 = 0
-     count_c_0 = 0
-     count_d_0 = 0
-     count_e_0 = 0
-     count_f_0 = 0
-     count_g_0 = 0
-     count_h_0 = 0
-     count_i_0 = 0
-     count_j_0 = 0
-     count_k_0 = 0
+     box_a_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "a",])
+    box_b_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "b",])
+    box_c_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "c",])
+    box_d_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "d",])
+    box_e_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "e",])
+    box_f_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "f",])
+    box_g_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "g",])
+    box_h_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "h",])
+    box_i_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "i",])
+    box_j_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "j",])
+    box_k_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "k",])
     
-    neuron1 = 0
-    neuron2 = 0
-    neuron3 = 0
+    neuron1_0 = c(box_a_neuron1_spikes_0,box_b_neuron1_spikes_0,box_c_neuron1_spikes_0,box_d_neuron1_spikes_0,box_e_neuron1_spikes_0,box_f_neuron1_spikes_0,box_g_neuron1_spikes_0,box_h_neuron1_spikes_0,box_i_neuron1_spikes_0,box_j_neuron1_spikes_0,box_k_neuron1_spikes_0)
     
-    for(trial in unrewarded_trials){
-      ##neuron1 firing activity for each box for each 51 reward trial
-      neuron1 = neuron1+enreg[[ses]]$TRIAL[trial,1,]
-      neuron2 = neuron2+enreg[[ses]]$TRIAL[trial,2,]
-      neuron3 = neuron3+enreg[[ses]]$TRIAL[trial,3,]
-      
-       count_a_0 = count_a_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1])
-       count_b_0 = count_b_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1])
-       count_c_0 = count_c_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1])
-       count_d_0 = count_d_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1])
-       count_e_0 = count_e_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1])
-       count_f_0 = count_f_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1])
-       count_g_0 = count_g_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1])
-       count_h_0 = count_h_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1])
-       count_i_0 = count_i_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1])
-       count_j_0 = count_j_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1])
-       count_k_0 = count_k_0 + length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1])
-      
-  
-    }
+    box_a_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "a",])
+    box_b_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "b",])
+    box_c_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "c",])
+    box_d_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "d",])
+    box_e_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "e",])
+    box_f_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "f",])
+    box_g_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "g",])
+    box_h_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "h",])
+    box_i_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "i",])
+    box_j_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "j",])
+    box_k_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "k",])
+    
+    neuron2_0 = c(box_a_neuron2_spikes_0,box_b_neuron2_spikes_0,box_c_neuron2_spikes_0,box_d_neuron2_spikes_0,box_e_neuron2_spikes_0,box_f_neuron2_spikes_0,box_g_neuron2_spikes_0,box_h_neuron2_spikes_0,box_i_neuron2_spikes_0,box_j_neuron2_spikes_0,box_k_neuron2_spikes_0)
+    
+    
+    box_a_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "a",])
+    box_b_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "b",])
+    box_c_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "c",])
+    box_d_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "d",])
+    box_e_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "e",])
+    box_f_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "f",])
+    box_g_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "g",])
+    box_h_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "h",])
+    box_i_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "i",])
+    box_j_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "j",])
+    box_k_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "k",])
+    
+    neuron3_0 = c(box_a_neuron3_spikes_0,box_b_neuron3_spikes_0,box_c_neuron3_spikes_0,box_d_neuron3_spikes_0,box_e_neuron3_spikes_0,box_f_neuron3_spikes_0,box_g_neuron3_spikes_0,box_h_neuron3_spikes_0,box_i_neuron3_spikes_0,box_j_neuron3_spikes_0,box_k_neuron3_spikes_0)
+    
+    count_a_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "a",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "a",][,1]),1)
+    count_b_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "b",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "b",][,1]),1)
+    count_c_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "c",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "c",][,1]),1)
+    count_d_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "d",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "d",][,1]),1)
+    count_e_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "e",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "e",][,1]),1)
+    count_f_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "f",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "f",][,1]),1)
+    count_g_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "g",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "g",][,1]),1)
+    count_h_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "h",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "h",][,1]),1)
+    count_i_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "i",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "i",][,1]),1)
+    count_j_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "j",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "j",][,1]),1)
+    count_k_0 = ifelse(is.matrix(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "k",]),length(m[ m[,"trial"]== unrewarded_trials & m[,"boxname"]== "k",][,1]),1)
     
     
     x_0 <- c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0,count_j_0,count_k_0)
     
-    neuron1 = neuron1/x_0
-    neuron2 = neuron2/x_0
-    neuron3 = neuron3/x_0
+    neuron1 = neuron1_0/x_0
+    neuron2 = neuron2_0/x_0
+    neuron3 = neuron3_0/x_0
     total =  (neuron1+neuron2+neuron3)/3
     
     filename = paste(rat,"_no_reward_session",ses,".jpg",sep="")
     jpeg(filename)
     par(mfrow=c(2,2))
-    if(length(neuron1) !=0) barplot(neuron1,main=paste("Neuron 1 no rewards,session ",ses))
-    if(length(neuron2) !=0) barplot(neuron2,main=paste("Neuron 2 no rewards,session ",ses))
-    if(length(neuron3) !=0) barplot(neuron3,main=paste("Neuron 3 no rewards,session ",ses))
-    barplot(total,main=paste("Total spikes when no rewards,session ",ses))
+    barplot(neuron1,main=paste("Neuron 1 no rewards,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron2,main=paste("Neuron 2 no rewards,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron3,main=paste("Neuron 3 no rewards,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(total,main=paste("Total spikes when no rewards,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
     dev.off()
 
   
@@ -221,6 +314,7 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   #index = max(which(as.numeric(enreg[[ses]]$POS[,"trial"]) == trial))
   
   m <- enreg[[ses]]$POS
+  k <- enreg[[ses]]$SPIKES
   #### For right trials
   right_corr_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "49"),"trial"])
   right_corr_trials = right_corr_trials[!is.na(right_corr_trials)]
@@ -244,22 +338,63 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   for(trial in right_corr_trials){
     
     ##neuron1 firing activity for each box for each 49 reward trial
-    neuron1_49 = enreg[[ses]]$TRIAL[trial,1,]
-    neuron2_49 = enreg[[ses]]$TRIAL[trial,2,]
-    neuron3_49 = enreg[[ses]]$TRIAL[trial,3,]
+
+    
+    box_a_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "a",])
+    box_b_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "b",])
+    box_c_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "c",])
+    box_d_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "d",])
+    box_e_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "e",])
+    box_f_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "f",])
+    box_g_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "g",])
+    box_h_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "h",])
+    box_i_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "i",])
+    box_j_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "j",])
+    box_k_neuron1_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "k",])
+    
+    neuron1_49 = c(box_a_neuron1_spikes_49,box_b_neuron1_spikes_49,box_c_neuron1_spikes_49,box_d_neuron1_spikes_49,box_e_neuron1_spikes_49,box_f_neuron1_spikes_49,box_g_neuron1_spikes_49,box_h_neuron1_spikes_49,box_i_neuron1_spikes_49,box_j_neuron1_spikes_49,box_k_neuron1_spikes_49)
+    
+    box_a_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "a",])
+    box_b_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "b",])
+    box_c_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "c",])
+    box_d_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "d",])
+    box_e_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "e",])
+    box_f_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "f",])
+    box_g_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "g",])
+    box_h_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "h",])
+    box_i_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "i",])
+    box_j_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "j",])
+    box_k_neuron2_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "k",])
+    
+    neuron2_49 = c(box_a_neuron2_spikes_49,box_b_neuron2_spikes_49,box_c_neuron2_spikes_49,box_d_neuron2_spikes_49,box_e_neuron2_spikes_49,box_f_neuron2_spikes_49,box_g_neuron2_spikes_49,box_h_neuron2_spikes_49,box_i_neuron2_spikes_49,box_j_neuron2_spikes_49,box_k_neuron2_spikes_49)
     
     
-    count_a_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1])
-    count_b_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1])
-    count_c_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1])
-    count_d_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1])
-    count_e_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1])
-    count_f_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1])
-    count_g_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1])
-    count_h_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1])
-    count_i_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1])
-    count_j_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1])
-    count_k_49 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1])
+    box_a_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "a",])
+    box_b_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "b",])
+    box_c_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "c",])
+    box_d_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "d",])
+    box_e_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "e",])
+    box_f_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "f",])
+    box_g_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "g",])
+    box_h_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "h",])
+    box_i_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "i",])
+    box_j_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "j",])
+    box_k_neuron3_spikes_49 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "k",])
+    
+    neuron3_49 = c(box_a_neuron3_spikes_49,box_b_neuron3_spikes_49,box_c_neuron3_spikes_49,box_d_neuron3_spikes_49,box_e_neuron3_spikes_49,box_f_neuron3_spikes_49,box_g_neuron3_spikes_49,box_h_neuron3_spikes_49,box_i_neuron3_spikes_49,box_j_neuron3_spikes_49,box_k_neuron3_spikes_49)
+    
+
+    count_a_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "a",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1]),1)
+    count_b_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "b",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1]),1)
+    count_c_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "c",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1]),1)
+    count_d_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "d",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1]),1)
+    count_e_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "e",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1]),1)
+    count_f_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "f",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1]),1)
+    count_g_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "g",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1]),1)
+    count_h_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "h",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1]),1)
+    count_i_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "i",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1]),1)
+    count_j_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "j",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1]),1)
+    count_k_49 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "k",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1]),1)
   
     x <- c(count_a_49,count_b_49,count_c_49,count_d_49,count_e_49,count_f_49,count_g_49,count_h_49,count_i_49,count_j_49,count_k_49)
     x[x == 0] <- 1
@@ -277,9 +412,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   filename = paste(rat,"_reward_49_frequency_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  barplot(freq_neuron1_49,main=paste("Neuron 1 event 49 frequency,session ",ses))
-  barplot(freq_neuron2_49,main=paste("Neuron 2 event 49 frequency,session ",ses))
-  barplot(freq_neuron3_49,main=paste("Neuron 3 event 49 frequency,session ",ses))
+  barplot(freq_neuron1_49,main=paste("Neuron 1 event 49 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron2_49,main=paste("Neuron 2 event 49 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron3_49,main=paste("Neuron 3 event 49 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
   dev.off()
   
   
@@ -306,22 +441,63 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   for(trial in left_corr_trials){
     
     ##neuron1 firing activity for each box for each 51 reward trial
-    neuron1_51 = enreg[[ses]]$TRIAL[trial,1,]
-    neuron2_51 = enreg[[ses]]$TRIAL[trial,2,]
-    neuron3_51 = enreg[[ses]]$TRIAL[trial,3,]
+    box_a_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "a",])
+    box_b_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "b",])
+    box_c_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "c",])
+    box_d_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "d",])
+    box_e_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "e",])
+    box_f_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "f",])
+    box_g_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "g",])
+    box_h_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "h",])
+    box_i_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "i",])
+    box_j_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "j",])
+    box_k_neuron1_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "1" & k[,"boxName"]== "k",])
+    
+    neuron1_51 = c(box_a_neuron1_spikes_51,box_b_neuron1_spikes_51,box_c_neuron1_spikes_51,box_d_neuron1_spikes_51,box_e_neuron1_spikes_51,box_f_neuron1_spikes_51,box_g_neuron1_spikes_51,box_h_neuron1_spikes_51,box_i_neuron1_spikes_51,box_j_neuron1_spikes_51,box_k_neuron1_spikes_51)
+    
+    box_a_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "a",])
+    box_b_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "b",])
+    box_c_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "c",])
+    box_d_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "d",])
+    box_e_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "e",])
+    box_f_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "f",])
+    box_g_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "g",])
+    box_h_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "h",])
+    box_i_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "i",])
+    box_j_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "j",])
+    box_k_neuron2_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "2" & k[,"boxName"]== "k",])
+    
+    neuron2_51 = c(box_a_neuron2_spikes_51,box_b_neuron2_spikes_51,box_c_neuron2_spikes_51,box_d_neuron2_spikes_51,box_e_neuron2_spikes_51,box_f_neuron2_spikes_51,box_g_neuron2_spikes_51,box_h_neuron2_spikes_51,box_i_neuron2_spikes_51,box_j_neuron2_spikes_51,box_k_neuron2_spikes_51)
     
     
-    count_a_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1])
-    count_b_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1])
-    count_c_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1])
-    count_d_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1])
-    count_e_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1])
-    count_f_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1])
-    count_g_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1])
-    count_h_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1])
-    count_i_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1])
-    count_j_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1])
-    count_k_51 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1])
+    box_a_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "a",])
+    box_b_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "b",])
+    box_c_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "c",])
+    box_d_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "d",])
+    box_e_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "e",])
+    box_f_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "f",])
+    box_g_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "g",])
+    box_h_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "h",])
+    box_i_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "i",])
+    box_j_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "j",])
+    box_k_neuron3_spikes_51 = length(k[ k[,"trial"]== trial & k[,"neuron"]== "3" & k[,"boxName"]== "k",])
+    
+    neuron3_51 = c(box_a_neuron3_spikes_51,box_b_neuron3_spikes_51,box_c_neuron3_spikes_51,box_d_neuron3_spikes_51,box_e_neuron3_spikes_51,box_f_neuron3_spikes_51,box_g_neuron3_spikes_51,box_h_neuron3_spikes_51,box_i_neuron3_spikes_51,box_j_neuron3_spikes_51,box_k_neuron3_spikes_51)
+    
+    
+    
+    count_a_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "a",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1]),1)
+    count_b_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "b",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1]),1)
+    count_c_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "c",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1]),1)
+    count_d_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "d",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1]),1)
+    count_e_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "e",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1]),1)
+    count_f_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "f",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1]),1)
+    count_g_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "g",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1]),1)
+    count_h_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "h",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1]),1)
+    count_i_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "i",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1]),1)
+    count_j_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "j",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1]),1)
+    count_k_51 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "k",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1]),1)
+    
     
     
     x_51 <- c(count_a_51,count_b_51,count_c_51,count_d_51,count_e_51,count_f_51,count_g_51,count_h_51,count_i_51,count_j_51,count_k_51)
@@ -340,9 +516,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   filename = paste(rat,"_reward_51_frequency_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  barplot(freq_neuron1_51,main=paste("Neuron 1 event 51 frequency,session ",ses))
-  barplot(freq_neuron2_51,main=paste("Neuron 2 event 51 frequency,session ",ses))
-  barplot(freq_neuron3_51,main=paste("Neuron 3 event 51 frequency,session ",ses))
+  barplot(freq_neuron1_51,main=paste("Neuron 1 event 51 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron2_51,main=paste("Neuron 2 event 51 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron3_51,main=paste("Neuron 3 event 51 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
   dev.off()
 
   ### For Unrewarded trials
@@ -373,29 +549,68 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   for(trial in unrewarded_trials){
     
     ##neuron1 firing activity for each box for each 51 reward trial
-    neuron1 = enreg[[ses]]$TRIAL[trial,1,]
-    neuron2 = enreg[[ses]]$TRIAL[trial,2,]
-    neuron3 = enreg[[ses]]$TRIAL[trial,3,]
+
+    box_a_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "a",])
+    box_b_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "b",])
+    box_c_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "c",])
+    box_d_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "d",])
+    box_e_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "e",])
+    box_f_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "f",])
+    box_g_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "g",])
+    box_h_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "h",])
+    box_i_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "i",])
+    box_j_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "j",])
+    box_k_neuron1_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "1" & k[,"boxName"]== "k",])
     
-    count_a_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1])
-    count_b_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1])
-    count_c_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1])
-    count_d_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1])
-    count_e_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1])
-    count_f_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1])
-    count_g_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1])
-    count_h_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1])
-    count_i_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1])
-    count_j_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1])
-    count_k_0 = length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1])
+    neuron1_0 = c(box_a_neuron1_spikes_0,box_b_neuron1_spikes_0,box_c_neuron1_spikes_0,box_d_neuron1_spikes_0,box_e_neuron1_spikes_0,box_f_neuron1_spikes_0,box_g_neuron1_spikes_0,box_h_neuron1_spikes_0,box_i_neuron1_spikes_0,box_j_neuron1_spikes_0,box_k_neuron1_spikes_0)
     
+    box_a_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "a",])
+    box_b_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "b",])
+    box_c_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "c",])
+    box_d_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "d",])
+    box_e_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "e",])
+    box_f_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "f",])
+    box_g_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "g",])
+    box_h_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "h",])
+    box_i_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "i",])
+    box_j_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "j",])
+    box_k_neuron2_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "2" & k[,"boxName"]== "k",])
+    
+    neuron2_0 = c(box_a_neuron2_spikes_0,box_b_neuron2_spikes_0,box_c_neuron2_spikes_0,box_d_neuron2_spikes_0,box_e_neuron2_spikes_0,box_f_neuron2_spikes_0,box_g_neuron2_spikes_0,box_h_neuron2_spikes_0,box_i_neuron2_spikes_0,box_j_neuron2_spikes_0,box_k_neuron2_spikes_0)
+    
+    
+    box_a_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "a",])
+    box_b_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "b",])
+    box_c_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "c",])
+    box_d_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "d",])
+    box_e_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "e",])
+    box_f_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "f",])
+    box_g_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "g",])
+    box_h_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "h",])
+    box_i_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "i",])
+    box_j_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "j",])
+    box_k_neuron3_spikes_0 = length(k[ k[,"trial"]== unrewarded_trials & k[,"neuron"]== "3" & k[,"boxName"]== "k",])
+    
+    neuron3_0 = c(box_a_neuron3_spikes_0,box_b_neuron3_spikes_0,box_c_neuron3_spikes_0,box_d_neuron3_spikes_0,box_e_neuron3_spikes_0,box_f_neuron3_spikes_0,box_g_neuron3_spikes_0,box_h_neuron3_spikes_0,box_i_neuron3_spikes_0,box_j_neuron3_spikes_0,box_k_neuron3_spikes_0)
+    
+    count_a_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "a",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "a",][,1]),1)
+    count_b_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "b",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "b",][,1]),1)
+    count_c_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "c",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "c",][,1]),1)
+    count_d_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "d",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "d",][,1]),1)
+    count_e_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "e",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "e",][,1]),1)
+    count_f_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "f",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "f",][,1]),1)
+    count_g_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "g",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "g",][,1]),1)
+    count_h_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "h",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "h",][,1]),1)
+    count_i_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "i",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "i",][,1]),1)
+    count_j_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "j",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "j",][,1]),1)
+    count_k_0 = ifelse(is.matrix(m[ m[,"trial"]== trial & m[,"boxname"]== "k",]),length(m[ m[,"trial"]== trial & m[,"boxname"]== "k",][,1]),1)
     
     x_0 <- c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0,count_j_0,count_k_0)
     x_0[x_0 == 0] <- 1
     
-    freq_neuron1 = freq_neuron1 + (neuron1*50/x)
-    freq_neuron2 = freq_neuron2 + (neuron2*50/x)
-    freq_neuron3 = freq_neuron3 + (neuron3*50/x)
+    freq_neuron1 = freq_neuron1 + (neuron1_50*50/x)
+    freq_neuron2 = freq_neuron2 + (neuron2_50*50/x)
+    freq_neuron3 = freq_neuron3 + (neuron3_50*50/x)
   }
   
   
@@ -407,9 +622,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   filename = paste(rat,"_no_reward_frequency_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  barplot(freq_neuron1,main=paste("Neuron 1 no rewards frequency,session ",ses))
-  barplot(freq_neuron2,main=paste("Neuron 2 no rewards frequency,session ",ses))
-  barplot(freq_neuron3,main=paste("Neuron 3 no rewards frequency,session ",ses))
+  barplot(freq_neuron1,main=paste("Neuron 1 no rewards frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron2,main=paste("Neuron 2 no rewards frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron3,main=paste("Neuron 3 no rewards frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
   dev.off()
   
   

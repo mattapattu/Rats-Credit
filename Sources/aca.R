@@ -84,7 +84,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
     enreg[[ses]]$POS[l,"boxname"]=nbx
   }
   g <- enreg[[ses]]$POS[,"boxname"]
-  enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric(g[seq_along(g)-1]=="i"|g[seq_along(g)-1]=="e")))
+  enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric((g[seq_along(g)-1]=="i"| g[seq_along(g)-1]=="e") & g[-1] != g[-length(g)])))
   # prev_nbx="NoBox"
   # prev_2_nbx="unknown"
   # count = 0

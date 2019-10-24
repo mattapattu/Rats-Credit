@@ -128,10 +128,10 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     filename = paste(rat,"_reward_49_session",ses,".jpg",sep="")
     jpeg(filename)
     par(mfrow=c(2,2))
-    barplot(neuron1_49,main=paste("Neuron 1 event 49,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(neuron2_49,main=paste("Neuron 2 event 49,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(neuron3_49,main=paste("Neuron 3 event 49,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(total_49,main=paste("Total spikes event 49,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron1_49,main=paste("Neuron 1 event 49,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron2_49,main=paste("Neuron 2 event 49,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron3_49,main=paste("Neuron 3 event 49,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(total_49,main=paste("Total spikes event 49,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
     dev.off()
     
     
@@ -205,10 +205,10 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     filename = paste(rat,"_reward_51_session",ses,".jpg",sep="")
     jpeg(filename)
     par(mfrow=c(2,2))
-    barplot(neuron1_51,main=paste("Neuron 1 event 51,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(neuron2_51,main=paste("Neuron 2 event 51,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(neuron3_51,main=paste("Neuron 3 event 51,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(total_51,main=paste("Total spikes event 51,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron1_51,main=paste("Neuron 1 event 51,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron2_51,main=paste("Neuron 2 event 51,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron3_51,main=paste("Neuron 3 event 51,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(total_51,main=paste("Total spikes event 51,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
     dev.off()
     
     
@@ -288,10 +288,10 @@ plot.spikes.by.boxes.by.session=function(rat,enreg,ses){
     filename = paste(rat,"_no_reward_session",ses,".jpg",sep="")
     jpeg(filename)
     par(mfrow=c(2,2))
-    barplot(neuron1,main=paste("Neuron 1 no rewards,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(neuron2,main=paste("Neuron 2 no rewards,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(neuron3,main=paste("Neuron 3 no rewards,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-    barplot(total,main=paste("Total spikes when no rewards,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron1,main=paste("Neuron 1 no rewards,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron2,main=paste("Neuron 2 no rewards,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(neuron3,main=paste("Neuron 3 no rewards,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+    barplot(total,main=paste("Total spikes when no rewards,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
     dev.off()
 
   
@@ -412,9 +412,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   filename = paste(rat,"_reward_49_frequency_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  barplot(freq_neuron1_49,main=paste("Neuron 1 event 49 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-  barplot(freq_neuron2_49,main=paste("Neuron 2 event 49 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-  barplot(freq_neuron3_49,main=paste("Neuron 3 event 49 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron1_49,main=paste("Neuron 1 event 49 frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron2_49,main=paste("Neuron 2 event 49 frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron3_49,main=paste("Neuron 3 event 49 frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
   dev.off()
   
   
@@ -516,9 +516,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   filename = paste(rat,"_reward_51_frequency_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  barplot(freq_neuron1_51,main=paste("Neuron 1 event 51 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-  barplot(freq_neuron2_51,main=paste("Neuron 2 event 51 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-  barplot(freq_neuron3_51,main=paste("Neuron 3 event 51 frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron1_51,main=paste("Neuron 1 event 51 frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron2_51,main=paste("Neuron 2 event 51 frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron3_51,main=paste("Neuron 3 event 51 frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
   dev.off()
 
   ### For Unrewarded trials
@@ -608,9 +608,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
     x_0 <- c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0,count_j_0,count_k_0)
     x_0[x_0 == 0] <- 1
     
-    freq_neuron1 = freq_neuron1 + (neuron1_50*50/x)
-    freq_neuron2 = freq_neuron2 + (neuron2_50*50/x)
-    freq_neuron3 = freq_neuron3 + (neuron3_50*50/x)
+    freq_neuron1 = freq_neuron1 + (neuron1_0*50/x)
+    freq_neuron2 = freq_neuron2 + (neuron2_0*50/x)
+    freq_neuron3 = freq_neuron3 + (neuron3_0*50/x)
   }
   
   
@@ -622,9 +622,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   filename = paste(rat,"_no_reward_frequency_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  barplot(freq_neuron1,main=paste("Neuron 1 no rewards frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-  barplot(freq_neuron2,main=paste("Neuron 2 no rewards frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-  barplot(freq_neuron3,main=paste("Neuron 3 no rewards frequency,session ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron1,main=paste("Neuron 1 no rewards frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron2,main=paste("Neuron 2 no rewards frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron3,main=paste("Neuron 3 no rewards frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
   dev.off()
   
   
@@ -667,10 +667,10 @@ plot.spikes.by.boxes.by.rat=function(rat,enreg){
     filename = paste(rat,"_barplot_session",ses,".jpg",sep="")
     jpeg(filename)
     par(mfrow=c(2,2))
-    if(length(neuron1) !=0) barplot(neuron1,main=paste("Neuron 1 spikes,session ",ses))
-    if(length(neuron2) !=0) barplot(neuron2,main=paste("Neuron 2 spikes,session ",ses))
-    if(length(neuron3) !=0) barplot(neuron3,main=paste("Neuron 3 spikes,session ",ses))
-    if(length(total) !=0) barplot(total,main=paste("Total spikes,session ",ses))
+    if(length(neuron1) !=0) barplot(neuron1,main=paste("Neuron 1 spikes,ses ",ses))
+    if(length(neuron2) !=0) barplot(neuron2,main=paste("Neuron 2 spikes,ses ",ses))
+    if(length(neuron3) !=0) barplot(neuron3,main=paste("Neuron 3 spikes,ses ",ses))
+    if(length(total) !=0) barplot(total,main=paste("Total spikes,ses ",ses))
     dev.off()
   }
   
@@ -691,10 +691,10 @@ plot.spikes.by.time=function(rat,enreg,ses){
   filename = paste(rat,"_spike_vs_time_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  if(length(spiketrain_neuron1) !=0) hist(spiketrain_neuron1,main=paste("Neuron 1 spiketrain,session ",ses),breaks=1000,xlab = "Time")
-  if(length(spiketrain_neuron2) !=0) hist(spiketrain_neuron2,main=paste("Neuron 2 spiketrain,session ",ses),breaks=1000,xlab = "Time")
-  if(length(spiketrain_neuron3) !=0) hist(spiketrain_neuron3,main=paste("Neuron 3 spiketrain,session ",ses),breaks=1000,xlab = "Time")
-  hist(total,main=paste("Total spikes,session ",ses),breaks=1000,xlab = "Time")
+  if(length(spiketrain_neuron1) !=0) hist(spiketrain_neuron1,main=paste("Neuron 1 spiketrain,ses ",ses),breaks=1000,xlab = "Time")
+  if(length(spiketrain_neuron2) !=0) hist(spiketrain_neuron2,main=paste("Neuron 2 spiketrain,ses ",ses),breaks=1000,xlab = "Time")
+  if(length(spiketrain_neuron3) !=0) hist(spiketrain_neuron3,main=paste("Neuron 3 spiketrain,ses ",ses),breaks=1000,xlab = "Time")
+  hist(total,main=paste("Total spikes,ses ",ses),breaks=1000,xlab = "Time")
   dev.off()
   
   

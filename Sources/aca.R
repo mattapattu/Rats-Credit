@@ -77,52 +77,59 @@ add.box.to.pos=function(ses,enreg,spolygons){
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,boxname="")
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,trial="")
  
-  
-  prev_nbx="NoBox"
-  prev_2_nbx="unknown"
-  count = 0
-  neg_displacement = 0
-  trial=1
-  y <- 1:length(enreg[[ses]]$POS[,1])
-  enreg[[ses]]$POS[y,"boxname"] = get.box(enreg,ses,spolygons,y)
-  for(idx in 1:length(enreg[[ses]]$POS[,"boxname"])){
-
-    nbx=get.box(enreg,ses,spolygons,idx)
-    enreg[[ses]]$POS[idx,"boxname"] = nbx
-    if(nbx=="noBox"){
-      next
-    }
-    else if(prev_nbx != nbx){
-      if(nbx==prev_2_nbx){
-        #print(sprintf("Rat moves backwards from %s to %s in trial %i at time %s", prev_nbx, nbx, trial, enreg[[ses]]$POS[idx, 1]))
-        neg_displacement = neg_displacement+1
-        
-      }
-      #print(sprintf("New box reached after %i recordings is %s",count, nbx))
-      #### New trial starts if prev box is e or i 
-      if(prev_nbx=="e"|| prev_nbx=="i" ){
-          #print(sprintf("Total negative displacement for trial %i is %i", trial, neg_displacement))
-          trial=trial+1
-          neg_displacement = 0
-      }
-      count = 0
-      prev_2_nbx = prev_nbx
-      prev_nbx = nbx
-      #print(nbx)
-    }else{
-      count = count+1
-    }
-    enreg[[ses]]$POS[idx,"trial"] = trial
+  for(id in getSpPPolygonsIDSlots(spolygons)){
+    coord=spolygons[id,]@polygons[[1]]@Polygons[[1]]@coords
+    l <- which(point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==1)
+    nbx=convertToLetter(toString(id))
+    enreg[[ses]]$POS[l,"boxname"]=nbx
   }
-  # #debug(add.rewards.to.pos)
-  # enreg=add.rewards.to.pos(ses,enreg)
-  # #debug(add.boxes.to.spikes)
-  # enreg=add.boxes.to.spikes(ses,enreg)
-  
-  #print(enreg[[ses]]$POS)
-  # capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
-  #write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
-  # write.table(as.data.frame(enreg[[ses]]$EVENTS),file=sprintf("POS_session%i",ses), quote=F,sep=",",row.names=F)
+  g <- enreg[[ses]]$POS[,"boxname"]
+  enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric(g[seq_along(g)-1]=="i"|g[seq_along(g)-1]=="e")))
+  # prev_nbx="NoBox"
+  # prev_2_nbx="unknown"
+  # count = 0
+  # neg_displacement = 0
+  # trial=1
+  # y <- 1:length(enreg[[ses]]$POS[,1])
+  # enreg[[ses]]$POS[y,"boxname"] = get.box(enreg,ses,spolygons,y)
+  # for(idx in 1:length(enreg[[ses]]$POS[,"boxname"])){
+  # 
+  #   nbx=get.box(enreg,ses,spolygons,idx)
+  #   enreg[[ses]]$POS[idx,"boxname"] = nbx
+  #   if(nbx=="noBox"){
+  #     next
+  #   }
+  #   else if(prev_nbx != nbx){
+  #     if(nbx==prev_2_nbx){
+  #       #print(sprintf("Rat moves backwards from %s to %s in trial %i at time %s", prev_nbx, nbx, trial, enreg[[ses]]$POS[idx, 1]))
+  #       neg_displacement = neg_displacement+1
+  #       
+  #     }
+  #     #print(sprintf("New box reached after %i recordings is %s",count, nbx))
+  #     #### New trial starts if prev box is e or i 
+  #     if(prev_nbx=="e"|| prev_nbx=="i" ){
+  #         #print(sprintf("Total negative displacement for trial %i is %i", trial, neg_displacement))
+  #         trial=trial+1
+  #         neg_displacement = 0
+  #     }
+  #     count = 0
+  #     prev_2_nbx = prev_nbx
+  #     prev_nbx = nbx
+  #     #print(nbx)
+  #   }else{
+  #     count = count+1
+  #   }
+  #   enreg[[ses]]$POS[idx,"trial"] = trial
+  # }
+  # # #debug(add.rewards.to.pos)
+  # # enreg=add.rewards.to.pos(ses,enreg)
+  # # #debug(add.boxes.to.spikes)
+  # # enreg=add.boxes.to.spikes(ses,enreg)
+  # 
+  # #print(enreg[[ses]]$POS)
+  # # capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
+  # #write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
+  # # write.table(as.data.frame(enreg[[ses]]$EVENTS),file=sprintf("POS_session%i",ses), quote=F,sep=",",row.names=F)
    
    print("Returning enreg from add.boxes.to.pos")
   return(enreg)

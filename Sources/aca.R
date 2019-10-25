@@ -349,31 +349,29 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in length(rat):1) {
+  for (i in 1) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
+    boxes=boites
     for(ses in c(1,length(enreg))){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
-      ### Shift boxes if first POS recording is negative
+      ### Shift POS if first POS recording is negative
       if(as.numeric(enreg[[ses]]$POS[1,2]) < 0 || as.numeric(enreg[[ses]]$POS[1,3]) < 0){
-        print("Shifting boxes as first position recording has negative coordinates")
         shiftx=153.5
         shifty=129.5
-        shift=c(shiftx,shifty)
-        resalex=leo.boxes()
-        lb=length(boites)
+        lb=length(boxes)
         #boites=resalex$boxes
-        for(j in 1:lb)
-        {
-          boites[[j]]=rbind(boites[[j]][1,]-shiftx,boites[[j]][2,]-shifty)
-        }
+        enreg[[ses]]$POS[,2] = enreg[[ses]]$POS[,2]+shiftx
+        enreg[[ses]]$POS[,3] = enreg[[ses]]$POS[,3]+shifty
       }
+      tree=change.tree.node(n,rat[i],tree,enreg,ses)
+      print.plot.journeys(DATA,FindNode(tree,"Experiment in Marseille"),boites)
       #print(boites)
       #enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
-      spolygons=getSpatialPolygons(boites)
+      spolygons=getSpatialPolygons(boxes)
       #debug(add.box.to.pos)
       enreg=add.box.to.pos(ses,enreg,spolygons)
       #debug(add.rewards.to.pos)
@@ -385,6 +383,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       
       #debug(plot.spikes.by.boxes.by.session)
       plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
+      #debug(plot.average.frequency.by.boxes)
       plot.average.frequency.by.boxes(rat[i],enreg,ses)
       plot.spikes.by.time(rat[i],enreg,ses)
     }

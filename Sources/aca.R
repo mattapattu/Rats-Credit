@@ -179,17 +179,22 @@ add.dist.to.pos=function(ses,enreg){
     }else{
       j=2
     }
-    
+    print(sprintf("Index %i, j= %i,curr_box = %s,next_box = %s",i,j,curr_box,next_box))
+    print(enreg[[ses]]$POS[i,])
+    print(enreg[[ses]]$POS[(i+1),])
     dist2 <- numeric()
     
     for (t in trials$value){
       
       k <- which((enreg[[ses]]$POS[,j] >= enreg[[ses]]$POS[i,j] & enreg[[ses]]$POS[,j] <= enreg[[ses]]$POS[i+1,j]) & enreg[[ses]]$POS[,"trial"] == t)
+      if(length(k)==0){
+        k <- which((enreg[[ses]]$POS[,j] >= enreg[[ses]]$POS[i+1,j] & enreg[[ses]]$POS[,j] <= enreg[[ses]]$POS[i,j]) & enreg[[ses]]$POS[,"trial"] == t)
+      }
       dist2 <- c(dist2,sum((diff(as.numeric(enreg[[ses]]$POS[k,2]))^2 + diff(as.numeric(enreg[[ses]]$POS[k,3]))^2 )^0.5))
      }
       av_displacement = sum(dist2)/length(trials$values)
       enreg[[ses]]$POS[i+1,"distance"] = av_displacement
-      print(sprintf("Index %i, distance %f",i+1,av_displacement))
+      print(sprintf("Setting index %i, distance %f",i+1,av_displacement))
   }
   print("Returning enreg from add.dist.to.pos")
   return(enreg)

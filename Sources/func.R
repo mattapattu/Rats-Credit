@@ -517,7 +517,10 @@ alex.mergeBoxes=function(boxes)
   
   #boxes[[16]][2,1]=111
   boxes[[16]][1,]= cbind(240,240,190,190)
-  boxes[[16]][2,]= cbind(130,58,58,111)
+  boxes[[16]][2,]= cbind(111,58,58,111)
+  
+  boxes[[7]][2,2] = 111
+  boxes[[7]][2,3] = 111
   
   list.remove(boxes,c(2,4,6,9,11,17))
 }

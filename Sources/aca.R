@@ -77,61 +77,45 @@ add.box.to.pos=function(ses,enreg,spolygons){
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,boxname="")
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,trial="")
  
+  pts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49"),2]),as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49"),3])))
+  plot(spolygons)
+  points(pts, pch=16, cex=.5,col="red")
+
+  ### SEt boxname for all points strcitly inside boxes
   for(id in getSpPPolygonsIDSlots(spolygons)){
     coord=spolygons[id,]@polygons[[1]]@Polygons[[1]]@coords
     l <- which(point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==1)
     nbx=convertToLetter(toString(id))
     enreg[[ses]]$POS[l,"boxname"]=nbx
   }
+
+  ## All points on the borders and outside the boxes, assign to closest
+  l <- which(enreg[[ses]]$POS[,"boxname"] == "")
+  
+  for(i in l){
+    spts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[i,2]),as.numeric(enreg[[ses]]$POS[i,3])))
+    dist <- gDistance(spts,spolygons,byid=TRUE)
+    if(min(dist) > 0) {
+      nbx=convertToLetter(as.character(which.min(dist)))
+      enreg[[ses]]$POS[i,"boxname"]=nbx
+    }
+    
+  }
+  
+  for(id in getSpPPolygonsIDSlots(spolygons)){
+    coord=spolygons[id,]@polygons[[1]]@Polygons[[1]]@coords
+    k <- which(point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==2 | point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==3)
+    while(sum(as.numeric(enreg[[ses]]$POS[k,"boxname"] == "")  != 0)){
+      enreg[[ses]]$POS[k,"boxname"]= enreg[[ses]]$POS[k-1,"boxname"]
+    }
+  }
+  
+  ### All points on the border, assign to previous box
+
   g <- enreg[[ses]]$POS[,"boxname"]
   enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric((g[seq_along(g)-1]=="i"| g[seq_along(g)-1]=="e") & g[-1] != g[-length(g)])))
-  # prev_nbx="NoBox"
-  # prev_2_nbx="unknown"
-  # count = 0
-  # neg_displacement = 0
-  # trial=1
-  # y <- 1:length(enreg[[ses]]$POS[,1])
-  # enreg[[ses]]$POS[y,"boxname"] = get.box(enreg,ses,spolygons,y)
-  # for(idx in 1:length(enreg[[ses]]$POS[,"boxname"])){
-  # 
-  #   nbx=get.box(enreg,ses,spolygons,idx)
-  #   enreg[[ses]]$POS[idx,"boxname"] = nbx
-  #   if(nbx=="noBox"){
-  #     next
-  #   }
-  #   else if(prev_nbx != nbx){
-  #     if(nbx==prev_2_nbx){
-  #       #print(sprintf("Rat moves backwards from %s to %s in trial %i at time %s", prev_nbx, nbx, trial, enreg[[ses]]$POS[idx, 1]))
-  #       neg_displacement = neg_displacement+1
-  #       
-  #     }
-  #     #print(sprintf("New box reached after %i recordings is %s",count, nbx))
-  #     #### New trial starts if prev box is e or i 
-  #     if(prev_nbx=="e"|| prev_nbx=="i" ){
-  #         #print(sprintf("Total negative displacement for trial %i is %i", trial, neg_displacement))
-  #         trial=trial+1
-  #         neg_displacement = 0
-  #     }
-  #     count = 0
-  #     prev_2_nbx = prev_nbx
-  #     prev_nbx = nbx
-  #     #print(nbx)
-  #   }else{
-  #     count = count+1
-  #   }
-  #   enreg[[ses]]$POS[idx,"trial"] = trial
-  # }
-  # # #debug(add.rewards.to.pos)
-  # # enreg=add.rewards.to.pos(ses,enreg)
-  # # #debug(add.boxes.to.spikes)
-  # # enreg=add.boxes.to.spikes(ses,enreg)
-  # 
-  # #print(enreg[[ses]]$POS)
-  # # capture.output(summary(enreg[[ses]]$POS), file = "/home/ajames/Output.txt")
-  # #write.table(as.data.frame(enreg[[ses]]$POS),file=sprintf("POS_session%i.csv",ses), quote=F,sep=",",row.names=F)
-  # # write.table(as.data.frame(enreg[[ses]]$EVENTS),file=sprintf("POS_session%i",ses), quote=F,sep=",",row.names=F)
-   
-   print("Returning enreg from add.boxes.to.pos")
+  
+  print("Returning enreg from add.boxes.to.pos")
   return(enreg)
   
 }
@@ -161,6 +145,56 @@ add.rewards.to.pos=function(ses,enreg){
   return(enreg)
 }
 
+add.dist.to.pos=function(ses,enreg){
+  enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,distance=0)
+  all_dist <-(diff(as.numeric(enreg[[ses]]$POS[,2]))^2 + diff(as.numeric(enreg[[ses]]$POS[,3]))^2)^0.5
+  enreg[[ses]]$POS[2:length(enreg[[ses]]$POS[,1]),"distance"] = all_dist
+  #reg_timegaps <- which(diff(as.numeric(enreg[[ses]]$POS[,1]))<=100)
+  ##### reg_timegaps[1] = diff b/w element 1 & 2,
+  #enreg[[ses]]$POS[reg_timegaps,"distance"] <-((as.numeric(enreg[[ses]]$POS[reg_timegaps,2])-as.numeric(enreg[[ses]]$POS[reg_timegaps+1,2]))^2 + 
+   #                                              (as.numeric(enreg[[ses]]$POS[reg_timegaps,3])-as.numeric(enreg[[ses]]$POS[reg_timegaps+1,3]))^2)^0.5
+
+  #large_timegaps <- which(diff(as.numeric(enreg[[ses]]$POS[,1]))>100)
+  s1 <- which(all_dist > 10)
+  s2 <- which(abs(as.numeric(enreg[[ses]]$POS[s1,1])-as.numeric(enreg[[ses]]$POS[s1+1,1]))>50)
+  
+  trials <- rle(enreg[[ses]]$POS[,"trial"])
+  for(i in s1[s2]){
+   # all_x_coords  <- which(enreg[[ses]]$POS[,2] >= enreg[[ses]]$POS[i,2] & enreg[[ses]]$POS[,2] <= enreg[[ses]]$POS[i+1,2])
+    #all_y_coords  <- which(enreg[[ses]]$POS[,2] >= enreg[[ses]]$POS[i,2] & enreg[[ses]]$POS[,2] <= enreg[[ses]]$POS[i+1,2])
+
+    #trials <- rle(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,2] >= enreg[[ses]]$POS[i,2] & enreg[[ses]]$POS[,2] <= enreg[[ses]]$POS[i+1,2]),"trial"])
+    j=0
+    # if(abs(as.numeric(enreg[[ses]]$POS[i,2])-as.numeric(enreg[[ses]]$POS[i+1,2])) > abs(as.numeric(enreg[[ses]]$POS[i,3])-as.numeric(enreg[[ses]]$POS[i+1,3]))){
+    #   j=2
+    # }else{
+    #   j=3
+    # }
+    curr_box = enreg[[ses]]$POS[i,"boxname"]
+    index = min(which(enreg[[ses]]$POS[(i+1):length(enreg[[ses]]$POS[,1]),"boxname"] != curr_box))
+    index = i+1+index
+    next_box = enreg[[ses]]$POS[index,"boxname"]
+    if(curr_box %in% c('d','e','c','h','i','g','a','k') && next_box %in% c('d','e','c','h','i','g','a','k') ){
+     j=3 
+    }else{
+      j=2
+    }
+    
+    dist2 <- numeric()
+    
+    for (t in trials$value){
+      
+      k <- which((enreg[[ses]]$POS[,j] >= enreg[[ses]]$POS[i,j] & enreg[[ses]]$POS[,j] <= enreg[[ses]]$POS[i+1,j]) & enreg[[ses]]$POS[,"trial"] == t)
+      dist2 <- c(dist2,sum((diff(as.numeric(enreg[[ses]]$POS[k,2]))^2 + diff(as.numeric(enreg[[ses]]$POS[k,3]))^2 )^0.5))
+     }
+      av_displacement = sum(dist2)/length(trials$values)
+      enreg[[ses]]$POS[i+1,"distance"] = av_displacement
+      print(sprintf("Index %i, distance %f",i+1,av_displacement))
+  }
+  print("Returning enreg from add.dist.to.pos")
+  return(enreg)
+}
+
 ## Use POS data to add boxes to spikes
 ## Spikes of neuron 0 are ignored
   add.boxes.to.spikes=function(ses,enreg){
@@ -177,37 +211,6 @@ add.rewards.to.pos=function(ses,enreg){
   enreg[[ses]]$SPIKES[x,"boxName"] = enreg[[ses]]$POS[i[x],"boxname"]
   enreg[[ses]]$SPIKES[x,"trial"] =  enreg[[ses]]$POS[i[x],"trial"]
   
-  # idx=0
-  # for(index in i){
-  #     idx = idx +1
-  #     boxname = enreg[[ses]]$POS[index,"boxname"]
-  #     neuron = enreg[[ses]]$SPIKES[idx,"neuron"]
-  #     trialnb = enreg[[ses]]$POS[index,"trial"]
-  #     enreg[[ses]]$SPIKES[idx,"boxName"] = boxname
-  #     trial = as.numeric(trialnb)
-  #    if(as.numeric(neuron) != 0 && boxname != "noBox" ){
-  #      enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname] = as.numeric(enreg[[ses]]$TRIAL[trial,as.numeric(neuron),boxname])+1
-  #     }
-  # }
-  # boxname = enreg[[ses]]$SPIKES[,"boxname"]
-  # neuron = enreg[[ses]]$SPIKES[idx,"neuron"]
-  # trialnb = as.numeric(enreg[[ses]]$POS[index,"trial"])
-  # 
-  # last_valid_trial_index = max(which(enreg[[ses]]$POS[,"boxname"] != "noBox"))
-  # last_valid_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
-  # 
-  # spike_indices = which(enreg[[ses]]$SPIKES[,"neuron"]!=0)
-  # spike_trials = c(as.numeric(enreg[[ses]]$SPIKES[spike_indices,"trial"]))
-  # spike_neuron = c(as.numeric(enreg[[ses]]$SPIKES[spike_indices,"neuron"]))
-  # spike_boxes = c(enreg[[ses]]$SPIKES[spike_indices,"boxName"])
-  # 
-  # l <- l[!rowSums(!is.finite(l)),]
-  # 
-  # enreg[[ses]]$TRIAL[spike_trials,as.numeric(spike_neuron),spike_boxes] = as.numeric(enreg[[ses]]$TRIAL[spike_trials,as.numeric(spike_neuron),spike_boxes])+1
-  # 
-  # print(sprintf("All spikes processed, last trial is  %i,", trial))
-  # enreg[[ses]]$TRIAL<- enreg[[ses]]$TRIAL[-(last_valid_trial+1):-365, , ]
-  # #print(enreg[[ses]]$TRIAL)
   
   print("Returning enreg from add.boxes.to.spikes")
   return(enreg)
@@ -323,7 +326,7 @@ change.tree.node=function(rat,animalNb,tree,enreg,ses){
 add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
   #short=shortcut(Enreg, ses, myboxes)
   #print(myboxes)
-  spolygons=getSpatialPolygons(myboxes)
+  #spolygons=getSpatialPolygons(myboxes)
   
   #For each box of the right path, eg h: spikyBoxes$h$duration (total duration), 
   #spikyBoxes$h$pass (column i: entering time, i+1: exiting time),
@@ -349,34 +352,41 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in 1) {
+  for (i in 2) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     boxes=boites
-    for(ses in c(1,length(enreg))){
+    for(ses in c(length(enreg))){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       ### Shift POS if first POS recording is negative
       if(as.numeric(enreg[[ses]]$POS[1,2]) < 0 || as.numeric(enreg[[ses]]$POS[1,3]) < 0){
         shiftx=153.5
         shifty=129.5
-        lb=length(boxes)
+        lb=length(boites)
         #boites=resalex$boxes
-        enreg[[ses]]$POS[,2] = enreg[[ses]]$POS[,2]+shiftx
-        enreg[[ses]]$POS[,3] = enreg[[ses]]$POS[,3]+shifty
+        # enreg[[ses]]$POS[,2] = enreg[[ses]]$POS[,2]+shiftx
+        # enreg[[ses]]$POS[,3] = enreg[[ses]]$POS[,3]+shifty
+        for(r in 1:lb)
+           {
+             boites[[r]]=rbind(resalex$boxes[[r]][1,]-shiftx,resalex$boxes[[r]][2,]-shifty)
+           }
       }
       tree=change.tree.node(n,rat[i],tree,enreg,ses)
-      print.plot.journeys(DATA,FindNode(tree,"Experiment in Marseille"),boites)
+      #print.plot.journeys(DATA,FindNode(tree,"Experiment in Marseille"),boites)
       #print(boites)
       #enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
-      spolygons=getSpatialPolygons(boxes)
+      spolygons=getSpatialPolygons(boites)
+      plot(spolygons)
+      enreg=add.rewards.to.pos(ses,enreg)
       #debug(add.box.to.pos)
       enreg=add.box.to.pos(ses,enreg,spolygons)
       #debug(add.rewards.to.pos)
-      enreg=add.rewards.to.pos(ses,enreg)
       #debug(add.boxes.to.spikes)
+      debug(add.dist.to.pos)
+      enreg = add.dist.to.pos(ses,enreg)
       enreg=add.boxes.to.spikes(ses,enreg)
       
       #tree=change.tree.node(n,rat[i],tree,enreg,ses)

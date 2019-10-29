@@ -810,9 +810,9 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   filename = paste(rat,"_box_frequency_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  barplot(freq_neuron1,main=paste("Neuron 1 no rewards frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-  barplot(freq_neuron2,main=paste("Neuron 2 no rewards frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
-  barplot(freq_neuron3,main=paste("Neuron 3 no rewards frequency,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"))
+  barplot(freq_neuron1,main=paste("Neuron 1 spike freq vs box,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"), ylab = "Hz")
+  barplot(freq_neuron2,main=paste("Neuron 2 spike freq vs box,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"), ylab = "Hz")
+  barplot(freq_neuron3,main=paste("Neuron 3 spike freq vs box,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"), ylab = "Hz")
   dev.off()
   
   
@@ -879,9 +879,9 @@ plot.spikes.by.time=function(rat,enreg,ses){
   filename = paste(rat,"_spike_vs_time_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  if(length(spiketrain_neuron1) !=0) hist(spiketrain_neuron1,main=paste("Neuron 1 spiketrain,ses ",ses),breaks=1000,xlab = "Time")
-  if(length(spiketrain_neuron2) !=0) hist(spiketrain_neuron2,main=paste("Neuron 2 spiketrain,ses ",ses),breaks=1000,xlab = "Time")
-  if(length(spiketrain_neuron3) !=0) hist(spiketrain_neuron3,main=paste("Neuron 3 spiketrain,ses ",ses),breaks=1000,xlab = "Time")
+  if(length(spiketrain_neuron1) !=0) hist(spiketrain_neuron1,main=paste("Neuron 1 spike freq vs time,ses ",ses),breaks=1000,xlab = "Time ms", ylab = "Hz")
+  if(length(spiketrain_neuron2) !=0) hist(spiketrain_neuron2,main=paste("Neuron 2 spike freq vs time,ses ",ses),breaks=1000,xlab = "Time ms", ylab = "Hz")
+  if(length(spiketrain_neuron3) !=0) hist(spiketrain_neuron3,main=paste("Neuron 3 spike freq vs time,ses ",ses),breaks=1000,xlab = "Time ms", ylab = "Hz")
   hist(total,main=paste("Total spikes,ses ",ses),breaks=1000,xlab = "Time")
   dev.off()
 
@@ -952,9 +952,9 @@ plot.spikes.by.distance=function(rat,enreg,ses){
   filename = paste(rat,"_spike_vs_distance_session",ses,".jpg",sep="")
   jpeg(filename)
   par(mfrow=c(2,2))
-  if(length(spiketrain_neuron1) !=0) hist(spiketrain_neuron1,main=paste("Neuron 1 spiketrain,ses ",ses),breaks=1000,xlab = "Distance")
-  if(length(spiketrain_neuron2) !=0) hist(spiketrain_neuron2,main=paste("Neuron 2 spiketrain,ses ",ses),breaks=1000,xlab = "Distance")
-  if(length(spiketrain_neuron3) !=0) hist(spiketrain_neuron3,main=paste("Neuron 3 spiketrain,ses ",ses),breaks=1000,xlab = "Distance")
+  if(length(spiketrain_neuron1) !=0) hist(spiketrain_neuron1,main=paste("Neuron 1 spike freq vs distance,ses ",ses),breaks=1000,xlab = "Distance cm", ylab = "Hz")
+  if(length(spiketrain_neuron2) !=0) hist(spiketrain_neuron2,main=paste("Neuron 2 spike freq vs distance,ses ",ses),breaks=1000,xlab = "Distance cm", ylab = "Hz")
+  if(length(spiketrain_neuron3) !=0) hist(spiketrain_neuron3,main=paste("Neuron 3 spike freq vs distance,ses ",ses),breaks=1000,xlab = "Distance cm", ylab = "Hz")
   hist(total,main=paste("Total spikes,ses ",ses),breaks=1000,xlab = "Distance")
   dev.off()
   

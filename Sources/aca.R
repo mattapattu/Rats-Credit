@@ -92,18 +92,31 @@ add.box.to.pos=function(ses,enreg,spolygons){
 
   ## All points outside the boxes, assign to closest box
   
-  edgelist <- read.table(text = "e f
-                                 f g
-                                 g a
-                                 a b           
-                                 k a
-                                 b c
-                                 c d
-                                 c h
-                                 h i
-                                 i j
-                                 j k
-                                 d e")  
+  # edgelist <- read.table(text = "e f
+  #                                f g
+  #                                g a
+  #                                a b           
+  #                                k a
+  #                                b c
+  #                                c d
+  #                                c h
+  #                                h i
+  #                                i j
+  #                                j k
+  #                                d e")  
+  # 
+  edgelist <- read.table(text = "1 2
+                                 2 3
+                                 3 9
+                                 9 10           
+                                 11 9
+                                 10 4
+                                 4 5
+                                 4 6
+                                 6 7
+                                 7 8
+                                 8 11
+                                 5 1")  
   
   graph <- graph.data.frame(edgelist)
 
@@ -117,16 +130,16 @@ add.box.to.pos=function(ses,enreg,spolygons){
       index = max(which(enreg[[ses]]$POS[1:i,"boxname"] != ""))
       if(as.numeric(enreg[[ses]]$POS[i,1])-as.numeric(enreg[[ses]]$POS[index,1]) < 100){
         bxname = enreg[[ses]]$POS[index,"boxname"]
-        neighbours <- V(graph)$name[neighbors(graph, bxname, mode = "total")]
-        neighbours <- c(neighbours,bxname)
-        neighbour_dist <- numeric()
-        for( n in neighbours){
-          index2 = convertToIndex(n)
-          neighbour_dist <- c(neighbour_dist,dist[index2])
-        }
+        neighbours <- V(graph)$name[neighbors(graph, as.character(convertToIndex(bxname)), mode = "total")]
+        neighbours <- c(neighbours,convertToIndex(bxname))
+        # for( n in c){
+        #   index2 = convertToIndex(n)
+        #   neighbour_dist <- c(neighbour_dist,dist[index2])
+        # }
+        neighbour_dist <- dist[as.numeric(neighbours)]
         newbxname = neighbours[which.min(neighbour_dist)]
-        enreg[[ses]]$POS[i,"boxname"]=newbxname
-        print(sprintf("New boxname - %s, prev box - %s",newbxname,bxname))
+        enreg[[ses]]$POS[i,"boxname"]=convertToLetter(newbxname)
+        #print(sprintf("New boxname - %s, prev box - %s",newbxname,bxname))
       }
       #nbx=convertToLetter(as.character(which.min(dist)))
       
@@ -138,10 +151,15 @@ add.box.to.pos=function(ses,enreg,spolygons){
   for(id in getSpPPolygonsIDSlots(spolygons)){
     coord=spolygons[id,]@polygons[[1]]@Polygons[[1]]@coords
     k <- which(point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==2 | point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==3)
-    
-    while(sum(as.numeric(enreg[[ses]]$POS[k,"boxname"] == "")  != 0)){
-      enreg[[ses]]$POS[k,"boxname"]= enreg[[ses]]$POS[k-1,"boxname"]
-    }
+    spts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[k[1],2]),as.numeric(enreg[[ses]]$POS[k[1],3])))
+    dist <- gDistance(spts,spolygons,byid=TRUE)
+    boxes = which.min(dist)
+    large<-which(enreg[[ses]]$POS[,"boxname"] == convertToLetter(as.character(boxes[2])) | enreg[[ses]]$POS[,"boxname"] == convertToLetter(as.character(boxes[2])))
+    # while(sum(as.numeric(enreg[[ses]]$POS[k,"boxname"] == "")  != 0)){
+    #   enreg[[ses]]$POS[k,"boxname"]= enreg[[ses]]$POS[k-1,"boxname"]
+    # }
+    y <- large[findInterval(k,large)]
+    enreg[[ses]]$POS[k,"boxname"] = enreg[[ses]]$POS[y,"boxname"]
   }
   
 
@@ -386,13 +404,30 @@ alignBoxes=function(enreg,ses,spolygons){
 plot.rewards=function(enreg){
   reward_49 <- numeric()
   reward_51 <- numeric()
+  i_visits <- numeric()
+  e_visits <- numeric()
+  proportion_e <- numeric()
+  proportion_i <- numeric()
+  duration <- numeric()
   for(ses in 1:length(enreg)){
     reward_49 <- c(reward_49,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49)))
     reward_51 <- c(reward_51,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==51)))
+    r <- rle(enreg[[ses]]$POS[,"boxname"])
+    e_visits <- c(e_visits,sum(as.numeric(r$values=="e")))
+    i_visits <- c(i_visits,sum(as.numeric(r$values=="i")))
+      
   }
-  plot(1:length(enreg),reward_49,col='red',type='b',xlab="Session",ylab="Rewards")
+  proportion_e <- reward_49*100/e_visits
+  proportion_i <- reward_51*100/i_visits
+  par(mfrow=c(1,2))
+  plot(1:length(enreg),proportion_e,col='red',type='b',xlab="Session",ylab="Percent of visits earning reward")
   lines(1:length(enreg),reward_51,col='blue',type='b',lty=2)
-  legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2)
+  legend("topleft", legend=c("Reward 49, box e", "Reward 51, box i"),col=c("red", "blue"),lty = 1:2)
+  
+  plot(1:length(enreg),duration)
+  # plot(1:length(enreg),reward_49,col='red',type='b',xlab="Session",ylab="Rewards")
+  # lines(1:length(enreg),reward_51,col='blue',type='b',lty=2)
+  # legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2)
   print("Returning enreg from plot.rewards")
 }
 
@@ -402,16 +437,13 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(2)) {
+  for (i in c(1:2)) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
-    
-    debug(plot.rewards)
-    plot.rewards(enreg)
-    
-    for(ses in c(44)){
+
+    for(ses in c(1:length(enreg))){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       boxes=boites
       spolygons=getSpatialPolygons(boxes)
@@ -448,9 +480,10 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #debug(add.rewards.to.pos)
       
       #debug(add.dist.to.pos)
-      enreg = add.dist.to.pos(ses,enreg)
+      #enreg = add.dist.to.pos(ses,enreg)
       #debug(add.boxes.to.spikes)
-      enreg=add.boxes.to.spikes(ses,enreg)
+      
+      #enreg=add.boxes.to.spikes(ses,enreg)
       tree=change.tree.node(n,rat[i],tree,enreg,ses)
       #tree=change.tree.node(n,rat[i],tree,enreg,ses)
       
@@ -459,15 +492,18 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #debug(plot.average.frequency.by.boxes)
       #plot.average.frequency.by.boxes(rat[i],enreg,ses)
       #debug(plot.average.frequency.by.boxes2)
-      plot.average.frequency.by.boxes2(rat[i],enreg,ses)
+      #plot.average.frequency.by.boxes2(rat[i],enreg,ses)
       #debug(plot.spikes.by.time)
       #plot.spikes.by.time(rat[i],enreg,ses)
       #plot.spikes.by.distance(rat[i],enreg,ses)
     }
     #debug(plot.spikes.by.boxes)
     #plot.spikes.by.boxes.by.rat(rat[i],enreg)
-    
-    
+    n=FindNode(tree,rat[[i]])
+    #debug(convert.node.to.enreg)
+    enreg=convert.node.to.enreg(n)
+    debug(plot.rewards)
+    plot.rewards(enreg)
   }
   return(tree)
 }

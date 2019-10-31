@@ -153,12 +153,12 @@ add.box.to.pos=function(ses,enreg,spolygons){
     k <- which(point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==2 | point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==3)
     spts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[k[1],2]),as.numeric(enreg[[ses]]$POS[k[1],3])))
     dist <- gDistance(spts,spolygons,byid=TRUE)
-    boxes = which.min(dist)
-    large<-which(enreg[[ses]]$POS[,"boxname"] == convertToLetter(as.character(boxes[2])) | enreg[[ses]]$POS[,"boxname"] == convertToLetter(as.character(boxes[2])))
+    boxes = which(dist==0)
+    large<-which(enreg[[ses]]$POS[,"boxname"] == convertToLetter(as.character(boxes[1])) | enreg[[ses]]$POS[,"boxname"] == convertToLetter(as.character(boxes[2])))
     # while(sum(as.numeric(enreg[[ses]]$POS[k,"boxname"] == "")  != 0)){
     #   enreg[[ses]]$POS[k,"boxname"]= enreg[[ses]]$POS[k-1,"boxname"]
     # }
-    y <- large[findInterval(k,large)]
+    y <- large[findInterval(k,large,all.inside=TRUE)]
     enreg[[ses]]$POS[k,"boxname"] = enreg[[ses]]$POS[y,"boxname"]
   }
   

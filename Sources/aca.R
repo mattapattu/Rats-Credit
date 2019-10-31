@@ -1,6 +1,7 @@
 library(rlist)
 library(data.table)
 library(data.tree)
+library(igraph)
 
 
 ###TO DO : Linearization
@@ -89,28 +90,60 @@ add.box.to.pos=function(ses,enreg,spolygons){
     enreg[[ses]]$POS[l,"boxname"]=nbx
   }
 
-  ## All points on the borders and outside the boxes, assign to closest
+  ## All points outside the boxes, assign to closest box
+  
+  edgelist <- read.table(text = "e f
+                                 f g
+                                 g a
+                                 a b           
+                                 k a
+                                 b c
+                                 c d
+                                 c h
+                                 h i
+                                 i j
+                                 j k
+                                 d e")  
+  
+  graph <- graph.data.frame(edgelist)
+
+
   l <- which(enreg[[ses]]$POS[,"boxname"] == "")
   
   for(i in l){
     spts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[i,2]),as.numeric(enreg[[ses]]$POS[i,3])))
     dist <- gDistance(spts,spolygons,byid=TRUE)
     if(min(dist) > 0) {
-      nbx=convertToLetter(as.character(which.min(dist)))
-      enreg[[ses]]$POS[i,"boxname"]=nbx
+      index = max(which(enreg[[ses]]$POS[1:i,"boxname"] != ""))
+      if(as.numeric(enreg[[ses]]$POS[i,1])-as.numeric(enreg[[ses]]$POS[index,1]) < 100){
+        bxname = enreg[[ses]]$POS[index,"boxname"]
+        neighbours <- V(graph)$name[neighbors(graph, bxname, mode = "total")]
+        neighbours <- c(neighbours,bxname)
+        neighbour_dist <- numeric()
+        for( n in neighbours){
+          index2 = convertToIndex(n)
+          neighbour_dist <- c(neighbour_dist,dist[index2])
+        }
+        newbxname = neighbours[which.min(neighbour_dist)]
+        enreg[[ses]]$POS[i,"boxname"]=newbxname
+        print(sprintf("New boxname - %s, prev box - %s",newbxname,bxname))
+      }
+      #nbx=convertToLetter(as.character(which.min(dist)))
+      
     }
     
   }
   
+  ### Points on borders and vertex - assign to prev known boxes (rat does not cross a box until it crosses over the boundary)
   for(id in getSpPPolygonsIDSlots(spolygons)){
     coord=spolygons[id,]@polygons[[1]]@Polygons[[1]]@coords
     k <- which(point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==2 | point.in.polygon(enreg[[ses]]$POS[,2],enreg[[ses]]$POS[,3], coord[,1],coord[,2])==3)
+    
     while(sum(as.numeric(enreg[[ses]]$POS[k,"boxname"] == "")  != 0)){
       enreg[[ses]]$POS[k,"boxname"]= enreg[[ses]]$POS[k-1,"boxname"]
     }
   }
   
-  ### All points on the border, assign to previous box
 
   g <- enreg[[ses]]$POS[,"boxname"]
   enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric((g[seq_along(g)-1]=="i"| g[seq_along(g)-1]=="e") & g[-1] != g[-length(g)])))
@@ -344,10 +377,23 @@ alignBoxes=function(enreg,ses,spolygons){
   
   centroid_box_i <- coordinates(gCentroid(spolygons[1]))
   
-  shiftx = centre_reward_points[1]-centroid_box_i[1]
-  shifty = centre_reward_points[2] - centroid_box_i[2]
+  shiftx = centroid_box_i[1]-centre_reward_points[1]
+  shifty = centroid_box_i[2] - centre_reward_points[2]
   
   return(c(shiftx,shifty))
+}
+
+plot.rewards=function(enreg){
+  reward_49 <- numeric()
+  reward_51 <- numeric()
+  for(ses in 1:length(enreg)){
+    reward_49 <- c(reward_49,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49)))
+    reward_51 <- c(reward_51,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==51)))
+  }
+  plot(1:length(enreg),reward_49,col='red',type='b',xlab="Session",ylab="Rewards")
+  lines(1:length(enreg),reward_51,col='blue',type='b',lty=2)
+  legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2)
+  print("Returning enreg from plot.rewards")
 }
 
 # Compute the nb of spikes for each neuron in the 
@@ -356,27 +402,33 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(1)) {
+  for (i in c(2)) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
-    boxes=boites
-    for(ses in c(1)){
+    
+    debug(plot.rewards)
+    plot.rewards(enreg)
+    
+    for(ses in c(44)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
-      
+      boxes=boites
       spolygons=getSpatialPolygons(boxes)
       plot(spolygons)
       enreg=add.rewards.to.pos(ses,enreg)
       
       ### Before adding boxes, shift POS if first POS recording is negative
+      
       if(as.numeric(enreg[[ses]]$POS[1,2]) < 0 || as.numeric(enreg[[ses]]$POS[1,3]) < 0){
         #debug(alignBoxes)
-        alignBoxes(enreg,ses,spolygons)
+        shift=alignBoxes(enreg,ses,spolygons)
+        # shiftx=shift[1]
+        # shifty=shift[2]
         shiftx=130
         shifty=129.5
+        print(sprintf("Shifx=%f,shifty=%f",shiftx,shifty))
         lb=length(boxes)
-        #boites=resalex$boxes
         # enreg[[ses]]$POS[,2] = enreg[[ses]]$POS[,2]+shiftx
         # enreg[[ses]]$POS[,3] = enreg[[ses]]$POS[,3]+shifty
         for(r in 1:lb)
@@ -391,12 +443,13 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #print(boites)
       #enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
      
-      #debug(add.box.to.pos)
+      debug(add.box.to.pos)
       enreg=add.box.to.pos(ses,enreg,spolygons)
       #debug(add.rewards.to.pos)
-      #debug(add.boxes.to.spikes)
+      
       #debug(add.dist.to.pos)
       enreg = add.dist.to.pos(ses,enreg)
+      #debug(add.boxes.to.spikes)
       enreg=add.boxes.to.spikes(ses,enreg)
       tree=change.tree.node(n,rat[i],tree,enreg,ses)
       #tree=change.tree.node(n,rat[i],tree,enreg,ses)
@@ -404,10 +457,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #debug(plot.spikes.by.boxes.by.session)
       ##plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
       #debug(plot.average.frequency.by.boxes)
-      plot.average.frequency.by.boxes(rat[i],enreg,ses)
+      #plot.average.frequency.by.boxes(rat[i],enreg,ses)
+      #debug(plot.average.frequency.by.boxes2)
+      plot.average.frequency.by.boxes2(rat[i],enreg,ses)
       #debug(plot.spikes.by.time)
-      plot.spikes.by.time(rat[i],enreg,ses)
-      plot.spikes.by.distance(rat[i],enreg,ses)
+      #plot.spikes.by.time(rat[i],enreg,ses)
+      #plot.spikes.by.distance(rat[i],enreg,ses)
     }
     #debug(plot.spikes.by.boxes)
     #plot.spikes.by.boxes.by.rat(rat[i],enreg)

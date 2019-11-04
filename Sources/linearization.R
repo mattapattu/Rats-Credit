@@ -426,6 +426,7 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   freq_neuron1 = freq_neuron1/last_vald_trial
   freq_neuron2 = freq_neuron2/last_vald_trial
   freq_neuron3 = freq_neuron3/last_vald_trial
+  total = freq_neuron1+freq_neuron2+freq_neuron3
   
   # print(sprintf("final neuron frequencies unrewarded_trials:"))
   # print(freq_neuron1)
@@ -438,6 +439,7 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
   barplot(freq_neuron1,main=paste("Neuron 1 spike freq vs box,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"), ylab = "Hz")
   barplot(freq_neuron2,main=paste("Neuron 2 spike freq vs box,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"), ylab = "Hz")
   barplot(freq_neuron3,main=paste("Neuron 3 spike freq vs box,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"), ylab = "Hz")
+  barplot(total,main=paste("Population firing freq vs box,ses ",ses),names=c("a","b","c","d","e","f","g","h","i","j","k"), ylab = "Hz")
   dev.off()
   
   
@@ -650,43 +652,43 @@ plot.spikes.by.time=function(rat,enreg,ses){
 
   if(length(spiketrain_neuron1) !=0) {
     spiketrain_neuron1_round = round(spiketrain_neuron1)
-    spikepulses <- seq(0,0,length.out=tail(spiketrain_neuron1_round,n=1))
-    i <- 1:length(spikepulses)
-    spikepulses[which(i  %in% spiketrain_neuron1_round)] = 1
-    xc_pulses <- acf(spikepulses, lag.max = 2000,plot = FALSE)
+    spikepulses <- numeric(max(spiketrain_neuron1_round))
+    a <- table(spiketrain_neuron1_round)
+    spikepulses[as.numeric(names(a))]=a[-1]
+    xc_pulses <- acf(spikepulses, lag.max = 1000,plot = FALSE)
     #histogram <-  hist(diff(which(spikepulses==1)), breaks=xc_pulses$lag, plot=FALSE)
     plot(xc_pulses$lag, xc_pulses$acf, col="red",xlab="lag",main="Neuron 1 spiketrain acf")
     #lines(histogram$mids, histogram$counts / max(histogram$counts), col="green")
   }
-
+  
   if(length(spiketrain_neuron2) !=0) {
     spiketrain_neuron2_round = round(spiketrain_neuron2)
-    spikepulses <- seq(0,0,length.out=tail(spiketrain_neuron2_round,n=1))
-    i <- 1:length(spikepulses)
-    spikepulses[which(i  %in% spiketrain_neuron2_round)] = 1
-    xc_pulses <- acf(spikepulses, lag.max = 2000,plot = FALSE)
+    spikepulses <- numeric(max(spiketrain_neuron2_round))
+    a <- table(spiketrain_neuron2_round)
+    spikepulses[as.numeric(names(a))]=a[-1]
+    xc_pulses <- acf(spikepulses, lag.max = 1000,plot = FALSE)
     #histogram <-  hist(diff(which(spikepulses==1)), breaks=xc_pulses$lag, plot=FALSE)
     plot(xc_pulses$lag, xc_pulses$acf, col="red",xlab="lag",main="Neuron 1 spiketrain acf")
     #lines(histogram$mids, histogram$counts / max(histogram$counts), col="green")
   }
-
+  
   if(length(spiketrain_neuron3) !=0) {
     spiketrain_neuron3_round = round(spiketrain_neuron3)
-    spikepulses <- seq(0,0,length.out=tail(spiketrain_neuron3_round,n=1))
-    i <- 1:length(spikepulses)
-    spikepulses[which(i  %in% spiketrain_neuron3_round)] = 1
-    xc_pulses <- acf(spikepulses, lag.max = 2000,plot = FALSE)
+    spikepulses <- numeric(max(spiketrain_neuron3_round))
+    a <- table(spiketrain_neuron3_round)
+    spikepulses[as.numeric(names(a))]=a[-1]
+    xc_pulses <- acf(spikepulses, lag.max = 1000,plot = FALSE)
     #histogram <-  hist(diff(which(spikepulses==1)), breaks=xc_pulses$lag, plot=FALSE)
     plot(xc_pulses$lag, xc_pulses$acf, col="red",xlab="lag",main="Neuron 1 spiketrain acf")
     #lines(histogram$mids, histogram$counts / max(histogram$counts), col="green")
   }
-
-
+  
+  
   spiketrain_neuron4_round = round(total)
-  spikepulses <- seq(0,0,length.out=tail(spiketrain_neuron4_round,n=1))
-  i <- 1:length(spikepulses)
-  spikepulses[which(i  %in% spiketrain_neuron4_round)] = 1
-  xc_pulses <- acf(spikepulses, lag.max = 2000,plot = FALSE)
+  spikepulses <- numeric(max(spiketrain_neuron4_round))
+  a <- table(spiketrain_neuron4_round)
+  spikepulses[as.numeric(names(a))]=a[-1]
+  xc_pulses <- acf(spikepulses, lag.max = 1000,plot = FALSE)
   #histogram <-  hist(diff(which(spikepulses==1)), breaks=xc_pulses$lag, plot=FALSE)
   plot(xc_pulses$lag, xc_pulses$acf, col="red",xlab="lag",main="Acf of total activity")
   #lines(histogram$mids, histogram$counts / max(histogram$counts), col="green")
@@ -725,10 +727,10 @@ plot.spikes.by.distance=function(rat,enreg,ses){
   
   if(length(spiketrain_neuron1) !=0) {
     spiketrain_neuron1_round = round(spiketrain_neuron1)
-    spikepulses <- seq(0,0,length.out=tail(spiketrain_neuron1_round,n=1))
-    i <- 1:length(spikepulses)
-    spikepulses[which(i  %in% spiketrain_neuron1_round)] = 1
-    xc_pulses <- acf(spikepulses, lag.max = 20000,plot = FALSE)
+    spikepulses <- numeric(max(spiketrain_neuron1_round))
+    a <- table(spiketrain_neuron1_round)
+    spikepulses[as.numeric(names(a))]=a[-1]
+    xc_pulses <- acf(spikepulses, lag.max = 1000,plot = FALSE)
     #histogram <-  hist(diff(which(spikepulses==1)), breaks=xc_pulses$lag, plot=FALSE)
     plot(xc_pulses$lag, xc_pulses$acf, col="red",xlab="lag",main="Neuron 1 spiketrain acf")
     #lines(histogram$mids, histogram$counts / max(histogram$counts), col="green")
@@ -736,10 +738,10 @@ plot.spikes.by.distance=function(rat,enreg,ses){
   
   if(length(spiketrain_neuron2) !=0) {
     spiketrain_neuron2_round = round(spiketrain_neuron2)
-    spikepulses <- seq(0,0,length.out=tail(spiketrain_neuron2_round,n=1))
-    i <- 1:length(spikepulses)
-    spikepulses[which(i  %in% spiketrain_neuron2_round)] = 1
-    xc_pulses <- acf(spikepulses, lag.max = 20000,plot = FALSE)
+    spikepulses <- numeric(max(spiketrain_neuron2_round))
+    a <- table(spiketrain_neuron2_round)
+    spikepulses[as.numeric(names(a))]=a[-1]
+    xc_pulses <- acf(spikepulses, lag.max = 1000,plot = FALSE)
     #histogram <-  hist(diff(which(spikepulses==1)), breaks=xc_pulses$lag, plot=FALSE)
     plot(xc_pulses$lag, xc_pulses$acf, col="red",xlab="lag",main="Neuron 1 spiketrain acf")
     #lines(histogram$mids, histogram$counts / max(histogram$counts), col="green")
@@ -747,10 +749,10 @@ plot.spikes.by.distance=function(rat,enreg,ses){
   
   if(length(spiketrain_neuron3) !=0) {
     spiketrain_neuron3_round = round(spiketrain_neuron3)
-    spikepulses <- seq(0,0,length.out=tail(spiketrain_neuron3_round,n=1))
-    i <- 1:length(spikepulses)
-    spikepulses[which(i  %in% spiketrain_neuron3_round)] = 1
-    xc_pulses <- acf(spikepulses, lag.max = 20000,plot = FALSE)
+    spikepulses <- numeric(max(spiketrain_neuron3_round))
+    a <- table(spiketrain_neuron3_round)
+    spikepulses[as.numeric(names(a))]=a[-1]
+    xc_pulses <- acf(spikepulses, lag.max = 1000,plot = FALSE)
     #histogram <-  hist(diff(which(spikepulses==1)), breaks=xc_pulses$lag, plot=FALSE)
     plot(xc_pulses$lag, xc_pulses$acf, col="red",xlab="lag",main="Neuron 1 spiketrain acf")
     #lines(histogram$mids, histogram$counts / max(histogram$counts), col="green")
@@ -758,10 +760,10 @@ plot.spikes.by.distance=function(rat,enreg,ses){
   
   
   spiketrain_neuron4_round = round(total)
-  spikepulses <- seq(0,0,length.out=tail(spiketrain_neuron4_round,n=1))
-  i <- 1:length(spikepulses)
-  spikepulses[which(i  %in% spiketrain_neuron4_round)] = 1
-  xc_pulses <- acf(spikepulses, lag.max = 20000,plot = FALSE)
+  spikepulses <- numeric(max(spiketrain_neuron4_round))
+  a <- table(spiketrain_neuron4_round)
+  spikepulses[as.numeric(names(a))]=a[-1]
+  xc_pulses <- acf(spikepulses, lag.max = 1000,plot = FALSE)
   #histogram <-  hist(diff(which(spikepulses==1)), breaks=xc_pulses$lag, plot=FALSE)
   plot(xc_pulses$lag, xc_pulses$acf, col="red",xlab="lag",main="Acf of total activity")
   #lines(histogram$mids, histogram$counts / max(histogram$counts), col="green")

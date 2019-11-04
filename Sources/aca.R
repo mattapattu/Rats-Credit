@@ -148,12 +148,14 @@ add.box.to.pos=function(ses,enreg,spolygons){
         large<-which(enreg[[ses]]$POS[,"boxname"] == convertToLetter(as.character(boxes[1])) | enreg[[ses]]$POS[,"boxname"] == convertToLetter(as.character(boxes[2])))
         y <- large[findInterval(k,large,all.inside=TRUE)]
         enreg[[ses]]$POS[k,"boxname"] = enreg[[ses]]$POS[y,"boxname"]
-      }else{
-        dist <- gDistance(spts[1],spolygons,byid=TRUE)
+      }
+      p_nosharedborder <- which(rowSums(1*b)==0)
+      if(length(p_nosharedborder)>0){
+        dist <- gDistance(spts[p_nosharedborder[1]],spolygons,byid=TRUE)
         idx = which(dist==0)
         nbx=convertToLetter(toString(idx))
         enreg[[ses]]$POS[k,"boxname"]=nbx
-      }
+     }
     }
   }
   
@@ -474,10 +476,15 @@ plot.rewards=function(enreg){
   proportion_rewards <- rewards/(e_visits+i_visits)
   proportion_e <- reward_49/e_visits
   proportion_i <- reward_51/i_visits
-  par(mfrow=c(2,2))
+  par(mfrow=c(3,2))
+
+  plot(1:length(enreg),reward_49,col='red',type='l',xlab="Session",ylab="Rewards")
+  lines(1:length(enreg),reward_51,col='blue',type='l',lty=2)
+  legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2,cex=0.5,bty = "n")
+    
   plot(1:length(enreg),proportion_e,col='red',type='l',xlab="Session",ylab="Proportion of rewarded i/e visits")
   lines(1:length(enreg),proportion_i,col='blue',type='l',lty=2)
-  legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2,cex=0.5,bty = "n")
+  #legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2,cex=0.5,bty = "n")
   
   plot(1:length(enreg),proportion_rewards,col='red',type='l',xlab="Session",ylab="Total proportion of rewarded i/e visits")
   plot(1:length(enreg),duration,type="l",xlab="Session",ylab="Duration")
@@ -539,20 +546,16 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
         }
       
       #print.plot.journeys(DATA,FindNode(tree,"Experiment in Marseille"),boites)
-      #print(boites)
-      #enreg=add.neuron.in.path(tree,ses,rightPath,boites,enreg,i)
-     
+
       #debug(add.box.to.pos)
       enreg=add.box.to.pos(ses,enreg,spolygons)
-      #debug(add.rewards.to.pos)
       
       #debug(add.dist.to.pos)
-      #enreg = add.dist.to.pos(ses,enreg)
+      enreg=add.dist.to.pos(ses,enreg)
+      
       #debug(add.boxes.to.spikes)
+      enreg=add.boxes.to.spikes(ses,enreg)
       
-      #enreg=add.boxes.to.spikes(ses,enreg)
-      
-      #tree=change.tree.node(n,rat[i],tree,enreg,ses)
       
       #debug(plot.spikes.by.boxes.by.session)
       ##plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
@@ -562,13 +565,14 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #plot.average.frequency.by.boxes2(rat[i],enreg,ses)
       #debug(plot.spikes.by.time)
       #plot.spikes.by.time(rat[i],enreg,ses)
+      #debug(plot.spikes.by.distance)
       #plot.spikes.by.distance(rat[i],enreg,ses)
     }
     #debug(plot.spikes.by.boxes)
     #plot.spikes.by.boxes.by.rat(rat[i],enreg)
     #debug(change.tree.node)
     tree=change.tree.node(n,rat[i],tree,enreg,ses)
-    #debug(plot.rewards)
+    debug(plot.rewards)
     plot.rewards(enreg)
   }
   return(tree)

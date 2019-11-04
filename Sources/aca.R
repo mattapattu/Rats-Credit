@@ -441,21 +441,7 @@ plot.rewards=function(enreg){
   duration <- numeric()
   average_spike_freq <- numeric()
   for(ses in 1:length(enreg)){
-    if(sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "49"))) == 0 && sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "51"))) == 0){
-      #rewards <- c(rewards,(sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49))+sum(as.numeric(enreg[[ses]]$EVENTS[,2]==51))))
-      reward_49 <- c(reward_49,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49)))
-      reward_51 <- c(reward_51,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==51)))
-      e_visits <- c(e_visits,1)
-      i_visits <- c(i_visits,1)
-      len = length(enreg[[ses]]$POS[,1])
-      tot_time = as.numeric(enreg[[ses]]$POS[len,1])-as.numeric(enreg[[ses]]$POS[1,1])
-      duration <- c(duration,tot_time)
-      
-      total_spikes = length(as.numeric(enreg[[ses]]$SPIKES[,"neuron"])!= 0)
-      nb_neurons = max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))
-      average_spike_freq <- c(average_spike_freq,total_spikes/(tot_time*nb_neurons))
-      
-    }else{
+    if(sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "49"))) + sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "51"))) >= 5){
       #rewards <- c(rewards,(sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49))+sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49))))
       reward_49 <- c(reward_49,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49)))
       reward_51 <- c(reward_51,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==51)))
@@ -470,6 +456,9 @@ plot.rewards=function(enreg){
       total_spikes = length(as.numeric(enreg[[ses]]$SPIKES[,"neuron"])!= 0)
       nb_neurons = max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))
       average_spike_freq <- c(average_spike_freq,total_spikes/(tot_time*nb_neurons))
+      
+    }else{
+      
     }
   }
   rewards = reward_49+reward_51
@@ -478,17 +467,17 @@ plot.rewards=function(enreg){
   proportion_i <- reward_51/i_visits
   par(mfrow=c(3,2))
 
-  plot(1:length(enreg),reward_49,col='red',type='l',xlab="Session",ylab="Rewards")
-  lines(1:length(enreg),reward_51,col='blue',type='l',lty=2)
+  plot(reward_49,col='red',type='l',xlab="Session",ylab="Rewards")
+  lines(reward_51,col='blue',type='l',lty=2)
   legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2,cex=0.5,bty = "n")
     
-  plot(1:length(enreg),proportion_e,col='red',type='l',xlab="Session",ylab="Proportion of rewarded i/e visits")
-  lines(1:length(enreg),proportion_i,col='blue',type='l',lty=2)
+  plot(proportion_e,col='red',type='l',xlab="Session",ylab="Proportion of rewarded i/e visits")
+  lines(proportion_i,col='blue',type='l',lty=2)
   #legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2,cex=0.5,bty = "n")
   
-  plot(1:length(enreg),proportion_rewards,col='red',type='l',xlab="Session",ylab="Total proportion of rewarded i/e visits")
-  plot(1:length(enreg),duration,type="l",xlab="Session",ylab="Duration")
-  plot(1:length(enreg),average_spike_freq,type="l",xlab="Session",ylab="Average spike freq")
+  plot(proportion_rewards,col='red',type='l',xlab="Session",ylab="Total proportion of rewarded i/e visits")
+  plot(duration,type="l",xlab="Session",ylab="Duration")
+  plot(average_spike_freq,type="l",xlab="Session",ylab="Average spike freq")
   # plot(1:length(enreg),reward_49,col='red',type='b',xlab="Session",ylab="Rewards")
   # lines(1:length(enreg),reward_51,col='blue',type='b',lty=2)
   # legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2)
@@ -501,7 +490,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(1)) {
+  for (i in c(2)) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
@@ -572,7 +561,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #plot.spikes.by.boxes.by.rat(rat[i],enreg)
     #debug(change.tree.node)
     tree=change.tree.node(n,rat[i],tree,enreg,ses)
-    debug(plot.rewards)
+    #debug(plot.rewards)
     plot.rewards(enreg)
   }
   return(tree)

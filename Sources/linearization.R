@@ -400,7 +400,7 @@ plot.average.frequency.by.boxes=function(rat,enreg,ses){
     x_0 = c(count_a_0,count_b_0,count_c_0,count_d_0,count_e_0,count_f_0,count_g_0,count_h_0,count_i_0,count_j_0,count_k_0)
     x_0[x_0 == 0] <- 1
     
-    freq_neuron1 = freq_neuron1 + (neuron1_0*50/(x_0))
+      freq_neuron1 = freq_neuron1 + (neuron1_0*50/(x_0))
     freq_neuron2 = freq_neuron2 + (neuron2_0*50/(x_0))
     freq_neuron3 = freq_neuron3 + (neuron3_0*50/(x_0))
     

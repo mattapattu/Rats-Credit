@@ -663,13 +663,13 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #debug(plot.spikes.by.boxes.by.session)
       ##plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
       #debug(plot.average.frequency.by.boxes)
-      plot.average.frequency.by.boxes(rat[i],enreg,ses)
+      #plot.average.frequency.by.boxes(rat[i],enreg,ses)
       #debug(plot.average.frequency.by.boxes2)
       #plot.average.frequency.by.boxes2(rat[i],enreg,ses)
       #debug(plot.spikes.by.time)
       #plot.spikes.by.time(rat[i],enreg,ses)
       #debug(plot.spikes.by.distance)
-      plot.spikes.by.distance(rat[i],enreg,ses)
+      #plot.spikes.by.distance(rat[i],enreg,ses)
     }
     #debug(plot.spikes.by.boxes)
     #plot.spikes.by.boxes.by.rat(rat[i],enreg)
@@ -678,7 +678,9 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #debug(plot.rewards)
     #plot.rewards(enreg)
     #debug(plot.actions)
-    plot.actions(enreg,spolygons)
+    #plot.actions(enreg,spolygons)
+    debug(plot.c.turn.event)
+    plot.c.turn.event(enreg)
   }
   return(tree)
 }

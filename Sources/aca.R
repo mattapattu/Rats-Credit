@@ -610,7 +610,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #print(enreg)
     spols = list()
     
-    for(ses in c(1,13,14)){
+    for(ses in c(1,2,3,13,14)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       boxes=boites
       spolygons=getSpatialPolygons(boxes)

@@ -4,7 +4,7 @@ library(data.tree)
 library(ggplot2)
 
 
-plot.c.turn.event=function(rat,enreg,ses){
+plot.c.turn.event=function(enreg){
   #plot for all rewarded e/i visit trials
   #plot for all unrewarded e/i visit trials
   #plot for all rewarded e visit trials 

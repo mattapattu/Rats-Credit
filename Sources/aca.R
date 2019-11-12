@@ -679,8 +679,10 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #plot.rewards(enreg)
     #debug(plot.actions)
     #plot.actions(enreg,spolygons)
-    debug(plot.c.turn.event)
-    plot.c.turn.event(enreg)
+    #debug(plot.c.turn.event.by.time)
+    #plot.c.turn.event.by.time(enreg)
+    debug(plot.c.turn.event.by.distance)
+    plot.c.turn.event.by.distance(enreg)
   }
   return(tree)
 }

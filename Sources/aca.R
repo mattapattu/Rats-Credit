@@ -602,6 +602,11 @@ plot.actions=function(enreg,spolygons){
 set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
+  
+  path = getwd()
+  time = format(Sys.time(), "%F %H-%M")
+  dirpath = file.path(path,"Plots",time)
+  dir.create(dirpath)
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
   for (i in c(2)) {
     n=FindNode(tree,rat[[i]])
@@ -610,7 +615,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #print(enreg)
     spols = list()
     
-    for(ses in c(1,2,3,13,14)){
+    for(ses in c(1:2,8:9,13:14)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       boxes=boites
       spolygons=getSpatialPolygons(boxes)
@@ -641,7 +646,6 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
         }
         
         spolygons=getSpatialPolygons(boxes)
-        spols <- c(spols,spolygons)
         # pts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[,2]),as.numeric(enreg[[ses]]$POS[,3])))
         # plot(spolygons)
         # points(pts, pch=16, cex=.5,col="red")
@@ -661,28 +665,24 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       
       
       #debug(plot.spikes.by.boxes.by.session)
-      ##plot.spikes.by.boxes.by.session(rat[i],enreg,ses)
+      ##plot.spikes.by.boxes.by.session(rat[i],enreg,ses,dirpath)
       #debug(plot.average.frequency.by.boxes)
-      #plot.average.frequency.by.boxes(rat[i],enreg,ses)
+      #plot.average.frequency.by.boxes(rat[i],enreg,ses,dirpath)
       #debug(plot.average.frequency.by.boxes2)
-      #plot.average.frequency.by.boxes2(rat[i],enreg,ses)
+      #plot.average.frequency.by.boxes2(rat[i],enreg,ses,dirpath)
       #debug(plot.spikes.by.time)
-      #plot.spikes.by.time(rat[i],enreg,ses)
+      #plot.spikes.by.time(rat[i],enreg,ses,dirpath)
       #debug(plot.spikes.by.distance)
-      #plot.spikes.by.distance(rat[i],enreg,ses)
+      #plot.spikes.by.distance(rat[i],enreg,ses,dirpath)
     }
-    #debug(plot.spikes.by.boxes)
-    #plot.spikes.by.boxes.by.rat(rat[i],enreg)
     #debug(change.tree.node)
     tree=change.tree.node(n,rat[i],tree,enreg,ses)
-    #debug(plot.rewards)
+    #debug(plot.rewards,dirpath)
     #plot.rewards(enreg)
-    #debug(plot.actions)
-    #plot.actions(enreg,spolygons)
     #debug(plot.c.turn.event.by.time)
-    #plot.c.turn.event.by.time(enreg)
-    debug(plot.c.turn.event.by.distance)
-    plot.c.turn.event.by.distance(enreg)
+    plot.c.turn.event.by.time(enreg,dirpath,rat[i])
+    #debug(plot.c.turn.event.by.distance)
+    plot.c.turn.event.by.distance(enreg,dirpath,rat[i])
   }
   return(tree)
 }

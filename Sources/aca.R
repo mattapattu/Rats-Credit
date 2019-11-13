@@ -608,14 +608,14 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   dirpath = file.path(path,"Plots",time)
   dir.create(dirpath)
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(2)) {
+  for (i in c(1)) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     spols = list()
     
-    for(ses in c(1:2,8:9,13:14)){
+    for(ses in c(1:3,23:24,39:40)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       boxes=boites
       spolygons=getSpatialPolygons(boxes)

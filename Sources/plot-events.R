@@ -12,7 +12,7 @@ plot.c.turn.event.by.time=function(enreg,dirpath,rat){
   
   ###spikes 1s before reward, Reward, 1s after reward
   
-  for(ses in c(1:2,8:9,13:14)){
+  for(ses in c(1:3,23:24,39:40)){
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
     allpaths<-strsplit(allpaths,"(?<=[ei])",perl=TRUE)[[1]]
@@ -120,7 +120,7 @@ plot.c.turn.event.by.distance=function(enreg,dirpath,rat){
   ###spikes 1s before reward, Reward, 1s after reward
   
 
-  for(ses in c(1:2,8:9,13:14)){
+  for(ses in c(1:3,23:24,39:40)){
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
     allpaths<-strsplit(allpaths,"(?<=[ei])",perl=TRUE)[[1]]

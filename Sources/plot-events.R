@@ -13,6 +13,9 @@ plot.c.turn.event.by.time=function(enreg,dirpath,rat){
   ###spikes 1s before reward, Reward, 1s after reward
   
   for(ses in c(1:3,23:24,39:40)){
+    dirpath1 = file.path(dirpath,paste("Session",ses,sep=""))
+    dir.create(dirpath1)
+    
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
     allpaths<-strsplit(allpaths,"(?<=[ei])",perl=TRUE)[[1]]
@@ -41,70 +44,81 @@ plot.c.turn.event.by.time=function(enreg,dirpath,rat){
     incorrect49trials <- incorrecttrials[grep("a,.*b,.*c.*e",allpaths[incorrecttrials],value = FALSE)]
     incorrect51trials <- incorrecttrials[grep("a,.*b,.*c.*i",allpaths[incorrecttrials],value = FALSE)]
     
-    
-    
-    filename = file.path(dirpath,paste(rat,"-spike vs time correct 49-ses-",ses,".jpg",sep=""))
-    jpeg(filename,width=2000,height=1800,quality=100)
-    par(mfrow=c(5,2))
-    
-    ### 49 correct trials
-    x=round(length(correct49trials) / 2)
-    for(t in c(correct49trials[1:2],correct49trials[x:(x+1)],correct49trials[(length(correct49trials)-1):(length(correct49trials))])){
-      trial_t <-which(enreg[[ses]]$POS[,"trial"]==t)
-      r<-rle(enreg[[ses]]$POS[trial_t,"boxname"])
-      ##Is box c visited only once ? Else ignore 
-      if(sum(as.numeric(r$values=="c"))==1){
-        turn_time_at_c = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "d" & enreg[[ses]]$POS[,"trial"] == t),1])[1]
-        enter_time_at_a  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "a" & enreg[[ses]]$POS[,"trial"] == t),1])[1]
-        time_reward = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49" & enreg[[ses]]$POS[,"trial"] == t),1])
-        if(is.na(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),1])[1])){
-          exit_time_at_e  = tail(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == t),1]),1)
-        }else{
-          exit_time_at_e  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),1])[1]
-        }
-        
-        times<-which((as.numeric(enreg[[ses]]$SPIKES[,1]) >= enter_time_at_a & as.numeric(enreg[[ses]]$SPIKES[,1]) < exit_time_at_e) & as.numeric(enreg[[ses]]$SPIKES[,"neuron"] != 0))
-        breaks=round((exit_time_at_e-enter_time_at_a)/300)
-        par(xpd=F)
-        hist(as.numeric(enreg[[ses]]$SPIKES[times,1]),breaks=breaks,main=paste("Trial-",t),xlab="time",ylab="Spikes/300 ms")
-        abline(v = turn_time_at_c, col="green", lwd=1, lty=2)
-        abline(v = time_reward, col="red", lwd=1, lty=2)
-      }
+    max_neuron = max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))
+    for(neuron in 1:max_neuron){
+      dirpath2 = file.path(dirpath1,paste("Neuron",neuron,sep=""))
+      dir.create(dirpath2)
+
+      filename = file.path(dirpath2,paste(rat,"-spike vs time correct 49-ses-",ses,paste("Neuron-",neuron,sep=""),".jpg",sep=""))
+      jpeg(filename,width=2000,height=1800,quality=100)
+      par(mfrow=c(5,2))
       
-    }
-    dev.off()
-    
-    
-   
-    ### 51 correct trials
-    filename = file.path(dirpath,paste(rat,"-spike vs time correct 51-ses-",ses,".jpg",sep=""))
-    jpeg(filename,width=2000,height=1800,quality=100)
-    par(mfrow=c(5,2))
-    
-    x=round(length(correct51trials) / 2)
-    for(t in c(correct51trials[1:2],correct51trials[x:(x+1)],correct51trials[(length(correct51trials)-1):(length(correct51trials))])){
-      trial_t <-which(enreg[[ses]]$POS[,"trial"]==t)
-      r<-rle(enreg[[ses]]$POS[trial_t,"boxname"])
-      ##Is box c visited only once ? Else ignore 
-      if(sum(as.numeric(r$values=="c"))==1){
-        turn_time_at_c = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "h" & enreg[[ses]]$POS[,"trial"] == t),1])[1]
-        enter_time_at_a  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "a" & enreg[[ses]]$POS[,"trial"] == t),1])[1]
-        time_reward = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "51" & enreg[[ses]]$POS[,"trial"] == t),1])
-        if(is.na(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),1])[1])){
-          exit_time_at_i  = tail(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == t),1]),1)
-        }else{
-          exit_time_at_i  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),1])[1]
+      ### 49 correct trials
+      x=round(length(correct49trials) / 2)
+      for(t in c(correct49trials[1:2],correct49trials[x:(x+1)],correct49trials[(length(correct49trials)-1):(length(correct49trials))])){
+        trial_t <-which(enreg[[ses]]$POS[,"trial"]==t)
+        r<-rle(enreg[[ses]]$POS[trial_t,"boxname"])
+        ##Is box c visited only once ? Else ignore 
+        if(sum(as.numeric(r$values=="c"))==1){
+          turn_time_at_c = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "d" & enreg[[ses]]$POS[,"trial"] == t),1])[1]
+          enter_time_at_a  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "a" & enreg[[ses]]$POS[,"trial"] == t),1])[1]
+          time_reward = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49" & enreg[[ses]]$POS[,"trial"] == t),1])
+          if(is.na(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),1])[1])){
+            exit_time_at_e  = tail(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == t),1]),1)
+          }else{
+            exit_time_at_e  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),1])[1]
+          }
+          
+          times<-which((as.numeric(enreg[[ses]]$SPIKES[,1]) >= enter_time_at_a & as.numeric(enreg[[ses]]$SPIKES[,1]) < exit_time_at_e) & as.numeric(enreg[[ses]]$SPIKES[,"neuron"] != 0))
+          if(length(enreg[[ses]]$SPIKES[times[which(enreg[[ses]]$SPIKES[times,"neuron"]==neuron)],1])>0){
+            breaks=round((exit_time_at_e-enter_time_at_a)/300)
+            par(xpd=F)
+            hist(as.numeric(enreg[[ses]]$SPIKES[times[which(enreg[[ses]]$SPIKES[times,"neuron"]==neuron)],1]),breaks=breaks,main=paste("Trial-",t),xlab="time",ylab="Spikes/300 ms")
+            abline(v = enter_time_at_a, col="blue", lwd=2, lty=2)
+            abline(v = turn_time_at_c, col="green", lwd=1, lty=2)
+            abline(v = time_reward, col="red", lwd=1, lty=2)
+          }
         }
-        
-        times<-which((as.numeric(enreg[[ses]]$SPIKES[,1]) >= enter_time_at_a & as.numeric(enreg[[ses]]$SPIKES[,1]) < exit_time_at_i) & as.numeric(enreg[[ses]]$SPIKES[,"neuron"] != 0))
-        breaks=round((exit_time_at_i-enter_time_at_a)/300)
-        par(xpd=F)
-        hist(as.numeric(enreg[[ses]]$SPIKES[times,1]),breaks=breaks,main=paste("Trial-",t),xlab="time",ylab="Spikes/300 ms")
-        abline(v = turn_time_at_c, col="green", lwd=2, lty=2)
-        abline(v = time_reward, col="red", lwd=2, lty=2)
       }
+      dev.off()
+      
+      
+      
+      ### 51 correct trials
+      filename = file.path(dirpath2,paste(rat,"-spike vs time correct 51-ses-",ses,paste("-Neuron-",neuron,sep=""),".jpg",sep=""))
+      jpeg(filename,width=2000,height=1800,quality=100)
+      par(mfrow=c(5,2))
+      
+      x=round(length(correct51trials) / 2)
+      for(t in c(correct51trials[1:2],correct51trials[x:(x+1)],correct51trials[(length(correct51trials)-1):(length(correct51trials))])){
+        trial_t <-which(enreg[[ses]]$POS[,"trial"]==t)
+        r<-rle(enreg[[ses]]$POS[trial_t,"boxname"])
+        ##Is box c visited only once ? Else ignore 
+        if(sum(as.numeric(r$values=="c"))==1){
+          turn_time_at_c = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "h" & enreg[[ses]]$POS[,"trial"] == t),1])[1]
+          enter_time_at_a  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "a" & enreg[[ses]]$POS[,"trial"] == t),1])[1]
+          time_reward = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "51" & enreg[[ses]]$POS[,"trial"] == t),1])
+          if(is.na(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),1])[1])){
+            exit_time_at_i  = tail(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == t),1]),1)
+          }else{
+            exit_time_at_i  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),1])[1]
+          }
+          
+          times<-which((as.numeric(enreg[[ses]]$SPIKES[,1]) >= enter_time_at_a & as.numeric(enreg[[ses]]$SPIKES[,1]) < exit_time_at_i) & as.numeric(enreg[[ses]]$SPIKES[,"neuron"] != 0))
+          if(length(enreg[[ses]]$SPIKES[times[which(enreg[[ses]]$SPIKES[times,"neuron"]==neuron)],1])>0){
+            breaks=round((exit_time_at_i-enter_time_at_a)/300)
+            par(xpd=F)
+            hist(as.numeric(enreg[[ses]]$SPIKES[times[which(enreg[[ses]]$SPIKES[times,"neuron"]==neuron)],1]),breaks=breaks,main=paste("Trial-",t),xlab="time",ylab="Spikes/300 ms")
+            abline(v = enter_time_at_a, col="blue", lwd=2, lty=2)
+            abline(v = turn_time_at_c, col="green", lwd=2, lty=2)
+            abline(v = time_reward, col="red", lwd=2, lty=2)
+          }
+        }
+      }
+      dev.off()
     }
-    dev.off()
+    
+
   }
   
 
@@ -121,6 +135,10 @@ plot.c.turn.event.by.distance=function(enreg,dirpath,rat){
   
 
   for(ses in c(1:3,23:24,39:40)){
+    
+    dirpath1 = file.path(dirpath,paste("Session",ses,sep=""))
+    dir.create(dirpath1)
+    
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
     allpaths<-strsplit(allpaths,"(?<=[ei])",perl=TRUE)[[1]]
@@ -149,68 +167,82 @@ plot.c.turn.event.by.distance=function(enreg,dirpath,rat){
     incorrect49trials <- incorrecttrials[grep("a,.*b,.*c.*e",allpaths[incorrecttrials],value = FALSE)]
     incorrect51trials <- incorrecttrials[grep("a,.*b,.*c.*i",allpaths[incorrecttrials],value = FALSE)]
     
-    
-    
-    filename = file.path(dirpath,paste(rat,"-spike vs distance correct 49-ses-",ses,".jpg",sep=""))
-    jpeg(filename,width=2000,height=1800,quality=100)
-    par(mfrow=c(5,2))
-    
-    ### 49 correct trials
-    x=round(length(correct49trials) / 2)
-    
+    max_neuron = max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))
+    for(neuron in 1:max_neuron){
+      dirpath2 = file.path(dirpath1,paste("Neuron",neuron,sep=""))
+      dir.create(dirpath2)
       
-    for(t in c(correct49trials[1:2],correct49trials[x:(x+1)],correct49trials[(length(correct49trials)-1):(length(correct49trials))])){
-      trial_t <-which(enreg[[ses]]$POS[,"trial"]==t)
-      r<-rle(enreg[[ses]]$POS[trial_t,"boxname"])
-      ##Is box c visited only once ? Else ignore 
-      if(sum(as.numeric(r$values=="c"))==1){
-        turn_distance_at_c = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "d" & enreg[[ses]]$POS[,"trial"] == t),"distance"])[1]
-        enter_distance_at_a  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "a" & enreg[[ses]]$POS[,"trial"] == t),"distance"])[1]
-        distance_reward = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49" & enreg[[ses]]$POS[,"trial"] == t),"distance"])
-        if(is.na(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),"distance"])[1])){
-          exit_distance_at_e  = tail(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == t),"distance"]),1)
-        }else{
-          exit_distance_at_e  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),"distance"])[1]
+      filename = file.path(dirpath2,paste(rat,"-spike vs distance correct 49-ses-",ses,paste("-Neuron-",neuron,sep=""),".jpg",sep=""))
+      jpeg(filename,width=2000,height=1800,quality=100)
+      par(mfrow=c(5,2))
+      
+      ### 49 correct trials
+      x=round(length(correct49trials) / 2)
+      
+      
+      for(t in c(correct49trials[1:2],correct49trials[x:(x+1)],correct49trials[(length(correct49trials)-1):(length(correct49trials))])){
+        trial_t <-which(enreg[[ses]]$POS[,"trial"]==t)
+        r<-rle(enreg[[ses]]$POS[trial_t,"boxname"])
+        ##Is box c visited only once ? Else ignore 
+        if(sum(as.numeric(r$values=="c"))==1){
+          turn_distance_at_c = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "d" & enreg[[ses]]$POS[,"trial"] == t),"distance"])[1]
+          enter_distance_at_a  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "a" & enreg[[ses]]$POS[,"trial"] == t),"distance"])[1]
+          distance_reward = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49" & enreg[[ses]]$POS[,"trial"] == t),"distance"])
+          if(is.na(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),"distance"])[1])){
+            exit_distance_at_e  = tail(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == t),"distance"]),1)
+          }else{
+            exit_distance_at_e  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),"distance"])[1]
+          }
+          distances<-which((as.numeric(enreg[[ses]]$SPIKES[,"distance"]) >= enter_distance_at_a & as.numeric(enreg[[ses]]$SPIKES[,"distance"]) < exit_distance_at_e) & as.numeric(enreg[[ses]]$SPIKES[,"neuron"] != 0))
+          if(length(enreg[[ses]]$SPIKES[distances[which(enreg[[ses]]$SPIKES[distances,"neuron"]==neuron)],1])>0){
+            breaks=round((exit_distance_at_e-enter_distance_at_a)/10)
+            par(xpd=F)
+            hist(as.numeric(enreg[[ses]]$SPIKES[distances[which(enreg[[ses]]$SPIKES[distances,"neuron"]==neuron)],"distance"]),breaks=breaks,main=paste("Trial-",t),xlab="distance",ylab="Spikes/cm")
+            abline(v = enter_distance_at_a, col="blue", lwd=1, lty=2)
+            abline(v = turn_distance_at_c, col="green", lwd=1, lty=2)
+            abline(v = distance_reward, col="red", lwd=1, lty=2)
+          }
         }
-        distances<-which((as.numeric(enreg[[ses]]$SPIKES[,"distance"]) >= enter_distance_at_a & as.numeric(enreg[[ses]]$SPIKES[,"distance"]) < exit_distance_at_e) & as.numeric(enreg[[ses]]$SPIKES[,"neuron"] != 0))
-        breaks=round((exit_distance_at_e-enter_distance_at_a)/10)
-        par(xpd=F)
-        hist(as.numeric(enreg[[ses]]$SPIKES[distances,"distance"]),breaks=breaks,main=paste("Trial-",t),xlab="distance",ylab="Spikes/cm")
-        abline(v = turn_distance_at_c, col="green", lwd=1, lty=2)
-        abline(v = distance_reward, col="red", lwd=1, lty=2)
       }
+      dev.off()
+      
+      ### 51 correct trials
+      filename = file.path(dirpath2,paste(rat,"- spike vs distance correct 51-ses-",ses,paste("Neuron-",neuron,sep=""),".jpg",sep=""))
+      jpeg(filename,width=2000,height=1800,quality=100)
+      par(mfrow=c(5,2))
+      x=round(length(correct51trials) / 2)
+      
+      for(t in c(correct51trials[1:2],correct51trials[x:(x+1)],correct51trials[(length(correct51trials)-1):(length(correct51trials))])){
+        trial_t <-which(enreg[[ses]]$POS[,"trial"]==t)
+        r<-rle(enreg[[ses]]$POS[trial_t,"boxname"])
+        ##Is box c visited only once ? Else ignore 
+        if(sum(as.numeric(r$values=="c"))==1){
+          turn_distance_at_c = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "h" & enreg[[ses]]$POS[,"trial"] == t),"distance"])[1]
+          enter_distance_at_a  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "a" & enreg[[ses]]$POS[,"trial"] == t),"distance"])[1]
+          distance_reward = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "51" & enreg[[ses]]$POS[,"trial"] == t),"distance"])
+          if(is.na(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),"distance"])[1])){
+            exit_distance_at_i  = tail(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == t),"distance"]),1)
+          }else{
+            exit_distance_at_i  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),"distance"])[1]
+          }
+          distances<-which((as.numeric(enreg[[ses]]$SPIKES[,"distance"]) >= enter_distance_at_a & as.numeric(enreg[[ses]]$SPIKES[,"distance"]) < exit_distance_at_i) & as.numeric(enreg[[ses]]$SPIKES[,"neuron"] != 0))
+          
+          if(length(enreg[[ses]]$SPIKES[distances[which(enreg[[ses]]$SPIKES[distances,"neuron"]==neuron)],1])>0){
+            breaks=round((exit_distance_at_i-enter_distance_at_a)/10)
+            par(xpd=F)
+            hist(as.numeric(enreg[[ses]]$SPIKES[distances[which(enreg[[ses]]$SPIKES[distances,"neuron"]==neuron)],"distance"]),breaks=breaks,main=paste("Trial-",t),xlab="distance",ylab="Spikes/cm")
+            abline(v = enter_distance_at_a, col="blue", lwd=1, lty=2)
+            abline(v = turn_distance_at_c, col="green", lwd=2, lty=2)
+            abline(v = distance_reward, col="red", lwd=2, lty=2)
+          }
+          
+        }
+      }
+      dev.off()
       
     }
-    dev.off()
     
-    ### 51 correct trials
-    filename = file.path(dirpath,paste(rat,"- spike vs distance correct 51-ses-",ses,".jpg",sep=""))
-    jpeg(filename,width=2000,height=1800,quality=100)
-    par(mfrow=c(5,2))
-    x=round(length(correct51trials) / 2)
-   
-    for(t in c(correct51trials[1:2],correct51trials[x:(x+1)],correct51trials[(length(correct51trials)-1):(length(correct51trials))])){
-      trial_t <-which(enreg[[ses]]$POS[,"trial"]==t)
-      r<-rle(enreg[[ses]]$POS[trial_t,"boxname"])
-      ##Is box c visited only once ? Else ignore 
-      if(sum(as.numeric(r$values=="c"))==1){
-        turn_distance_at_c = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "h" & enreg[[ses]]$POS[,"trial"] == t),"distance"])[1]
-        enter_distance_at_a  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == "a" & enreg[[ses]]$POS[,"trial"] == t),"distance"])[1]
-        distance_reward = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "51" & enreg[[ses]]$POS[,"trial"] == t),"distance"])
-        if(is.na(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),"distance"])[1])){
-          exit_distance_at_i  = tail(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == t),"distance"]),1)
-        }else{
-          exit_distance_at_i  = as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"trial"] == (t+1)),"distance"])[1]
-        }
-        distances<-which((as.numeric(enreg[[ses]]$SPIKES[,"distance"]) >= enter_distance_at_a & as.numeric(enreg[[ses]]$SPIKES[,"distance"]) < exit_distance_at_i) & as.numeric(enreg[[ses]]$SPIKES[,"neuron"] != 0))
-        breaks=round((exit_distance_at_i-enter_distance_at_a)/10)
-        par(xpd=F)
-        hist(as.numeric(enreg[[ses]]$SPIKES[distances,"distance"]),breaks=breaks,main=paste("Trial-",t),xlab="distance",ylab="Spikes/cm")
-        abline(v = turn_distance_at_c, col="green", lwd=2, lty=2)
-        abline(v = distance_reward, col="red", lwd=2, lty=2)
-      }
-    }
-    dev.off()
+    
     
     
     # filename = file.path(dirpath,paste(rat,"-incorrect trials-ses-",ses,".jpg",sep=""))

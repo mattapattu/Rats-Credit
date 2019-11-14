@@ -603,10 +603,8 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   
-  path = getwd()
-  time = format(Sys.time(), "%F %H-%M")
-  dirpath = file.path(path,"Plots",time)
-  dir.create(dirpath)
+  
+  
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
   for (i in c(1)) {
     n=FindNode(tree,rat[[i]])
@@ -679,10 +677,38 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     tree=change.tree.node(n,rat[i],tree,enreg,ses)
     #debug(plot.rewards,dirpath)
     #plot.rewards(enreg)
+    
+    path = getwd()
+    time1 = format(Sys.time(), "%F %H-%M")
+    dirpath = file.path(path,"Plots",time1)
+    dir.create(dirpath)
+    # dirpath1 = file.path(path,"Plots",time1,"Neuron1")
+    # dir.create(dirpath1)
+    # dirpath2 = file.path(path,"Plots",time1,"Neuron2")
+    # dir.create(dirpath2)
+    # dirpath3 = file.path(path,"Plots",time1,"Neuron3")
+    # dir.create(dirpath3)
+    # dirpath4 = file.path(path,"Plots",time1,"Neuron4")
+    # dir.create(dirpath4)
+    # dirpath5 = file.path(path,"Plots",time1,"Neuron5")
+    # dir.create(dirpath5)
+    # dirpath6 = file.path(path,"Plots",time1,"Neuron6")
+    # dir.create(dirpath6)
+    
     #debug(plot.c.turn.event.by.time)
     plot.c.turn.event.by.time(enreg,dirpath,rat[i])
+    # plot.c.turn.event.by.time(enreg,dirpath2,rat[i],"2")
+    # plot.c.turn.event.by.time(enreg,dirpath3,rat[i],"3")
+    # plot.c.turn.event.by.time(enreg,dirpath4,rat[i],"4")
+    # plot.c.turn.event.by.time(enreg,dirpath5,rat[i],"5")
+    # plot.c.turn.event.by.time(enreg,dirpath6,rat[i],"6")
     #debug(plot.c.turn.event.by.distance)
     plot.c.turn.event.by.distance(enreg,dirpath,rat[i])
+    # plot.c.turn.event.by.distance(enreg,dirpath2,rat[i],"2")
+    # plot.c.turn.event.by.distance(enreg,dirpath3,rat[i],"3")
+    # plot.c.turn.event.by.distance(enreg,dirpath4,rat[i],"4")
+    # plot.c.turn.event.by.distance(enreg,dirpath5,rat[i],"5")
+    # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
   }
   return(tree)
 }

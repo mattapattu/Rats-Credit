@@ -41,7 +41,7 @@ plot.c.turn.event.by.time=function(enreg,dirpath,rat){
     allrewards <-as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]=="51" | enreg[[ses]]$POS[,"Reward"]=="49"),"trial"])
     incorrecttrials <- setdiff(incorrecttrials,allrewards)
     
-    incorrect49trials <- incorrecttrials[grep("a,.*b,.*c.*e",allpaths[incorrecttrials],value = FALSE)]
+    incorrect49trials <- incorrecttrials[grep("j,.*b,.*c.*e",allpaths[incorrecttrials],value = FALSE)]
     incorrect51trials <- incorrecttrials[grep("a,.*b,.*c.*i",allpaths[incorrecttrials],value = FALSE)]
     
     max_neuron = max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))

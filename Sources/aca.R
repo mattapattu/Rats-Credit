@@ -606,14 +606,14 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   
   
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(1)) {
+  for (i in c(2)) {
     n=FindNode(tree,rat[[i]])
     #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     spols = list()
     
-    for(ses in c(1:3,23:24,39:40)){
+    for(ses in c(1)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       boxes=boites
       spolygons=getSpatialPolygons(boxes)
@@ -678,10 +678,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #debug(plot.rewards,dirpath)
     #plot.rewards(enreg)
     
-    path = getwd()
-    time1 = format(Sys.time(), "%F %H-%M")
-    dirpath = file.path(path,"Plots",time1)
-    dir.create(dirpath)
+    # path = getwd()
+    # time1 = format(Sys.time(), "%F %H-%M")
+    # dirpath = file.path(path,"Plots",time1)
+    # dir.create(dirpath)
+    
+    
     # dirpath1 = file.path(path,"Plots",time1,"Neuron1")
     # dir.create(dirpath1)
     # dirpath2 = file.path(path,"Plots",time1,"Neuron2")
@@ -695,20 +697,24 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # dirpath6 = file.path(path,"Plots",time1,"Neuron6")
     # dir.create(dirpath6)
     
+    
     #debug(plot.c.turn.event.by.time)
-    plot.c.turn.event.by.time(enreg,dirpath,rat[i])
+    #plot.c.turn.event.by.time(enreg,dirpath,rat[i])
     # plot.c.turn.event.by.time(enreg,dirpath2,rat[i],"2")
     # plot.c.turn.event.by.time(enreg,dirpath3,rat[i],"3")
     # plot.c.turn.event.by.time(enreg,dirpath4,rat[i],"4")
     # plot.c.turn.event.by.time(enreg,dirpath5,rat[i],"5")
     # plot.c.turn.event.by.time(enreg,dirpath6,rat[i],"6")
     #debug(plot.c.turn.event.by.distance)
-    plot.c.turn.event.by.distance(enreg,dirpath,rat[i])
+    #plot.c.turn.event.by.distance(enreg,dirpath,rat[i])
     # plot.c.turn.event.by.distance(enreg,dirpath2,rat[i],"2")
     # plot.c.turn.event.by.distance(enreg,dirpath3,rat[i],"3")
     # plot.c.turn.event.by.distance(enreg,dirpath4,rat[i],"4")
     # plot.c.turn.event.by.distance(enreg,dirpath5,rat[i],"5")
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
+    
+    debug(plot.heatmap)
+    plot.heatmap(enreg)
   }
   return(tree)
 }

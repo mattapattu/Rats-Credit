@@ -35,6 +35,9 @@ buildDataTree=function(){
       enreg=recordingsInFolder(dirNm) 
       ses=1
       for(rec in enreg){
+        if(is.null(rec)){
+          next
+        }
         #temps, tetrode, neurone, remove last voltage values
         spks=rec$SPIKES[,1:3] 
         vb=logical(length(spks[,1])) #add a vector of booleans
@@ -125,7 +128,7 @@ recordingsInFolder=function(folderNm){
       }
     }
     print(setsession[isess])
-    Enreg[[isess]]=list(tet=tet,POS=POS,EVENTS=EVENTS,SPIKES=SPIKES,LFP=LFP)
+    Enreg[[setsession[isess]]]=list(tet=tet,POS=POS,EVENTS=EVENTS,SPIKES=SPIKES,LFP=LFP)
   }
   setwd(rootPath)
   return(Enreg)

@@ -8,25 +8,15 @@ plot.heatmap=function(enreg){
   
   for(ses in c(1)){
 
-    last_valid_trial_index = max(which(enreg[[ses]]$POS[,"boxname"] != "noBox"))
-    last_vald_trial = as.numeric(enreg[[ses]]$POS[last_valid_trial_index,"trial"])
-    all_trials <- 1:155
+    last_trial <- as.numeric(enreg[[ses]]$POS[length(enreg[[ses]]$POS[,1]),"trial"])
     
-    
-    left_corr_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "51"),"trial"])
-    left_corr_trials = left_corr_trials[!is.na(left_corr_trials)]
-    
-    
-    
-    mat <-matrix(0, last_vald_trial, 11)
-    m <- enreg[[ses]]$POS
-    k <- enreg[[ses]]$SPIKES
+    mat <-matrix(0, last_trial, 11)
+    colnames(mat) <- c("a","b","c","d","e","f","g","h","i","j","k")
     trialIndex =1
     pos <- enreg[[ses]]$POS
     
-    for(t in 1:155){
+    for(t in 1:last_trial){
       
-
       a <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "a")
       time_a_0 = as.numeric(enreg[[ses]]$POS[a[length(a)],1]) - as.numeric(enreg[[ses]]$POS[a[1],1])
       b <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "b")
@@ -87,6 +77,17 @@ plot.heatmap=function(enreg){
       trialIndex = trialIndex+1
     }
     
+    library(ggplot2)
+    
+    longData<-melt(mat)
+    longData<-longData[longData$value!=0,]
+    ggplot(longData, aes(x = Var2, y = Var1)) + 
+      geom_raster(aes(fill=value)) + 
+      scale_fill_gradient(low="grey90", high="red") +
+      labs(x="Boxes", y="Trials", title="Matrix") +
+      theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=0.3),
+                         axis.text.y=element_text(size=9),
+                         plot.title=element_text(size=11))
     
   } 
   

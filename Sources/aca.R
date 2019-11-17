@@ -608,7 +608,6 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
   for (i in c(2)) {
     n=FindNode(tree,rat[[i]])
-    #debug(convert.node.to.enreg)
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     spols = list()

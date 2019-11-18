@@ -162,7 +162,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
 
   # g <- enreg[[ses]]$POS[,"boxname"]
   # enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric((g[seq_along(g)-1]=="i"| g[seq_along(g)-1]=="e") & g[-1] != g[-length(g)])))
-  add.trial.to.pos(enreg,ses)
+  enreg=add.trial.to.pos(enreg,ses)
   
   print("Returning enreg from add.boxes.to.pos")
   return(enreg)
@@ -185,14 +185,14 @@ add.trial.to.pos=function(enreg,ses){
     stop_rle_index=start_rle_index+length(l)-1
     stop_pos_index = sum(r$lengths[start_rle_index:stop_rle_index])+start_pos_index-1
     enreg[[ses]]$POS[start_pos_index:stop_pos_index,"trial"]=i
-    print(sprintf("start_rle_index=%i,stop_rle_index=%i,start_pos_index=%i,stop_pos_index=%i",start_rle_index,stop_rle_index,start_pos_index,stop_pos_index))
-    print(sprintf("actual path is %s",toString(r$values[start_rle_index:stop_rle_index])))
-    print(sprintf("expected path is %s",toString(allpaths[i])))
+    # print(sprintf("start_rle_index=%i,stop_rle_index=%i,start_pos_index=%i,stop_pos_index=%i",start_rle_index,stop_rle_index,start_pos_index,stop_pos_index))
+    # print(sprintf("actual path is %s",toString(r$values[start_rle_index:stop_rle_index])))
+    # print(sprintf("expected path is %s",toString(allpaths[i])))
     start_rle_index=stop_rle_index+1
     start_pos_index = stop_pos_index+1
     
   }
-  
+  return(enreg)
 }
 
 
@@ -641,8 +641,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     spols = list()
-    
-    for(ses in c(1)){
+    for(ses in c(1:2)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       boxes=boites
       spolygons=getSpatialPolygons(boxes)
@@ -742,8 +741,8 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath5,rat[i],"5")
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
-    debug(plot.heatmap)
-    plot.heatmap(enreg)
+    #debug(plot.heatmap)
+    plot.heatmap(enreg,rat[i])
   }
   return(tree)
 }

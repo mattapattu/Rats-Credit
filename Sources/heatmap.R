@@ -251,7 +251,7 @@ plot.heatmap=function(enreg,rat){
         l<-which(timesinBoxes[,i]!=0)
         pvals <- c(pvals,chisq.test(nSpikes[l,i],p=timesinBoxes[l,i]/sum(timesinBoxes[l,i]))[[3]])
       }
-      adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(p))
+      adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
       
     } 
   }

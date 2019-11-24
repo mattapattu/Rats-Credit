@@ -64,7 +64,7 @@ plot.heatmap=function(enreg,rat){
           
         }
         
-
+        
         #### Box d
         d <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "d")
         time_d_0 = as.numeric(enreg[[ses]]$POS[d[length(d)],1]) - as.numeric(enreg[[ses]]$POS[d[1],1])
@@ -247,9 +247,26 @@ plot.heatmap=function(enreg,rat){
       ggsave(paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)
       
       pvals <- numeric()
+      groups <-list()
       for(i in 1:15){
-        l<-which(timesinBoxes[,i]!=0)
-        pvals <- c(pvals,chisq.test(nSpikes[l,i],p=timesinBoxes[l,i]/sum(timesinBoxes[l,i]))[[3]])
+        #l<-which(timesinBoxes[,i]!=0)
+        sum=0
+        p=timesinBoxes[,i]/sum(timesinBoxes[,i])
+        prevIndex=1
+        groups[[i]] <- list()
+        newSpikes <- numeric()
+        newTimesinBox <- numeric()
+        for(j in 1:last_trial){
+          sum=sum+(nSpikes[j,i]*p[j])
+          if(sum>5){
+            sum=0
+            groups[[i]][j] <- list((prevIndex+1):j)
+            newSpikes <- c(newSpikes,sum(nSpikes[(prevIndex+1):j,i]))
+            newTimesinBox <- c(newTimesinBox,sum(timesinBoxes[(prevIndex+1):j,i]))
+          }
+          
+        }
+        pvals <- c(pvals,chisq.test(newSpikes,p=newTimesinBox/sum(newTimesinBox))[[3]])
       }
       adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
       

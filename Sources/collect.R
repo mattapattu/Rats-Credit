@@ -83,10 +83,12 @@ recordingsInFolder=function(folderNm){
   #get the session nb vector
   allSNbs=c()
   for(fileNm in lesmat){
-    one=str_locate(fileNm,"_S")
-    two=str_locate(fileNm,"t")
-    sessionNb=as.integer(substr(fileNm, one[2]+1, two[1]-1))
-    
+    #sone=str_locate(fileNm,"_S")
+    #two=str_locate(fileNm,"t")
+    #sessionNb=as.integer(substr(fileNm, one[2]+1, two[1]-1))
+    sessionNb=str_match(fileNm,"_S(\\d+)t")[,2]
+    # print(fileNm)
+    # print(sessionNb)
     allSNbs=c(allSNbs,sessionNb)
   }
   setsession=unique(allSNbs)

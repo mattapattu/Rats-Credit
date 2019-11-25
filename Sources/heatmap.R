@@ -1,3 +1,6 @@
+library(ggplot2)
+library(seriation)
+
 plot.heatmap=function(enreg,rat){
   #plot for all rewarded e/i visit trials
   #plot for all unrewarded e/i visit trials
@@ -224,55 +227,137 @@ plot.heatmap=function(enreg,rat){
         trialIndex = trialIndex+1
       }
       
-      library(ggplot2)
-      library(seriation)
-      #library(mutoss)
-      
-      
-      longData<-melt(mat)
-      mat[which(is.nan(mat))]<-0
-      mat[which(is.infinite(mat))] <- 0
-      o<-seriate(mat, method = "BEA_TSP")
-      longData$Var1 <- factor(longData$Var1, (unlist(o[[1]][])))
-      longData$Var2 <- factor(longData$Var2, names(unlist(o[[2]][])))
-      longData<-longData[longData$value!=0,]
-      ggplot(longData, aes(x = Var1, y = Var2)) + 
-        geom_raster(aes(fill=value)) + 
-        scale_fill_gradient(low="grey90", high="red") +
-        labs(x="Boxes", y="Trials", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
-        theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=0.3),
-                           axis.text.y=element_text(size=9),
-                           plot.title=element_text(size=11))
-      
-      ggsave(paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)
-      
-      pvals <- numeric()
-      groups <-list()
+      #debug(groupBoxesForChiSqTest)
+      output = groupBoxesForChiSqTest(nSpikes,timesinBoxes,last_trial)
+      print(output$groups)
+      pvals <-numeric()
       for(i in 1:15){
-        #l<-which(timesinBoxes[,i]!=0)
-        sum=0
-        p=timesinBoxes[,i]/sum(timesinBoxes[,i])
-        prevIndex=1
-        groups[[i]] <- list()
-        newSpikes <- numeric()
-        newTimesinBox <- numeric()
-        for(j in 1:last_trial){
-          sum=sum+(nSpikes[j,i]*p[j])
-          if(sum>5){
-            sum=0
-            groups[[i]][j] <- list((prevIndex+1):j)
-            newSpikes <- c(newSpikes,sum(nSpikes[(prevIndex+1):j,i]))
-            newTimesinBox <- c(newTimesinBox,sum(timesinBoxes[(prevIndex+1):j,i]))
-          }
-          
-        }
-        pvals <- c(pvals,chisq.test(newSpikes,p=newTimesinBox/sum(newTimesinBox))[[3]])
+        pvals <- c(pvals,testHomogeneity(output$newSpikes[[i]],output$newTimesinBox[[i]]))
       }
+      
       adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
+      
+      for(i in 1:length(adjusted_pvals)){
+        if(pvals[i] > 0.05){
+          
+          ######### 
+          ### 1) Split into groups 2 recursively until homogenous group is found
+          regroupBoxes(output$newSpikes,sinBoxes[,i])
+        } 
+      }
       
     } 
   }
   
   
   print("Returning from plot")
+}
+###################################
+####### Test for homogeneity in a group 
+testHomogeneity=function(newSpikes,newTimesinBox){
+  pval=0
+  # if(is.null(newSpikes)|| length(newSpikes)==1){
+  #   
+  #   newSpikes <- c(newSpikes,sum(newSpikes[1:(length(newSpikes)/2)]))
+  #   newTimesinBox <- c(newTimesinBox,sum(newTimesinBox[1:(length(newTimesinBox)/2)]))
+  #   
+  #   newSpikes <- c(newSpikes,sum(newSpikes[(length(newSpikes)/2 + 1):(length(newSpikes))]))
+  #   newTimesinBox <- c(newTimesinBox,sum(newTimesinBox[(length(newTimesinBox)/2 + 1):length(newTimesinBox)]))
+  #   
+  #   pval1 = 2*pbinom(newSpikes[1],size=sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox))
+  #   pval2 = 2*(1-pbinom((newSpikes[1]-1),size = sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox)))
+  #   pval=min(c(pval1,pval2,1))
+  #   
+  #   pvals <- c(pvals,pval)
+  # }else 
+  if(length(newSpikes)==2){
+    pval1 = 2*pbinom(newSpikes[1],size=sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox))
+    pval2 = 2*(1-pbinom((newSpikes[1]-1),size = sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox)))
+    pval=min(c(pval1,pval2,1))
+    
+  }else{
+    pval <- c(pvals,chisq.test(newSpikes,p=newTimesinBox/sum(newTimesinBox))[[3]])
+  }
+  return(pval)
+}
+
+
+################################################################
+#### Get pvalues for homogeneity in boxes #####################################################
+groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
+  groups <-list()
+  newSpikes <- list()
+  newTimesinBox <-list()
+  for(i in 1:15){
+    #l<-which(timesinBoxes[,i]!=0)
+    sum=0
+    prevIndex=0
+    groups[[i]] <- list()
+    newSpikes[[i]] <- numeric()
+    newTimesinBox[[i]] <- numeric()
+    print(sprintf("i=%i",i))
+    for(j in 1:last_trial){
+      sum=sum+(nSpikes[j,i]*p[j])
+      if(j==last_trial && sum <5 && length(groups[[i]]) !=0 ){
+        groups[[i]][[length(groups[[i]])]] <- list.append(groups[[i]][[length(groups[[i]])]],c((prevIndex+1):j))
+        newSpikes[[i]][[length(newSpikes[[i]])]] = newSpikes[[i]][[length(newSpikes[[i]])]] + sum(nSpikes[(prevIndex+1):j,i])
+        newTimesinBox[[i]][[length(newTimesinBox[[i]])]] = newTimesinBox[[i]][[length(newTimesinBox[[i]])]] + sum(timesinBoxes[(prevIndex+1):j,i])
+      }else if(j==last_trial && sum <5 && length(groups[[i]]) ==0){
+        groups[[i]] <- list.append(groups[[i]],c((prevIndex+1):j))
+        print(sprintf("nspikes= %s",sum(nSpikes[(prevIndex+1):j,i])))
+        newSpikes[[i]] <- c(newSpikes[[i]],sum(nSpikes[(prevIndex+1):j,i]))
+        newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[(prevIndex+1):j,i]))
+      }
+      if(sum>5){
+        sum=0
+        groups[[i]] <- list.append(groups[[i]],c((prevIndex+1):j))
+        print(sprintf("nspikes= %s",sum(nSpikes[(prevIndex+1):j,i])))
+        newSpikes[[i]] <- c(newSpikes[[i]],sum(nSpikes[(prevIndex+1):j,i]))
+        newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[(prevIndex+1):j,i]))
+        prevIndex =j
+      }
+    }
+    
+  }
+  
+  
+  results <- list()
+  results$groups <- groups
+  results$newSpikes <- newSpikes
+  results$newTimesinBox <- newTimesinBox
+  return(results)
+}
+
+###########################################################
+##### Regroup non-homogenous boxes ##########################################3
+
+regroupBoxes=function(nSpikes,timesinBoxes,last_trial){
+  
+  
+  
+}
+
+
+#### Plot seriated matrix 
+matrix.seriate=function(mat,neuron,ses,rat){
+
+  #library(mutoss)
+  
+  
+  longData<-melt(mat)
+  mat[which(is.nan(mat))]<-0
+  mat[which(is.infinite(mat))] <- 0
+  o<-seriate(mat, method = "BEA_TSP")
+  longData$Var1 <- factor(longData$Var1, (unlist(o[[1]][])))
+  longData$Var2 <- factor(longData$Var2, names(unlist(o[[2]][])))
+  longData<-longData[longData$value!=0,]
+  ggplot(longData, aes(x = Var1, y = Var2)) + 
+    geom_raster(aes(fill=value)) + 
+    scale_fill_gradient(low="grey90", high="red") +
+    labs(x="Boxes", y="Trials", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
+    theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=0.3),
+                       axis.text.y=element_text(size=9),
+                       plot.title=element_text(size=11))
+  
+  ggsave(paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)
 }

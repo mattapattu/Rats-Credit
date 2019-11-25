@@ -1,6 +1,16 @@
 library(ggplot2)
 library(seriation)
 
+round2 = function(x, n) {
+  posneg = sign(x)
+  z = abs(x)*10^n
+  z = z + 0.5
+  z = trunc(z)
+  z = z/10^n
+  z*posneg
+}
+
+
 plot.heatmap=function(enreg,rat){
   #plot for all rewarded e/i visit trials
   #plot for all unrewarded e/i visit trials
@@ -232,6 +242,8 @@ plot.heatmap=function(enreg,rat){
       print(output$groups)
       pvals <-numeric()
       for(i in 1:15){
+        ##### Only one group, cannot do chi-square test, so split into 2 groups to do Sepideh's test
+       
         pvals <- c(pvals,testHomogeneity(output$newSpikes[[i]],output$newTimesinBox[[i]]))
       }
       
@@ -239,10 +251,9 @@ plot.heatmap=function(enreg,rat){
       
       for(i in 1:length(adjusted_pvals)){
         if(pvals[i] > 0.05){
+         
+          regroupBoxes(output$groups[[i]],output$newSpikes[[i]],output$newTimesinBox[[i]])
           
-          ######### 
-          ### 1) Split into groups 2 recursively until homogenous group is found
-          regroupBoxes(output$newSpikes,sinBoxes[,i])
         } 
       }
       
@@ -252,6 +263,10 @@ plot.heatmap=function(enreg,rat){
   
   print("Returning from plot")
 }
+
+
+
+
 ###################################
 ####### Test for homogeneity in a group 
 testHomogeneity=function(newSpikes,newTimesinBox){
@@ -282,6 +297,7 @@ testHomogeneity=function(newSpikes,newTimesinBox){
 }
 
 
+
 ################################################################
 #### Get pvalues for homogeneity in boxes #####################################################
 groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
@@ -298,15 +314,40 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
     print(sprintf("i=%i",i))
     for(j in 1:last_trial){
       sum=sum+(nSpikes[j,i]*p[j])
-      if(j==last_trial && sum <5 && length(groups[[i]]) !=0 ){
+      
+      if(j==last_trial && sum <5 && length(groups[[i]]) > 1 ){
         groups[[i]][[length(groups[[i]])]] <- list.append(groups[[i]][[length(groups[[i]])]],c((prevIndex+1):j))
         newSpikes[[i]][[length(newSpikes[[i]])]] = newSpikes[[i]][[length(newSpikes[[i]])]] + sum(nSpikes[(prevIndex+1):j,i])
         newTimesinBox[[i]][[length(newTimesinBox[[i]])]] = newTimesinBox[[i]][[length(newTimesinBox[[i]])]] + sum(timesinBoxes[(prevIndex+1):j,i])
-      }else if(j==last_trial && sum <5 && length(groups[[i]]) ==0){
-        groups[[i]] <- list.append(groups[[i]],c((prevIndex+1):j))
-        print(sprintf("nspikes= %s",sum(nSpikes[(prevIndex+1):j,i])))
-        newSpikes[[i]] <- c(newSpikes[[i]],sum(nSpikes[(prevIndex+1):j,i]))
-        newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[(prevIndex+1):j,i]))
+      }
+      else if(j==last_trial && sum <5 && length(groups[[i]]) ==0){
+        ### Not even 1 group, so cannot do chi-square
+        ### Split into 2 groups to do Sepideh's test
+        print("Split into 2 groups")
+        groups[[i]] <- list.append(groups[[i]],c(1:round2(length(nSpikes[,i])/2,0)))
+        groups[[i]] <- list.append(groups[[i]],c(round2(length(nSpikes[,i])/2 + 1,0): length(nSpikes[,i])))
+        
+        newSpikes[[i]] <- c(newSpikes[[i]],sum(nSpikes[1:round2(length(nSpikes[,i])/2,0),i]))
+        newSpikes[[i]] <- c(newSpikes[[i]],sum(nSpikes[(round2(length(nSpikes[,i])/2 + 1,0)): length(nSpikes[,i]) ,i]))
+        
+        newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[1:round2(length(timesinBoxes[,i])/2,0),i]))
+        newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[round2(length(timesinBoxes[,i])/2 + 1,0): length(timesinBoxes[,i]) ,i]))
+      }
+      else if(j==last_trial && sum <5 && length(groups[[i]]) ==1){
+        ### Just 1 group, so cannot do chi-square
+        ### Split into 2 groups to do Sepideh's test
+        print("Split into 2 groups")
+        groups[[i]] <- list()
+        newSpikes[[i]] <- numeric()
+        newTimesinBox[[i]] <- numeric()
+        groups[[i]] <- list.append(groups[[i]],c(1:round2(length(nSpikes[,i])/2,0)))
+        groups[[i]] <- list.append(groups[[i]],c(round2(length(nSpikes[,i])/2 + 1,0): length(nSpikes[,i])))
+        
+        newSpikes[[i]] <- c(newSpikes[[i]],sum(nSpikes[1:round2(length(nSpikes[,i])/2,0),i]))
+        newSpikes[[i]] <- c(newSpikes[[i]],sum(nSpikes[(round2(length(nSpikes[,i])/2 + 1,0)): length(nSpikes[,i]) ,i]))
+        
+        newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[1:round2(length(timesinBoxes[,i])/2,0),i]))
+        newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[round2(length(timesinBoxes[,i])/2 + 1,0): length(timesinBoxes[,i]) ,i]))
       }
       if(sum>5){
         sum=0
@@ -328,13 +369,43 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
   return(results)
 }
 
+
+
+
 ###########################################################
 ##### Regroup non-homogenous boxes ##########################################3
+### 1) Check homogeneity in all groups
+### 2) If homogeneous, keep the group
+### 3) If non-homogenous, split in 2 and repeat until group size =2
 
-regroupBoxes=function(nSpikes,timesinBoxes,last_trial){
+regroupBoxes=function(output,i){
+  ### If groups = 10, combine 5 groups each and test homogenity
+  ### If group1 = 5 is not homogenous, split into 2 groups of 2 & 3
   
+  ### Combine into 2 big groups
+  newgroups <-list()
+  newgroups <- list.append(newgroups,1:round2(length(output$groups[[i]])/2,0)) 
+  newgroups <- list.append(newgroups,round2(length(output$groups[[i]])/2 +1,0):length(output$groups[[i]]))
   
+  newspikes <-list()
+  newspikes <- c(newspikes,sum(output$newSpikes[[i]][1:round2(length(output$newSpikes[[i]])/2,0)]))
+  newspikes <- c(newspikes,sum(output$newSpikes[[i]][round2(length(output$newSpikes[[i]])/2 + 1,0): length(output$newSpikes[[i]])]))
   
+  newtimesinbox <-list()
+  newtimesinbox <- c(newtimesinbox,sum(output$newTimesinBox[[i]][1:round2(length(output$newTimesinBox[[i]])/2,0)]))
+  newtimesinbox <- c(newtimesinbox,sum(output$newTimesinBox[[i]][round2(length(output$newTimesinBox[[i]])/2 + 1,0): length(output$newTimesinBox[[i]])]))
+  
+  #### Check for homogenity in the 2 big groups
+  
+  pvals <- c(pvals,testHomogeneity(newspikes,newtimesinbox))
+  adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))    
+  
+  if(adjusted_pvals[1] > 0.05){
+    ## Split into groups until homogenous groups are found or minimum units are reached
+    split(newgroups)
+  }
+        
+
 }
 
 

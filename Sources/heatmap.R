@@ -253,8 +253,10 @@ plot.heatmap=function(enreg,rat){
       for(i in 1:length(adjusted_pvals)){
         ### If the pval for homogenity test for box i is greater than 0.05, then regroup box and test
         if(pvals[i] > 0.05){
+          ### all trials for box i are not homogeneous
+          ### Combine trials by adding chisq boxes
           
-          debug(regroupBoxes)
+          #debug(regroupBoxes)
           newgroups <- regroupBoxes(output,i)
           
           for(j in 1:length(newgroups)){
@@ -262,8 +264,8 @@ plot.heatmap=function(enreg,rat){
           }
           
         }else{
-          
-          final_groups <- c(final_groups,output$groups[[i]])
+          ### all trials for box i are homogeneous
+          final_groups <- list.append(final_groups,unlist(output$groups[[i]]))
           
         }
       }
@@ -402,10 +404,10 @@ regroupBoxes=function(output,i){
   ### Verify p-val calculation ???
   final_groups <-list()
   for(j in 1:length(newgroups)){
-    if(length(newgroups[j])==1){
-      final_groups <- list.append(final_groups,unlist(newgroups[j]))
-      next
-    }
+    # if(length(newgroups[j])==1){
+    #   final_groups <- list.append(final_groups,unlist(newgroups[j]))
+    #   next
+    # }
     pval <- testHomogeneity(newspikes[[j]],newtimesinbox[[j]])
     #adjusted_pvals <- p.adjust(pval, method = "bonferroni", n = length(pvals))
     if(pval > 0.05){
@@ -443,8 +445,8 @@ splitAllGroups=function(newgroups,output,i){
       #split newgroups[i]
     }else if(lengths(newgroups)==2) {
       #stop split and add to final group
-      final_group <- c(final_group,c(1))
-      final_group <- c(final_group,c(2))
+      final_group <- list.append(final_group,c(1))
+      final_group <- list.append(final_group,c(2))
     }else{
       ## ?? Required ???
       final_group <- c(final_group,newgroups)

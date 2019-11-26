@@ -242,8 +242,7 @@ plot.heatmap=function(enreg,rat){
       print(output$groups)
       pvals <-numeric()
       for(i in 1:15){
-        ##### Only one group, cannot do chi-square test, so split into 2 groups to do Sepideh's test
-        
+
         pvals <- c(pvals,testHomogeneity(output$newSpikes[[i]],output$newTimesinBox[[i]]))
       }
       
@@ -404,10 +403,12 @@ regroupBoxes=function(output,i){
   ### Verify p-val calculation ???
   final_groups <-list()
   for(j in 1:length(newgroups)){
-    # if(length(newgroups[j])==1){
-    #   final_groups <- list.append(final_groups,unlist(newgroups[j]))
-    #   next
-    # }
+    
+    ### If groups are split into 2 & 1, then 1 should be added to final.
+    if(length(newgroups[j])==1){
+      final_groups <- list.append(final_groups,unlist(newgroups[j]))
+      next
+    }
     pval <- testHomogeneity(newspikes[[j]],newtimesinbox[[j]])
     #adjusted_pvals <- p.adjust(pval, method = "bonferroni", n = length(pvals))
     if(pval > 0.05){

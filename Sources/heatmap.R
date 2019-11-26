@@ -243,24 +243,33 @@ plot.heatmap=function(enreg,rat){
       pvals <-numeric()
       for(i in 1:15){
         ##### Only one group, cannot do chi-square test, so split into 2 groups to do Sepideh's test
-       
+        
         pvals <- c(pvals,testHomogeneity(output$newSpikes[[i]],output$newTimesinBox[[i]]))
       }
       
       adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
       
+      final_groups <- list()
       for(i in 1:length(adjusted_pvals)){
+        ### If the pval for homogenity test for box i is greater than 0.05, then regroup box and test
         if(pvals[i] > 0.05){
-         
-          regroupBoxes(output$groups[[i]],output$newSpikes[[i]],output$newTimesinBox[[i]])
           
-        } 
+          debug(regroupBoxes)
+          newgroups <- regroupBoxes(output,i)
+          
+          for(j in 1:length(newgroups)){
+            final_groups <- list.append(final_groups,output$groups[[i]][min(newgroups[[j]]):max(newgroups[[j]])])
+          }
+          
+        }else{
+          
+          final_groups <- c(final_groups,output$groups[[i]])
+          
+        }
       }
-      
+      print(final_groups)
     } 
   }
-  
-  
   print("Returning from plot")
 }
 
@@ -271,27 +280,14 @@ plot.heatmap=function(enreg,rat){
 ####### Test for homogeneity in a group 
 testHomogeneity=function(newSpikes,newTimesinBox){
   pval=0
-  # if(is.null(newSpikes)|| length(newSpikes)==1){
-  #   
-  #   newSpikes <- c(newSpikes,sum(newSpikes[1:(length(newSpikes)/2)]))
-  #   newTimesinBox <- c(newTimesinBox,sum(newTimesinBox[1:(length(newTimesinBox)/2)]))
-  #   
-  #   newSpikes <- c(newSpikes,sum(newSpikes[(length(newSpikes)/2 + 1):(length(newSpikes))]))
-  #   newTimesinBox <- c(newTimesinBox,sum(newTimesinBox[(length(newTimesinBox)/2 + 1):length(newTimesinBox)]))
-  #   
-  #   pval1 = 2*pbinom(newSpikes[1],size=sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox))
-  #   pval2 = 2*(1-pbinom((newSpikes[1]-1),size = sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox)))
-  #   pval=min(c(pval1,pval2,1))
-  #   
-  #   pvals <- c(pvals,pval)
-  # }else 
+ 
   if(length(newSpikes)==2){
     pval1 = 2*pbinom(newSpikes[1],size=sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox))
     pval2 = 2*(1-pbinom((newSpikes[1]-1),size = sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox)))
     pval=min(c(pval1,pval2,1))
     
   }else{
-    pval <- c(pvals,chisq.test(newSpikes,p=newTimesinBox/sum(newTimesinBox))[[3]])
+    pval <- chisq.test(newSpikes,p=newTimesinBox/sum(newTimesinBox))[[3]]
   }
   return(pval)
 }
@@ -313,7 +309,7 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
     newTimesinBox[[i]] <- numeric()
     print(sprintf("i=%i",i))
     for(j in 1:last_trial){
-      sum=sum+(nSpikes[j,i]*p[j])
+      sum=sum+(nSpikes[j,i]*(timesinBoxes[j,i]/sum(timesinBoxes[,i])))
       
       if(j==last_trial && sum <5 && length(groups[[i]]) > 1 ){
         groups[[i]][[length(groups[[i]])]] <- list.append(groups[[i]][[length(groups[[i]])]],c((prevIndex+1):j))
@@ -374,47 +370,93 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
 
 ###########################################################
 ##### Regroup non-homogenous boxes ##########################################3
-### 1) Check homogeneity in all groups
-### 2) If homogeneous, keep the group
-### 3) If non-homogenous, split in 2 and repeat until group size =2
+### 1) Combine all groups into 2 sets
+### 2) If either set is homoegenous,keep the set of groups
+### 3) If non-homogenous, split in 2 and repeat until group size =1 or pval<0.05
 
 regroupBoxes=function(output,i){
   ### If groups = 10, combine 5 groups each and test homogenity
   ### If group1 = 5 is not homogenous, split into 2 groups of 2 & 3
   
+  
   ### Combine into 2 big groups
   newgroups <-list()
-  newgroups <- list.append(newgroups,1:round2(length(output$groups[[i]])/2,0)) 
-  newgroups <- list.append(newgroups,round2(length(output$groups[[i]])/2 +1,0):length(output$groups[[i]]))
-  
   newspikes <-list()
-  newspikes <- c(newspikes,sum(output$newSpikes[[i]][1:round2(length(output$newSpikes[[i]])/2,0)]))
-  newspikes <- c(newspikes,sum(output$newSpikes[[i]][round2(length(output$newSpikes[[i]])/2 + 1,0): length(output$newSpikes[[i]])]))
-  
   newtimesinbox <-list()
-  newtimesinbox <- c(newtimesinbox,sum(output$newTimesinBox[[i]][1:round2(length(output$newTimesinBox[[i]])/2,0)]))
-  newtimesinbox <- c(newtimesinbox,sum(output$newTimesinBox[[i]][round2(length(output$newTimesinBox[[i]])/2 + 1,0): length(output$newTimesinBox[[i]])]))
+  if(length(output$groups[[i]])==2){
+    ### New group will have just size 1
+    newgroups <- list.append(newgroups,c(1:2))
+    newspikes <- list.append(newspikes,c(output$newSpikes[[i]][1:length(output$newSpikes[[i]])]))
+    newtimesinbox <- list.append(newtimesinbox,c(output$newTimesinBox[[i]][1:length(output$newTimesinBox[[i]])]))
+  }else{
+    newgroups <- list.append(newgroups,1:round2(length(output$groups[[i]])/2,0)) 
+    newgroups <- list.append(newgroups,round2(length(output$groups[[i]])/2 +1,0):length(output$groups[[i]]))
+    newspikes <- list.append(newspikes,c(output$newSpikes[[i]][1:round2(length(output$newSpikes[[i]])/2,0)]))
+    newspikes <- list.append(newspikes,c(output$newSpikes[[i]][round2(length(output$newSpikes[[i]])/2 + 1,0): length(output$newSpikes[[i]])]))
+    newtimesinbox <- list.append(newtimesinbox,c(output$newTimesinBox[[i]][1:round2(length(output$newTimesinBox[[i]])/2,0)]))
+    newtimesinbox <- list.append(newtimesinbox,c(output$newTimesinBox[[i]][round2(length(output$newTimesinBox[[i]])/2 + 1,0): length(output$newTimesinBox[[i]])]))
+  }
+  
   
   #### Check for homogenity in the 2 big groups
-  
-  pvals <- c(pvals,testHomogeneity(newspikes,newtimesinbox))
-  adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))    
-  
-  if(adjusted_pvals[1] > 0.05){
-    ## Split into groups until homogenous groups are found or minimum units are reached
-    split(newgroups)
+  ### Verify p-val calculation ???
+  final_groups <-list()
+  for(j in 1:length(newgroups)){
+    if(length(newgroups[j])==1){
+      final_groups <- list.append(final_groups,unlist(newgroups[j]))
+      next
+    }
+    pval <- testHomogeneity(newspikes[[j]],newtimesinbox[[j]])
+    #adjusted_pvals <- p.adjust(pval, method = "bonferroni", n = length(pvals))
+    if(pval > 0.05){
+      ## Split all the groups in newgroup into two 
+      ## Continue this until all groups are homogenous or all groups are minimum units
+      #debug(splitAllGroups)
+      final_groups <- list.append(final_groups,unlist(splitAllGroups(newgroups[[j]],output,i)))
+    }else{
+      final_groups <- list.append(final_groups,unlist(newgroups[j]))
+    }
   }
-        
-
+  
+  
+  
+  return(final_groups)
 }
 
+################################################################333
+###### Use this function recursively to split until you get good groups
+splitAllGroups=function(newgroups,output,i){
+  print(sprintf("Inside split group, i=%i",i))
+  final_group <- list()
+  #for(j in 1:length(newgroups)){
+    ## Get nspikes for newgroups[[i]]
+    ## Get timeiin boxes for newgroups[[i]]
+    nspikes  <- numeric()
+    timeinboxes <- numeric()
+    nspikes <- output$newSpikes[[i]][min(newgroups):max(newgroups)]
+    timeinboxes <- output$newTimesinBox[[i]][min(newgroups):max(newgroups)]
+    pval <- testHomogeneity(nspikes,timeinboxes)
+    if(pval < 0.05){
+      final_group <- c(final_group,newgroups)
+    }else if(lengths(newgroups)>2) {
+      splitAllGroups(newgroups[[j]],output,i)
+      #split newgroups[i]
+    }else if(lengths(newgroups)==2) {
+      #stop split and add to final group
+      final_group <- c(final_group,c(1))
+      final_group <- c(final_group,c(2))
+    }else{
+      ## ?? Required ???
+      final_group <- c(final_group,newgroups)
+    }
+  #}
+  return(final_group)
+}
 
+###########################################################################
 #### Plot seriated matrix 
 matrix.seriate=function(mat,neuron,ses,rat){
 
-  #library(mutoss)
-  
-  
   longData<-melt(mat)
   mat[which(is.nan(mat))]<-0
   mat[which(is.infinite(mat))] <- 0

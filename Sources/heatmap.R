@@ -249,22 +249,22 @@ plot.heatmap=function(enreg,rat){
       adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
       
       final_groups <- list()
-      for(i in 1:length(adjusted_pvals)){
+      for(i in 1:15){
+        
         ### If the pval for homogenity test for box i is greater than 0.05, then regroup box and test
         if(pvals[i] > 0.05){
           ### all trials for box i are not homogeneous
           ### Combine trials by adding chisq boxes
-          
+          final_groups[[i]] <- list()
           #debug(regroupBoxes)
           newgroups <- regroupBoxes(output,i)
-          
           for(j in 1:length(newgroups)){
-            final_groups <- list.append(final_groups,output$groups[[i]][min(newgroups[[j]]):max(newgroups[[j]])])
+            final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]][min(newgroups[[j]]):max(newgroups[[j]])]))
           }
           
         }else{
           ### all trials for box i are homogeneous
-          final_groups <- list.append(final_groups,unlist(output$groups[[i]]))
+          final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]]))
           
         }
       }

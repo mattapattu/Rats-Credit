@@ -160,7 +160,26 @@ add.box.to.pos=function(ses,enreg,spolygons){
   enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == ""),"boxname"]="unk"
   #print(sprintf("boxname1=%s",enreg[[ses]]$POS[4698,"boxname"]))
 
-  # g <- enreg[[ses]]$POS[,"boxname"]
+  #### If rat is on border and box changes - k,a,k,a,k,a -> assign box as k
+  g <- enreg[[ses]]$POS[,"boxname"]
+  i<-1:length(g)
+  j<-2:length(g)
+  k<-3:length(g)
+  l <- which(g[j]!=g[k]&g[j]!=g[i])
+  n<- l+1
+  for(index in n){
+    x=index
+    repeat{
+      x=x-1
+      
+      if(!x %in% l){
+        #print(sprintf("index=%i,x=%i",index,x))
+        enreg[[ses]]$POS[index,"boxname"]=enreg[[ses]]$POS[x,"boxname"]
+        break
+      }
+    }
+  }
+  
   # enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric((g[seq_along(g)-1]=="i"| g[seq_along(g)-1]=="e") & g[-1] != g[-length(g)])))
   enreg=add.trial.to.pos(enreg,ses)
   

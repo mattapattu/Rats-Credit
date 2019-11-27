@@ -130,7 +130,7 @@ recordingsInFolder=function(folderNm){
       }
     }
     print(setsession[isess])
-    Enreg[[setsession[isess]]]=list(tet=tet,POS=POS,EVENTS=EVENTS,SPIKES=SPIKES,LFP=LFP)
+    Enreg[[as.numeric(setsession[isess])]]=list(tet=tet,POS=POS,EVENTS=EVENTS,SPIKES=SPIKES,LFP=LFP)
   }
   setwd(rootPath)
   return(Enreg)

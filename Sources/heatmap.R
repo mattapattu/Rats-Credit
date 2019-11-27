@@ -43,20 +43,22 @@ plot.heatmap=function(enreg,rat){
         
         #### Box a
         a <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "a")
-        time_a_0 = as.numeric(enreg[[ses]]$POS[a[length(a)],1]) - as.numeric(enreg[[ses]]$POS[a[1],1])
+       
+        time_a_0 = getTimeSpentInBox(a,enreg,ses)
+        #time_a_0 = as.numeric(enreg[[ses]]$POS[a[length(a)],1]) - as.numeric(enreg[[ses]]$POS[a[1],1])
         
         #### If turn right then b, else b'     
         #### If turn right then c, else c'
         if(length(grep("a,.*b,.*c.*e",allpaths[trialIndex],value = FALSE))>0){
           b <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "b")
-          time_b_0 = as.numeric(enreg[[ses]]$POS[b[length(b)],1]) - as.numeric(enreg[[ses]]$POS[b[1],1])
+          time_b_0 = getTimeSpentInBox(b,enreg,ses)
           
           b_prime <- NA
           time_b_prime <-NA
           
           
           c <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "c")
-          time_c_0 = as.numeric(enreg[[ses]]$POS[c[length(c)],1]) - as.numeric(enreg[[ses]]$POS[c[1],1])
+          time_c_0 = getTimeSpentInBox(c,enreg,ses)
           
           c_prime <- NA
           time_c_prime <-NA
@@ -67,25 +69,25 @@ plot.heatmap=function(enreg,rat){
           time_b_0 <-NA
           
           b_prime <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "b")
-          time_b_prime = as.numeric(enreg[[ses]]$POS[b_prime[length(b_prime)],1]) - as.numeric(enreg[[ses]]$POS[b_prime[1],1])
+          time_b_prime = getTimeSpentInBox(b_prime,enreg,ses)
           
           c <- NA
           time_c_0 <-NA
           
           c_prime <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "c")
-          time_c_prime = as.numeric(enreg[[ses]]$POS[c_prime[length(c_prime)],1]) - as.numeric(enreg[[ses]]$POS[c_prime[1],1])
+          time_c_prime = getTimeSpentInBox(c_prime,enreg,ses)
           
         }
         
         
         #### Box d
         d <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "d")
-        time_d_0 = as.numeric(enreg[[ses]]$POS[d[length(d)],1]) - as.numeric(enreg[[ses]]$POS[d[1],1])
+        time_d_0 = getTimeSpentInBox(d,enreg,ses)
         
         #### If reward box e, else box e'
         if(t %in% reward49_trials){
           e <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "e")
-          time_e_0 = as.numeric(enreg[[ses]]$POS[e[length(e)],1]) - as.numeric(enreg[[ses]]$POS[e[1],1])
+          time_e_0 = getTimeSpentInBox(e,enreg,ses)
           
           e_prime <- NA
           time_e_prime <- NA
@@ -95,23 +97,23 @@ plot.heatmap=function(enreg,rat){
           time_e_0<-NA
           
           e_prime <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "e")
-          time_e_prime <- as.numeric(enreg[[ses]]$POS[e_prime[length(e_prime)],1]) - as.numeric(enreg[[ses]]$POS[e_prime[1],1])
+          time_e_prime <- getTimeSpentInBox(e_prime,enreg,ses)
         }
         
         #### Box f
         f <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "f")
-        time_f_0 = as.numeric(enreg[[ses]]$POS[f[length(f)],1]) - as.numeric(enreg[[ses]]$POS[f[1],1])
+        time_f_0 = getTimeSpentInBox(f,enreg,ses)
         #### Box g
         g <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "g")
-        time_g_0 = as.numeric(enreg[[ses]]$POS[g[length(g)],1]) - as.numeric(enreg[[ses]]$POS[g[1],1])
+        time_g_0 = getTimeSpentInBox(g,enreg,ses)
         #### Box h
         h <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "h")
-        time_h_0 = as.numeric(enreg[[ses]]$POS[h[length(h)],1]) - as.numeric(enreg[[ses]]$POS[h[1],1])
+        time_h_0 = getTimeSpentInBox(h,enreg,ses)
         
         #### If reward box i, else box i'
         if(t %in% reward51_trials){
           i <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "i")
-          time_i_0 = as.numeric(enreg[[ses]]$POS[i[length(i)],1]) - as.numeric(enreg[[ses]]$POS[i[1],1])
+          time_i_0 = getTimeSpentInBox(i,enreg,ses)
           
           i_prime <- NA
           time_i_prime <- NA
@@ -120,16 +122,16 @@ plot.heatmap=function(enreg,rat){
           time_i_0<-NA
           
           i_prime <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "i")
-          time_i_prime <- as.numeric(enreg[[ses]]$POS[i_prime[length(i_prime)],1]) - as.numeric(enreg[[ses]]$POS[i_prime[1],1])
+          time_i_prime <- getTimeSpentInBox(i_prime,enreg,ses)
         }
         
         
         #### Box j
         j <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "j")
-        time_j_0 = as.numeric(enreg[[ses]]$POS[j[length(j)],1]) - as.numeric(enreg[[ses]]$POS[j[1],1])
+        time_j_0 = getTimeSpentInBox(j_prime,enreg,ses)
         #### Box k
         k <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "k")
-        time_k_0 = as.numeric(enreg[[ses]]$POS[k[length(k)],1]) - as.numeric(enreg[[ses]]$POS[k[1],1])
+        time_k_0 = getTimeSpentInBox(k_prime,enreg,ses)
         
         ##### If time_a_0 not null, update nSpikes[a],mat,timesinBoxes[a]
         if(length(time_a_0) >0) {
@@ -242,7 +244,7 @@ plot.heatmap=function(enreg,rat){
       print(output$groups)
       pvals <-numeric()
       for(i in 1:15){
-
+        
         pvals <- c(pvals,testHomogeneity(output$newSpikes[[i]],output$newTimesinBox[[i]]))
       }
       
@@ -250,12 +252,12 @@ plot.heatmap=function(enreg,rat){
       
       final_groups <- list()
       for(i in 1:15){
-        
+        final_groups[[i]] <- list()
         ### If the pval for homogenity test for box i is greater than 0.05, then regroup box and test
-        if(pvals[i] > 0.05){
+        if(adjusted_pvals[i] < 0.05){
           ### all trials for box i are not homogeneous
           ### Combine trials by adding chisq boxes
-          final_groups[[i]] <- list()
+          
           #debug(regroupBoxes)
           newgroups <- regroupBoxes(output,i)
           for(j in 1:length(newgroups)){
@@ -275,6 +277,21 @@ plot.heatmap=function(enreg,rat){
 }
 
 
+############################
+getTimeSpentInBox=function(bx_pos,enreg,ses){
+  total_time_in_bx=0
+  if(length(bx_pos)>1){
+    time_bx <- 1
+    time_bx <-c(time_bx,which(diff(bx_pos)!=1))
+    time_bx <-c(time_bx,(which(diff(bx_pos)!=1)+1))
+    time_bx <- c(time_bx,length(bx_pos))
+    time_bx <- sort(time_bx)
+    for(i in 1:(length(time_bx)/2)){
+      total_time_in_bx = total_time_in_bx+as.numeric(enreg[[ses]]$POS[bx_pos[time_bx[2*i]],1]) - as.numeric(enreg[[ses]]$POS[bx_pos[time_bx[2*i-1]],1])
+    }
+  }
+  return(total_time_in_bx)
+}
 
 
 ###################################
@@ -405,8 +422,8 @@ regroupBoxes=function(output,i){
   for(j in 1:length(newgroups)){
     
     ### If groups are split into 2 & 1, then 1 should be added to final.
-    if(length(newgroups[j])==1){
-      final_groups <- list.append(final_groups,unlist(newgroups[j]))
+    if(length(newgroups[[j]])==1){
+      final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
       next
     }
     pval <- testHomogeneity(newspikes[[j]],newtimesinbox[[j]])
@@ -415,9 +432,9 @@ regroupBoxes=function(output,i){
       ## Split all the groups in newgroup into two 
       ## Continue this until all groups are homogenous or all groups are minimum units
       #debug(splitAllGroups)
-      final_groups <- list.append(final_groups,unlist(splitAllGroups(newgroups[[j]],output,i)))
+      final_groups <- c(final_groups,(splitAllGroups(newgroups[[j]],output,i)))
     }else{
-      final_groups <- list.append(final_groups,unlist(newgroups[j]))
+      final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
     }
   }
   

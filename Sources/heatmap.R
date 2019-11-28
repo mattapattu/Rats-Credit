@@ -324,7 +324,18 @@ plot.heatmap=function(enreg,rat){
 ################################################################################3
 ##### Plot Heatmap based on final groups
 plot.heatmap.by.finalgroups = function(output,final_groups){
-  
+  total_trials =length(unlist(output$groups[[1]]))
+  total_boxes = length(output$groups)
+  firingrates= matrix(0,total_boxes,total_trials)
+  for(box in 1:total_boxes){
+    for(group in 1:length(box)){
+      newSpikes = newSpikes + (output$newSpikes[[i]][1:round2(length(output$newSpikes[[i]])/2,0)])
+      newTimesinBox[[i]][[length(newTimesinBox[[i]])]] = newTimesinBox[[i]][[length(newTimesinBox[[i]])]] + sum(timesinBoxes[(prevIndex+1):j,i])
+      
+      nspikes <- sum(output$newSpikes[[box]][min(group):max(group)])
+      timeinboxes <- sum(output$newTimesinBox[[box]][min(group):max(group)])
+    }
+  }
 }
 
 ############################

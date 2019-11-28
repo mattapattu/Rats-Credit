@@ -255,7 +255,7 @@ plot.heatmap=function(enreg,rat){
       
       # pval_graph <- make_empty_graph()
       # alpha_graph <- make_empty_graph()
-      pval_alpha <- 0.05
+      
       
       alpha_mat <- matrix(0,50,5)
       colnames(alpha_mat) <- c("Box/Newgroup","Alpha","pval","H0 Rej","Split Further")
@@ -263,6 +263,7 @@ plot.heatmap=function(enreg,rat){
       ### Check for homogeneity in each box and regroup if non-homogeneous
       final_groups <- list()
       for(i in 1:15){
+        pval_alpha <- 0.05
         if(i==1){
           matIndex=1 
         }else{

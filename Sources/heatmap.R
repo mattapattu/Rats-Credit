@@ -1,5 +1,6 @@
 library(ggplot2)
 library(seriation)
+library(igraph)
 
 round2 = function(x, n) {
   posneg = sign(x)
@@ -128,10 +129,10 @@ plot.heatmap=function(enreg,rat){
         
         #### Box j
         j <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "j")
-        time_j_0 = getTimeSpentInBox(j_prime,enreg,ses)
+        time_j_0 = getTimeSpentInBox(j,enreg,ses)
         #### Box k
         k <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "k")
-        time_k_0 = getTimeSpentInBox(k_prime,enreg,ses)
+        time_k_0 = getTimeSpentInBox(k,enreg,ses)
         
         ##### If time_a_0 not null, update nSpikes[a],mat,timesinBoxes[a]
         if(length(time_a_0) >0) {
@@ -250,16 +251,26 @@ plot.heatmap=function(enreg,rat){
       
       adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
       
+      #### initialize tree of pvalues
+      
+      # pval_graph <- make_empty_graph()
+      # alpha_graph <- make_empty_graph()
+       pval_alpha <- 0.05/15
+      
+      ### Check for homogeneity in each box and regroup if non-homogeneous
       final_groups <- list()
       for(i in 1:15){
         final_groups[[i]] <- list()
         ### If the pval for homogenity test for box i is greater than 0.05, then regroup box and test
-        if(adjusted_pvals[i] < 0.05){
+        if(adjusted_pvals[i] < pval_alpha){
           ### all trials for box i are not homogeneous
           ### Combine trials by adding chisq boxes
           
-          #debug(regroupBoxes)
-          newgroups <- regroupBoxes(output,i)
+          debug(regroupBoxes)
+          
+          #pval_graph <- pval_graph + vertices(paste("box",i,pval_alpha,sep=""))
+          #alpha_graph <- alpha_graph + 
+          newgroups <- regroupBoxes(output,i,pval_alpha)
           for(j in 1:length(newgroups)){
             final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]][min(newgroups[[j]]):max(newgroups[[j]])]))
           }
@@ -278,6 +289,7 @@ plot.heatmap=function(enreg,rat){
 
 
 ############################
+### get time spend in each box
 getTimeSpentInBox=function(bx_pos,enreg,ses){
   total_time_in_bx=0
   if(length(bx_pos)>1){
@@ -392,7 +404,7 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
 ### 2) If either set is homoegenous,keep the set of groups
 ### 3) If non-homogenous, split in 2 and repeat until group size =1 or pval<0.05
 
-regroupBoxes=function(output,i){
+regroupBoxes=function(output,i,pval_alpha){
   ### If groups = 10, combine 5 groups each and test homogenity
   ### If group1 = 5 is not homogenous, split into 2 groups of 2 & 3
   
@@ -415,8 +427,10 @@ regroupBoxes=function(output,i){
     newtimesinbox <- list.append(newtimesinbox,c(output$newTimesinBox[[i]][round2(length(output$newTimesinBox[[i]])/2 + 1,0): length(output$newTimesinBox[[i]])]))
   }
   
+  alpha_mat <- NULL
+  #colnames(alpha_mat) <- c("Newgroup","Alpha","pval","H0 Rej","Split Further")
   
-  #### Check for homogenity in the 2 big groups
+  #### Check for homogenity in the 2 big groups -- > with pval still pval_alpha
   ### Verify p-val calculation ???
   final_groups <-list()
   for(j in 1:length(newgroups)){
@@ -426,16 +440,28 @@ regroupBoxes=function(output,i){
       final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
       next
     }
-    pval <- testHomogeneity(newspikes[[j]],newtimesinbox[[j]])
+    
+    
+    # pval_graph <- pval_graph +vertex(paste("Box"),i,sep="")
+    # alpha_graph <- alpha_graph + vertex(paste("Box"),i,sep="")
+    # pval <- testHomogeneity(newspikes[[j]],newtimesinbox[[j]])
+    # alpha_mat[j,1] =  paste( unlist(newgroups[[j]]), collapse=',')## Newgroup
+    # alpha_mat[j,2] = pval_alpha ## Alpha level for H0
+    # alpha_mat[j,3] = pval ## Pval of H0 test
+    
+    final_groups <- splitAllGroups(newgroups[[j]],output,i,alpha_mat,pval_alpha)
+    
     #adjusted_pvals <- p.adjust(pval, method = "bonferroni", n = length(pvals))
-    if(pval > 0.05){
-      ## Split all the groups in newgroup into two 
-      ## Continue this until all groups are homogenous or all groups are minimum units
-      #debug(splitAllGroups)
-      final_groups <- c(final_groups,(splitAllGroups(newgroups[[j]],output,i)))
-    }else{
-      final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
-    }
+    # if(pval < pval_alpha){
+    #   ## Split all the groups in newgroup into two 
+    #   ## Continue this until all groups are homogenous or all groups are minimum units
+    #   #debug(splitAllGroups)
+    #   alpha_mat[j,4] = "Yes"
+    #   alpha_mat[j,5] = "Yes"
+    #   final_groups <- c(final_groups,(splitAllGroups(newgroups[[j]],output,i,alpha_mat)))
+    # }else{
+    #   final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
+    # }
   }
   
   
@@ -445,30 +471,67 @@ regroupBoxes=function(output,i){
 
 ################################################################333
 ###### Use this function recursively to split until you get good groups
-splitAllGroups=function(newgroups,output,i){
+splitAllGroups=function(newgroups,output,i,alpha_mat,pval_alpha){
   print(sprintf("Inside split group, i=%i",i))
+  if("Split Further" %in% colnames(dat))
+  {
+    cat("Yep, it's there!\n");
+  }else{
+    colnames(alpha_mat) <- c("Newgroup","Alpha","pval","H0 Rej","Split Further")
+  }
+  
   final_group <- list()
   #for(j in 1:length(newgroups)){
     ## Get nspikes for newgroups[[i]]
     ## Get timeiin boxes for newgroups[[i]]
-    nspikes  <- numeric()
-    timeinboxes <- numeric()
-    nspikes <- output$newSpikes[[i]][min(newgroups):max(newgroups)]
-    timeinboxes <- output$newTimesinBox[[i]][min(newgroups):max(newgroups)]
-    pval <- testHomogeneity(nspikes,timeinboxes)
-    if(pval < 0.05){
-      final_group <- c(final_group,newgroups)
-    }else if(lengths(newgroups)>2) {
-      splitAllGroups(newgroups[[j]],output,i)
-      #split newgroups[i]
-    }else if(lengths(newgroups)==2) {
-      #stop split and add to final group
-      final_group <- list.append(final_group,c(1))
-      final_group <- list.append(final_group,c(2))
+    if(length(newgroups[[j]])==1){
+      final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
+      alpha_mat[j,1] =  paste( unlist(newgroups[[j]]), collapse=',')## Newgroup
+      alpha_mat[j,2] = NA ## Alpha level for H0
+      alpha_mat[j,3] = NA ## Pval of H0 test
+      alpha_mat[j,4] = NA
+      alpha_mat[j,5] = "No"
+      next
     }else{
-      ## ?? Required ???
-      final_group <- c(final_group,newgroups)
-    }
+      
+      nspikes  <- numeric()
+      timeinboxes <- numeric()
+      nspikes <- output$newSpikes[[i]][min(newgroups):max(newgroups)]
+      timeinboxes <- output$newTimesinBox[[i]][min(newgroups):max(newgroups)]
+      pval <- testHomogeneity(nspikes,timeinboxes)
+      
+      
+      colnames(alpha_mat) <- c("Newgroup","Alpha","pval","H0 Rej","Split Further")
+      alpha_mat[j,1] =  paste( unlist(newgroups[[j]]), collapse=',')## Newgroup
+      alpha_mat[j,2] = pval_alpha ## Alpha level for H0
+      alpha_mat[j,3] = pval ## Pval of H0 test
+      
+      if(pval > pval_alpha){
+        
+        alpha_mat[j,4] = "No"
+        alpha_mat[j,5] = "No"
+        final_group <- c(final_group,newgroups)
+      }else if(lengths(newgroups)>2) {
+        
+        alpha_mat[j,4] = "Yes"
+        alpha_mat[j,5] = "Yes"
+        pval_alpha = pval_alpha/2
+        splitAllGroups(newgroups[[j]],output,i,alpha_mat,pval_alpha)
+        #split newgroups[i]
+      }else if(length(newgroups)==2) {
+        #stop split and add to final group
+        
+        alpha_mat[j,4] = "Yes"
+        alpha_mat[j,5] = "No"
+        final_group <- list.append(final_group,c(1))
+        final_group <- list.append(final_group,c(2))
+      }else{
+        ## ?? Required ???
+        final_group <- c(final_group,newgroups)
+        
+      }
+    } 
+   
   #}
   return(final_group)
 }

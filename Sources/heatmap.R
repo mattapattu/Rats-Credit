@@ -255,38 +255,76 @@ plot.heatmap=function(enreg,rat){
       
       # pval_graph <- make_empty_graph()
       # alpha_graph <- make_empty_graph()
-       pval_alpha <- 0.05/15
+      pval_alpha <- 0.05
       
+      alpha_mat <- matrix(0,50,5)
+      colnames(alpha_mat) <- c("Box/Newgroup","Alpha","pval","H0 Rej","Split Further")
+      matIndex=0
       ### Check for homogeneity in each box and regroup if non-homogeneous
       final_groups <- list()
       for(i in 1:15){
+        if(i==1){
+          matIndex=1 
+        }else{
+          matIndex=max(which(alpha_mat[,1] != "0"))+1
+        }
+        # print(sprintf("matIndex=%s at the begining of for loop",matIndex))
+        # print(alpha_mat[which(alpha_mat[1] != "0"),])
+        alpha_mat[matIndex,1] =  paste("Box",i,  sep="")## Newgroup
+        alpha_mat[matIndex,2] = 0.05 ## Alpha level for H0
+        alpha_mat[matIndex,3] = adjusted_pvals[i] ## Pval of H0 test
+        
         final_groups[[i]] <- list()
         ### If the pval for homogenity test for box i is greater than 0.05, then regroup box and test
         if(adjusted_pvals[i] < pval_alpha){
+          alpha_mat[matIndex,4] = "Yes"  ## H0 rejected 
+          alpha_mat[matIndex,5] = "Yes"  ## Split Further
+          
           ### all trials for box i are not homogeneous
           ### Combine trials by adding chisq boxes
-          
-          debug(regroupBoxes)
+          print(sprintf("For box %i, Adjusted pvalue = %f < pval_alpha = %f",i,adjusted_pvals[i],pval_alpha))
+          print(sprintf("For box %i,H0 can be rejected and box must be regrouped to find homogeneous sub-groups",i))
+          #debug(regroupBoxes)
           
           #pval_graph <- pval_graph + vertices(paste("box",i,pval_alpha,sep=""))
           #alpha_graph <- alpha_graph + 
-          newgroups <- regroupBoxes(output,i,pval_alpha)
+          pval_alpha = pval_alpha/15
+          matIndex=matIndex+1 ## Add new row in matrix below the current box
+          print(sprintf("matIndex=%s",matIndex))
+          newList <- regroupBoxes(output,i,pval_alpha,alpha_mat,matIndex)
+          newgroups <- newList$final_group
+          alpha_mat <- newList$alpha_mat
+          # print(alpha_mat)
+          # print(sprintf("Returned from regroup"))
           for(j in 1:length(newgroups)){
             final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]][min(newgroups[[j]]):max(newgroups[[j]])]))
           }
           
         }else{
+          alpha_mat[matIndex,4] = "No"  ## H0 rejected 
+          alpha_mat[matIndex,5] = "No"  ## Split Further
+          
+          print(sprintf("For box i=%i,Adjusted pvalue = %f > pval_alpha = %f",i,adjusted_pvals[i],pval_alpha))
+          print(sprintf("For box i=%i,H0 cannot be rejected",i))
           ### all trials for box i are homogeneous
           final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]]))
           
         }
+        #print(sprintf("matIndex=%s at the end of for loop",max(which(alpha_mat[,1] != "0"))))
+        
       }
       print(final_groups)
+      print(alpha_mat[which(alpha_mat[,1] != "0"),])
     } 
   }
   print("Returning from plot")
 }
 
+################################################################################3
+##### Plot Heatmap based on final groups
+plot.heatmap.by.finalgroups = function(output,final_groups){
+  
+}
 
 ############################
 ### get time spend in each box
@@ -342,6 +380,8 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
       sum=sum+(nSpikes[j,i]*(timesinBoxes[j,i]/sum(timesinBoxes[,i])))
       
       if(j==last_trial && sum <5 && length(groups[[i]]) > 1 ){
+        ### If the last group has sum <5 , add the the previous group
+        print("Add last batch of trials to the previous group as sum < 5")
         groups[[i]][[length(groups[[i]])]] <- list.append(groups[[i]][[length(groups[[i]])]],c((prevIndex+1):j))
         newSpikes[[i]][[length(newSpikes[[i]])]] = newSpikes[[i]][[length(newSpikes[[i]])]] + sum(nSpikes[(prevIndex+1):j,i])
         newTimesinBox[[i]][[length(newTimesinBox[[i]])]] = newTimesinBox[[i]][[length(newTimesinBox[[i]])]] + sum(timesinBoxes[(prevIndex+1):j,i])
@@ -349,7 +389,7 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
       else if(j==last_trial && sum <5 && length(groups[[i]]) ==0){
         ### Not even 1 group, so cannot do chi-square
         ### Split into 2 groups to do Sepideh's test
-        print("Split into 2 groups")
+        print("Split into 2 groups to do Sepideh's test as there are 0 groups and sum < 5 ")
         groups[[i]] <- list.append(groups[[i]],c(1:round2(length(nSpikes[,i])/2,0)))
         groups[[i]] <- list.append(groups[[i]],c(round2(length(nSpikes[,i])/2 + 1,0): length(nSpikes[,i])))
         
@@ -362,7 +402,7 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
       else if(j==last_trial && sum <5 && length(groups[[i]]) ==1){
         ### Just 1 group, so cannot do chi-square
         ### Split into 2 groups to do Sepideh's test
-        print("Split into 2 groups")
+        print("Split into 2 groups to do Sepideh's test as there is just 1 group and sum < 5 ")
         groups[[i]] <- list()
         newSpikes[[i]] <- numeric()
         newTimesinBox[[i]] <- numeric()
@@ -376,6 +416,7 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
         newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[round2(length(timesinBoxes[,i])/2 + 1,0): length(timesinBoxes[,i]) ,i]))
       }
       if(sum>5){
+        print("Add new group as sum > 5")
         sum=0
         groups[[i]] <- list.append(groups[[i]],c((prevIndex+1):j))
         print(sprintf("nspikes= %s",sum(nSpikes[(prevIndex+1):j,i])))
@@ -404,7 +445,7 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
 ### 2) If either set is homoegenous,keep the set of groups
 ### 3) If non-homogenous, split in 2 and repeat until group size =1 or pval<0.05
 
-regroupBoxes=function(output,i,pval_alpha){
+regroupBoxes=function(output,i,pval_alpha,alpha_mat,matIndex){
   ### If groups = 10, combine 5 groups each and test homogenity
   ### If group1 = 5 is not homogenous, split into 2 groups of 2 & 3
   
@@ -427,71 +468,43 @@ regroupBoxes=function(output,i,pval_alpha){
     newtimesinbox <- list.append(newtimesinbox,c(output$newTimesinBox[[i]][round2(length(output$newTimesinBox[[i]])/2 + 1,0): length(output$newTimesinBox[[i]])]))
   }
   
-  alpha_mat <- NULL
-  #colnames(alpha_mat) <- c("Newgroup","Alpha","pval","H0 Rej","Split Further")
-  
+ 
   #### Check for homogenity in the 2 big groups -- > with pval still pval_alpha
   ### Verify p-val calculation ???
-  final_groups <-list()
+  final_group <-list()
+  
   for(j in 1:length(newgroups)){
     
-    ### If groups are split into 2 & 1, then 1 should be added to final.
-    if(length(newgroups[[j]])==1){
-      final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
-      next
-    }
+    #debug(splitAllGroups)
+    print(sprintf("For box = %i, split group = %s",i,unlist(newgroups[[j]])))
+    output <- splitAllGroups(newgroups[[j]],output,i,pval_alpha,alpha_mat,matIndex)
+    final_group <- c(final_group,output$final_group)
+    alpha_mat <- output$alpha_mat
+    matIndex=matIndex+1
     
-    
-    # pval_graph <- pval_graph +vertex(paste("Box"),i,sep="")
-    # alpha_graph <- alpha_graph + vertex(paste("Box"),i,sep="")
-    # pval <- testHomogeneity(newspikes[[j]],newtimesinbox[[j]])
-    # alpha_mat[j,1] =  paste( unlist(newgroups[[j]]), collapse=',')## Newgroup
-    # alpha_mat[j,2] = pval_alpha ## Alpha level for H0
-    # alpha_mat[j,3] = pval ## Pval of H0 test
-    
-    final_groups <- splitAllGroups(newgroups[[j]],output,i,alpha_mat,pval_alpha)
-    
-    #adjusted_pvals <- p.adjust(pval, method = "bonferroni", n = length(pvals))
-    # if(pval < pval_alpha){
-    #   ## Split all the groups in newgroup into two 
-    #   ## Continue this until all groups are homogenous or all groups are minimum units
-    #   #debug(splitAllGroups)
-    #   alpha_mat[j,4] = "Yes"
-    #   alpha_mat[j,5] = "Yes"
-    #   final_groups <- c(final_groups,(splitAllGroups(newgroups[[j]],output,i,alpha_mat)))
-    # }else{
-    #   final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
-    # }
   }
-  
-  
-  
-  return(final_groups)
+
+  newList <- list("final_group" = final_group, "alpha_mat" = alpha_mat)
+  return(newList)
 }
 
 ################################################################333
 ###### Use this function recursively to split until you get good groups
-splitAllGroups=function(newgroups,output,i,alpha_mat,pval_alpha){
+splitAllGroups=function(newgroups,output,i,pval_alpha,alpha_mat,matIndex){
   print(sprintf("Inside split group, i=%i",i))
-  if("Split Further" %in% colnames(dat))
-  {
-    cat("Yep, it's there!\n");
-  }else{
-    colnames(alpha_mat) <- c("Newgroup","Alpha","pval","H0 Rej","Split Further")
-  }
   
   final_group <- list()
   #for(j in 1:length(newgroups)){
     ## Get nspikes for newgroups[[i]]
     ## Get timeiin boxes for newgroups[[i]]
-    if(length(newgroups[[j]])==1){
-      final_groups <- list.append(final_groups,unlist(newgroups[[j]]))
-      alpha_mat[j,1] =  paste( unlist(newgroups[[j]]), collapse=',')## Newgroup
-      alpha_mat[j,2] = NA ## Alpha level for H0
-      alpha_mat[j,3] = NA ## Pval of H0 test
-      alpha_mat[j,4] = NA
-      alpha_mat[j,5] = "No"
-      next
+    if(length(newgroups)==1){
+      final_group <- list.append(final_group,unlist(newgroups))
+      alpha_mat[matIndex,1] =  paste( unlist(newgroups), collapse=',')## Newgroup
+      alpha_mat[matIndex,2] = NA ## Alpha level for H0
+      alpha_mat[matIndex,3] = NA ## Pval of H0 test
+      alpha_mat[matIndex,4] = NA
+      alpha_mat[matIndex,5] = "No"
+      
     }else{
       
       nspikes  <- numeric()
@@ -501,28 +514,30 @@ splitAllGroups=function(newgroups,output,i,alpha_mat,pval_alpha){
       pval <- testHomogeneity(nspikes,timeinboxes)
       
       
-      colnames(alpha_mat) <- c("Newgroup","Alpha","pval","H0 Rej","Split Further")
-      alpha_mat[j,1] =  paste( unlist(newgroups[[j]]), collapse=',')## Newgroup
-      alpha_mat[j,2] = pval_alpha ## Alpha level for H0
-      alpha_mat[j,3] = pval ## Pval of H0 test
+      alpha_mat[matIndex,1] =  paste( unlist(newgroups), collapse=',')## Newgroup
+      alpha_mat[matIndex,2] = pval_alpha ## Alpha level for H0
+      alpha_mat[matIndex,3] = pval ## Pval of H0 test
       
       if(pval > pval_alpha){
         
-        alpha_mat[j,4] = "No"
-        alpha_mat[j,5] = "No"
+        alpha_mat[matIndex,4] = "No"
+        alpha_mat[matIndex,5] = "No"
         final_group <- c(final_group,newgroups)
       }else if(lengths(newgroups)>2) {
         
-        alpha_mat[j,4] = "Yes"
-        alpha_mat[j,5] = "Yes"
+        alpha_mat[matIndex,4] = "Yes"
+        alpha_mat[matIndex,5] = "Yes"
         pval_alpha = pval_alpha/2
-        splitAllGroups(newgroups[[j]],output,i,alpha_mat,pval_alpha)
+        matIndex=matIndex+1
+        newList <- splitAllGroups(newgroups,output,i,alpha_mat,pval_alpha,matIndex)
+        final_group <- newList$final_group
+        alpha_mat <- newList$alpha_mat
         #split newgroups[i]
       }else if(length(newgroups)==2) {
         #stop split and add to final group
         
-        alpha_mat[j,4] = "Yes"
-        alpha_mat[j,5] = "No"
+        alpha_mat[matIndex,4] = "Yes"
+        alpha_mat[matIndex,5] = "No"
         final_group <- list.append(final_group,c(1))
         final_group <- list.append(final_group,c(2))
       }else{
@@ -532,8 +547,9 @@ splitAllGroups=function(newgroups,output,i,alpha_mat,pval_alpha){
       }
     } 
    
-  #}
-  return(final_group)
+  #print(alpha_mat[which(alpha_mat[1] != "0"),])
+  newList <- list("final_group" = final_group, "alpha_mat" = alpha_mat)
+  return(newList)
 }
 
 ###########################################################################

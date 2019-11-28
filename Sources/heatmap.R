@@ -323,17 +323,16 @@ plot.heatmap=function(enreg,rat){
 
 ################################################################################3
 ##### Plot Heatmap based on final groups
-plot.heatmap.by.finalgroups = function(output,final_groups){
-  total_trials =length(unlist(output$groups[[1]]))
-  total_boxes = length(output$groups)
-  firingrates= matrix(0,total_boxes,total_trials)
-  for(box in 1:total_boxes){
-    for(group in 1:length(box)){
-      newSpikes = newSpikes + (output$newSpikes[[i]][1:round2(length(output$newSpikes[[i]])/2,0)])
-      newTimesinBox[[i]][[length(newTimesinBox[[i]])]] = newTimesinBox[[i]][[length(newTimesinBox[[i]])]] + sum(timesinBoxes[(prevIndex+1):j,i])
+plot.heatmap.by.finalgroups = function(nspikes,timesinBoxes,final_groups){
+  total_trials =dim(timesinBoxes)[1]
+  total_boxes = dim(timesinBoxes)[2]
+  firingrates= matrix(0,total_trials,total_boxes)
+  for(i in 1:total_boxes){
+    for(j in 1:length(final_groups[[i]])){
       
-      nspikes <- sum(output$newSpikes[[box]][min(group):max(group)])
-      timeinboxes <- sum(output$newTimesinBox[[box]][min(group):max(group)])
+      nspikes <- sum(nSpikes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
+      timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
+      firingrates[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i]=nspikes*1000/timeinboxes
     }
   }
 }
@@ -571,11 +570,11 @@ matrix.seriate=function(mat,neuron,ses,rat){
   longData<-melt(mat)
   mat[which(is.nan(mat))]<-0
   mat[which(is.infinite(mat))] <- 0
-  o<-seriate(mat, method = "BEA_TSP")
-  longData$Var1 <- factor(longData$Var1, (unlist(o[[1]][])))
-  longData$Var2 <- factor(longData$Var2, names(unlist(o[[2]][])))
-  longData<-longData[longData$value!=0,]
-  ggplot(longData, aes(x = Var1, y = Var2)) + 
+  # o<-seriate(mat, method = "BEA_TSP")
+  # longData$Var1 <- factor(longData$Var1, (unlist(o[[1]][])))
+  # longData$Var2 <- factor(longData$Var2, names(unlist(o[[2]][])))
+  # longData<-longData[longData$value!=0,]
+  ggplot(longData, aes(x = Var2, y = Var1)) + 
     geom_raster(aes(fill=value)) + 
     scale_fill_gradient(low="grey90", high="red") +
     labs(x="Boxes", y="Trials", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +

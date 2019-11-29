@@ -31,6 +31,7 @@ setwd("~/intership2/Data")
 #           ¦--113_session_1 
 #           ¦--113_session_2 
 #           ¦--113_session_3...
+#debug(buildDataTree)
 DATA=buildDataTree()
 #print(DATA)
 

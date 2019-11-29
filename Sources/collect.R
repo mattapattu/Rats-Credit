@@ -33,13 +33,15 @@ buildDataTree=function(){
       ### Enreg[[session]]$ POS, EVENTS, SPIKES, ou LFP
       print(dirNm)
       enreg=recordingsInFolder(dirNm) 
-      ses=1
-      for(rec in enreg){
-        if(is.null(rec)){
+      #ses=1
+      for(ses in 1:length(enreg)){
+        if(is.null(enreg[[ses]])){
+          print(sprintf("No enreg data for %s , ses %i", rat$name,ses))
           next
         }
         #temps, tetrode, neurone, remove last voltage values
-        spks=rec$SPIKES[,1:3] 
+        #spks=rec$SPIKES[,1:3] 
+        spks=enreg[[ses]]$SPIKES[,1:3] 
         vb=logical(length(spks[,1])) #add a vector of booleans
         vs=vector(mode="character", length=length(spks[,1])) #add a vector of strings
         spks=cbind(spks,vs,vs,vb)
@@ -53,13 +55,13 @@ buildDataTree=function(){
         #session = 
           rat$AddChild(paste(animalNb,"_session_",ses,sep=""),
                                #set fields (capital letters)
-                               POS=rec$POS,#time, x,y
+                               POS=enreg[[ses]]$POS,#time, x,y
                                # events 49 and 51 are respectively bottom and top rewards
-                               EVENTS=rec$EVENT,#time, evts
+                               EVENTS=enreg[[ses]]$EVENT,#time, evts
                                SPIKES=spks,#time, tetrod, neuron, rightPath,boxName,boxSensitivity
                                PATHS=pth,#trial, path, boxNm, activity
-                               LFP=rec$LFP)#time, amplitude
-        ses=ses+1
+                               LFP=enreg[[ses]]$LFP)#time, amplitude
+        #ses=ses+1
       }
     }   
   }
@@ -83,9 +85,9 @@ recordingsInFolder=function(folderNm){
   #get the session nb vector
   allSNbs=c()
   for(fileNm in lesmat){
-    #sone=str_locate(fileNm,"_S")
-    #two=str_locate(fileNm,"t")
-    #sessionNb=as.integer(substr(fileNm, one[2]+1, two[1]-1))
+      #sone=str_locate(fileNm,"_S")
+      #two=str_locate(fileNm,"t")
+      #sessionNb=as.integer(substr(fileNm, one[2]+1, two[1]-1))
     sessionNb=str_match(fileNm,"_S(\\d+)t")[,2]
     # print(fileNm)
     # print(sessionNb)

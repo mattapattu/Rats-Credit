@@ -338,7 +338,7 @@ add.dist.to.pos=function(ses,enreg,spolygons){
   i[i == 0] <- 1
   enreg[[ses]]$SPIKES[x,"boxName"] = enreg[[ses]]$POS[i[x],"boxname"]
   enreg[[ses]]$SPIKES[x,"trial"] =  enreg[[ses]]$POS[i[x],"trial"]
-  enreg[[ses]]$SPIKES[x,"distance"] =  enreg[[ses]]$POS[i[x],"distance"]
+  #enreg[[ses]]$SPIKES[x,"distance"] =  enreg[[ses]]$POS[i[x],"distance"]
   
   print("Returning enreg from add.boxes.to.spikes")
   return(enreg)
@@ -428,9 +428,13 @@ change.tree.node=function(rat,animalNb,tree,enreg,ses){
   #print(paste("rat",animalNb,sep=","))
   animalNb  = gsub("rat_", "", animalNb)
   print(paste("rat",animalNb,sep=","))
-  for(rec in enreg){
+  for(ses in 1:length(enreg)){
+    if(is.null(enreg[[ses]])){
+      print(sprintf("No enreg data for %s , ses %i", rat$name,ses))
+      next
+    }
     #temps, tetrode, neurone, remove last voltage values
-    spks=rec$SPIKES[,1:3] 
+    spks=enreg[[ses]]$SPIKES[,1:3] 
     vb=logical(length(spks[,1])) #add a vector of booleans
     vs=vector(mode="character", length=length(spks[,1])) #add a vector of strings
     spks=cbind(spks,vs,vs,vb)
@@ -439,40 +443,15 @@ change.tree.node=function(rat,animalNb,tree,enreg,ses){
     rat$RemoveChild(paste(animalNb,"_session_",ses,sep=""))
     rat$AddChild(paste(animalNb,"_session_",ses,sep=""),
                            #set fields (capital letters)
-                           POS=rec$POS,#temps, x,y
-                           EVENTS=rec$EVENT,#temps, evts
-                           SPIKES=rec$SPIKES,#temps, tetrode, neurone, rightPath,boxName,boxSensitivity
-                           PATHS=rec$PATHS,#trial, path, boxNm, activity
-                           LFP=rec$LFP)#temps, amplitude
+                           POS=enreg[[ses]]$POS,#temps, x,y
+                           EVENTS=enreg[[ses]]$EVENT,#temps, evts
+                           SPIKES=enreg[[ses]]$SPIKES,#temps, tetrode, neurone, rightPath,boxName,boxSensitivity
+                           PATHS=enreg[[ses]]$PATHS,#trial, path, boxNm, activity
+                           LFP=enreg[[ses]]$LFP)#temps, amplitude
   }
   return(tree)
 }
 
-# Compute the neuron activity in each box of a right path
-# a list where the indexes are the neuron numbers
-# and for each neuron there is a vector of activity in boxes
-add.neuron.in.path=function(tree,ses, rightPath,myboxes, Enreg,ratNb){
-  #short=shortcut(Enreg, ses, myboxes)
-  #print(myboxes)
-  #spolygons=getSpatialPolygons(myboxes)
-  
-  #For each box of the right path, eg h: spikyBoxes$h$duration (total duration), 
-  #spikyBoxes$h$pass (column i: entering time, i+1: exiting time),
-  #spikyBoxes$h$spikes (time,tetrod neuron rightPath boxName boxSensitivity)
-  #spikyBoxes=getBoxesInPath(ses,Enreg,spolygons,short,rightPath)
-  #dt <- FromListSimple(spikyBoxes)
-  #print(dt)
-  #get_str_recur(spikyBoxes,"",0)
-  #print(spikyBoxes)
-  
-  enreg=add.box.to.pos(ses,Enreg,spolygons)
-  # enreg=set.activity.to.boxes(ses,spikyBoxes,Enreg,rightPath)
-  # enreg=set.boxes.to.neurons(ses,spikyBoxes,Enreg,spolygons,rightPath)
-
-  #tree$Set(spatialPolygons = boites,filterFun = function(x) x$level == 1)
-  print("Returning enreg from add.neuron.in.path")
-  return(enreg)
-}
 
 alignBoxes=function(enreg,ses,spolygons,boites){
   
@@ -646,30 +625,35 @@ plot.actions=function(enreg,spolygons){
   
 }
 
-# Compute the nb of spikes for each neuron in the 
-# boxes for a right path and store it 
+
 set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
   
-  
-  
+
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
   for (i in c(2)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
-    spols = list()
-    for(ses in c(1:2)){
+    #spols = list()
+    for(ses in c(1:length(enreg))){
       print(sprintf("Rat = %i , Session = %i",i,ses))
+      
+      if(is.null(enreg[[ses]])){
+        print(sprintf("No enreg in  %s session %i",rat, ses))
+        next
+      }
+      
       boxes=boites
       spolygons=getSpatialPolygons(boxes)
+      
       enreg=add.rewards.to.pos(ses,enreg)
       
       if(sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "49"))) == 0 && sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "51"))) == 0){
-        print(sprintf("No rewards in this session, removing from tree"))
+        print(sprintf("No rewards in  %s session %i",rat, ses))
         animalNb  = gsub("rat_", "", rat[i])
-        n$RemoveChild(paste(animalNb,"_session_",ses,sep=""))
+        #n$RemoveChild(paste(animalNb,"_session_",ses,sep=""))
         next
       }
       
@@ -703,7 +687,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       enreg=add.box.to.pos(ses,enreg,spolygons)
       
       #debug(add.dist.to.pos)
-      enreg=add.dist.to.pos(ses,enreg,spolygons)
+      #enreg=add.dist.to.pos(ses,enreg,spolygons)
       
       #debug(add.boxes.to.spikes)
       enreg=add.boxes.to.spikes(ses,enreg)
@@ -721,7 +705,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #plot.spikes.by.distance(rat[i],enreg,ses,dirpath)
     }
     #debug(change.tree.node)
-    tree=change.tree.node(n,rat[i],tree,enreg,ses)
+    #tree=change.tree.node(n,rat[i],tree,enreg,ses)
     #debug(plot.rewards,dirpath)
     #plot.rewards(enreg)
     
@@ -760,7 +744,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath5,rat[i],"5")
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
-    debug(plot.heatmap)
+    #debug(plot.heatmap)
     plot.heatmap(enreg,rat[i])
   }
   return(tree)

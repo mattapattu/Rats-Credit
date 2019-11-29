@@ -249,7 +249,7 @@ plot.heatmap=function(enreg,rat){
         pvals <- c(pvals,testHomogeneity(output$newSpikes[[i]],output$newTimesinBox[[i]]))
       }
       
-      adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
+      #adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
       
       #### initialize tree of pvalues
       
@@ -263,7 +263,7 @@ plot.heatmap=function(enreg,rat){
       ### Check for homogeneity in each box and regroup if non-homogeneous
       final_groups <- list()
       for(i in 1:15){
-        pval_alpha <- 0.05
+        pval_alpha <- 0.05/15
         if(i==1){
           matIndex=1 
         }else{
@@ -289,7 +289,7 @@ plot.heatmap=function(enreg,rat){
           
           #pval_graph <- pval_graph + vertices(paste("box",i,pval_alpha,sep=""))
           #alpha_graph <- alpha_graph + 
-          pval_alpha = pval_alpha/15
+          pval_alpha = pval_alpha/2
           matIndex=matIndex+1 ## Add new row in matrix below the current box
           print(sprintf("matIndex=%s",matIndex))
           newList <- regroupBoxes(output,i,pval_alpha,alpha_mat,matIndex)
@@ -333,6 +333,7 @@ plot.heatmap.by.finalgroups = function(nspikes,timesinBoxes,final_groups){
       nspikes <- sum(nSpikes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
       timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
       firingrates[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i]=nspikes*1000/timeinboxes
+      firingrates[which(timesinBoxes[,i]==0),i] <- NA
     }
   }
 }
@@ -567,20 +568,22 @@ splitAllGroups=function(newgroups,output,i,pval_alpha,alpha_mat,matIndex){
 #### Plot seriated matrix 
 matrix.seriate=function(mat,neuron,ses,rat){
 
-  longData<-melt(mat)
-  mat[which(is.nan(mat))]<-0
-  mat[which(is.infinite(mat))] <- 0
+  longData<-melt(t(mat))
+  #mat[which(is.nan(mat))]<-0
+  #mat[which(is.infinite(mat))] <- 0
   # o<-seriate(mat, method = "BEA_TSP")
-  # longData$Var1 <- factor(longData$Var1, (unlist(o[[1]][])))
-  # longData$Var2 <- factor(longData$Var2, names(unlist(o[[2]][])))
+   #longData$Var1 <- factor(longData$Var1, (unlist(o[[1]][])))
+   #longData$Var2 <- factor(longData$Var2, names(unlist(o[[2]][])))
   # longData<-longData[longData$value!=0,]
   ggplot(longData, aes(x = Var2, y = Var1)) + 
     geom_raster(aes(fill=value)) + 
-    scale_fill_gradient(low="grey90", high="red") +
+    scale_fill_continuous(low="thistle2", high="darkred", 
+                          guide="colorbar",na.value="white") +
     labs(x="Boxes", y="Trials", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
     theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=0.3),
                        axis.text.y=element_text(size=9),
-                       plot.title=element_text(size=11))
+                       plot.title=element_text(size=11)) + scale_y_continuous(breaks=c(1:15),labels= c("A","B","B'","C","C'","D","E","E'","F","G","H","I","I'","J","K") )
+
   
   ggsave(paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)
 }

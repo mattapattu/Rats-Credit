@@ -33,13 +33,11 @@ get_str_recur <- function(x,text2,y){
 
 convert.node.to.enreg=function(rat){
   enr=list()
-  i=1
   for (s in rat$children) {
-    
-    enr[[i]]=list.append(list(POS=s$POS,SPIKES=s$SPIKES,EVENTS=s$EVENTS))
+    sessionNb=as.numeric(str_match(s$name,"_session_(\\d+)")[,2])
+    enr[[sessionNb]]=list.append(list(POS=s$POS,SPIKES=s$SPIKES,EVENTS=s$EVENTS))
     #TRIALS = as.matrix(list(trial,Neuron1,Neuron2,Neuron3,Neuron4,Neuron5,Neuron6))
     
-    i=i+1
   }
   return(enr)
 }
@@ -632,7 +630,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(2)) {
+  for (i in c(1)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
@@ -744,7 +742,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath5,rat[i],"5")
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
-    #debug(plot.heatmap)
+    debug(plot.heatmap)
     plot.heatmap(enreg,rat[i])
   }
   return(tree)

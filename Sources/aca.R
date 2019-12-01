@@ -542,8 +542,8 @@ plot.rewards=function(enreg){
   #legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2,cex=0.5,bty = "n")
   
   plot(proportion_rewards,col='red',type='l',xlab="Session",ylab="Total proportion of rewarded i/e visits")
-  plot(duration,type="l",xlab="Session",ylab="Duration")
-  plot(average_spike_freq,type="l",xlab="Session",ylab="Average spike freq")
+  #plot(duration,type="l",xlab="Session",ylab="Duration")
+  #plot(average_spike_freq,type="l",xlab="Session",ylab="Average spike freq")
   # plot(1:length(enreg),reward_49,col='red',type='b',xlab="Session",ylab="Rewards")
   # lines(1:length(enreg),reward_51,col='blue',type='b',lty=2)
   # legend("topleft", legend=c("Reward 49", "Reward 51"),col=c("red", "blue"),lty = 1:2)
@@ -572,6 +572,7 @@ plot.actions=function(enreg,spolygons){
   bch <- numeric()
   
   for(ses in 1:length(enreg)){
+    
       if(sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "49"))) + sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "51"))) >= 5){
       #rewards <- c(rewards,(sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49))+sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49))))
       reward_49 <- c(reward_49,sum(as.numeric(enreg[[ses]]$EVENTS[,2]==49)))
@@ -610,8 +611,7 @@ plot.actions=function(enreg,spolygons){
     }
   }
   
-  prop_gab_rewards <- reward_51/gab  ### Proportion of rewarded gab visits
-  prop_kab_rewards <- reward_49/kab  ### Proportion of rewarded gab visits
+  
   prop_bcd_rewards <- reward_49/bcd  ### Proportion of rewarded bcd visits
   prop_bch_rewards <- reward_51/bch ### Proportion of rewarded bch visits
   par(mfrow=c(2,2))
@@ -630,12 +630,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(1)) {
+  for (i in c(2)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     #spols = list()
-    for(ses in c(1:length(enreg))){
+    for(ses in c(17)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       if(is.null(enreg[[ses]])){
@@ -744,6 +744,8 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     
     debug(plot.heatmap)
     plot.heatmap(enreg,rat[i])
+    
+    plot.reward_proportion(enreg,rat[i])
   }
   return(tree)
 }

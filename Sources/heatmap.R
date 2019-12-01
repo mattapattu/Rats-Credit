@@ -24,7 +24,7 @@ plot.heatmap=function(enreg,rat){
   }else if(grepl("113", rat)){
     seslist <- c(1,2,3,15,16,17)
   }
-  
+  seslist <- c(17)
   for(ses in seslist){
     
     
@@ -264,7 +264,7 @@ plot.heatmap=function(enreg,rat){
       # alpha_graph <- make_empty_graph()
       
       
-      alpha_mat <- matrix(0,50,5)
+      alpha_mat <- matrix(0,300,5)
       colnames(alpha_mat) <- c("Box/Newgroup","Alpha","pval","H0 Rej","Split Further")
       matIndex=0
       ### Check for homogeneity in each box and regroup if non-homogeneous
@@ -305,7 +305,8 @@ plot.heatmap=function(enreg,rat){
           pval_alpha = pval_alpha/2
           matIndex=max(which(alpha_mat[,1] != "0"))+1 ## Add new row in matrix below the current box
           #print(sprintf("matIndex=%s",matIndex))
-          newList <- regroupBoxes(output,i,pval_alpha,alpha_mat,matIndex)
+          #newList <- regroupBoxes(output,i,pval_alpha,alpha_mat,matIndex)
+          newList <- regroupBoxes(nSpikes,timesinBoxes,last_trial)
           newgroups <- newList$final_group
           alpha_mat <- newList$alpha_mat
           # print(alpha_mat)
@@ -402,13 +403,13 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,last_trial){
     groups[[i]] <- list()
     newSpikes[[i]] <- numeric()
     newTimesinBox[[i]] <- numeric()
-    print(sprintf("i=%i",i))
+    #print(sprintf("i=%i",i))
     for(j in 1:last_trial){
       ### If the box is not visited at all for the complete session, set sum to zero and do not compute (timesinBoxes[j,i]/sum(timesinBoxes[,i]))
       if(sum(timesinBoxes[,i])==0 ){
         sum=0
       }else{
-        sum=sum+(nSpikes[j,i]*(timesinBoxes[j,i]/sum(timesinBoxes[,i])))
+        sum=sum+(sum(nSpikes[,i])*(timesinBoxes[j,i]/sum(timesinBoxes[,i])))
       }
       
       
@@ -530,7 +531,7 @@ regroupBoxes=function(output,i,pval_alpha,alpha_mat,matIndex){
     output1 <- splitAllGroups(newgroups[[j]],output,i,pval_alpha,alpha_mat,matIndex)
     final_group <- c(final_group,output1$final_group)
     alpha_mat <- output1$alpha_mat
-    matIndex=max(which(alpha_mat[,1] != "0"))+1+1
+    matIndex=max(which(alpha_mat[,1] != "0"))+1
     
   }
 
@@ -541,7 +542,7 @@ regroupBoxes=function(output,i,pval_alpha,alpha_mat,matIndex){
 ################################################################333
 ###### Use this function recursively to split until you get good groups
 splitAllGroups=function(newgroups,output,i,pval_alpha,alpha_mat,matIndex){
-  print(sprintf("Inside split group, i=%i",i))
+  #print(sprintf("Inside split group, i=%i",i))
   
   final_group <- list()
   #for(j in 1:length(newgroups)){

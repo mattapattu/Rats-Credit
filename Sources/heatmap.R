@@ -24,7 +24,6 @@ plot.heatmap=function(enreg,rat){
   }else if(grepl("113", rat)){
     seslist <- c(1,2,3,15,16,17)
   }
-  seslist <- c(17)
   for(ses in seslist){
     
     
@@ -289,7 +288,7 @@ plot.heatmap=function(enreg,rat){
           ## Box is unvisited during whole  session, therefore pval is NaN
           alpha_mat[matIndex,4] = "Ignore"  ## H0 rejected 
           alpha_mat[matIndex,5] = "No, "  ## Split Further
-          final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]]))
+          final_groups[[i]] <- unlist(output$groups[[i]])
         }
         else if(pvals[i] < pval_alpha){
           alpha_mat[matIndex,4] = "Yes"  ## H0 rejected 
@@ -312,9 +311,10 @@ plot.heatmap=function(enreg,rat){
           alpha_mat <- newList$alpha_mat
           # print(alpha_mat)
           # print(sprintf("Returned from regroup"))
-          for(j in 1:length(newgroups)){
-            final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]][min(unlist(newgroups[[j]])):max(unlist(newgroups[[j]]))]))
-          }
+          # for(j in 1:length(newgroups)){
+          #   final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]][min(unlist(newgroups[[j]])):max(unlist(newgroups[[j]]))]))
+          # }
+          final_groups[[i]] <- lapply(rapply(newgroups, enquote, how="unlist"), eval)
           
         }else{
           alpha_mat[matIndex,4] = "No"  ## H0 rejected 
@@ -323,7 +323,7 @@ plot.heatmap=function(enreg,rat){
           #print(sprintf("For box i=%i,Adjusted pvalue = %f > pval_alpha = %f",i,pvals[i],pval_alpha))
           #print(sprintf("For box i=%i,H0 cannot be rejected",i))
           ### all trials for box i are homogeneous
-          final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]]))
+          final_groups[[i]] <- unlist(output$groups[[i]])
           
         }
         #print(sprintf("matIndex=%s at the end of for loop",max(which(alpha_mat[,1] != "0"))))
@@ -520,99 +520,148 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
   newgroup1 = start_trial:round2((end_trial+start_trial)/2,0)
   newgroup2 = round2((((end_trial+start_trial)/2) + 1),0):end_trial
   
-  newNspikes1 = nSpikes[newgroup1,i,drop=FALSE]
-  newNspikes2 = nSpikes[newgroup2,i,drop=FALSE]
+  newNspikes1 = nSpikes[newgroup1,i]
+  newNspikes2 = nSpikes[newgroup2,i]
   
-  newTimesinBoxes1 = timesinBoxes[newgroup1,i,drop=FALSE]
-  newTimesinBoxes2 = timesinBoxes[newgroup2,i,drop=FALSE]
-  
-  output1 <- groupBoxesForChiSqTest(nSpikes[,i,drop=FALSE],timesinBoxes[,i,drop=FALSE],start_trial,round2((end_trial+start_trial)/2,0))
-  pval1 <- testHomogeneity(output1$newSpikes[[1]],output1$newTimesinBox[[1]])
-  
+  newTimesinBoxes1 = timesinBoxes[newgroup1,i]
+  newTimesinBoxes2 = timesinBoxes[newgroup2,i]
+
+  ##############################New group 1###############################3  
   matIndex=max(which(alpha_mat[,1] != "0"))+1
-  alpha_mat[matIndex,2] = pval_alpha ## Alpha level for H0
-  alpha_mat[matIndex,3] = pval1 ## Pval of H0 test
-  
-  ### No spikes in any group, combine them
-  if(is.nan(pval1)){
-    
-    alpha_mat[matIndex,4] = "No"
-    alpha_mat[matIndex,5] = "No"
-    alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
-    final_group <- list.append(final_group,unlist(output1$groups[[1]]))
-  }else  if(pval1 > pval_alpha){
-    
-    alpha_mat[matIndex,4] = "No"
-    alpha_mat[matIndex,5] = "No"
-    alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
-    final_group <- list.append(final_group,unlist(output1$groups[[1]]))
-  }else if(length(newgroup1)>2){
-    alpha_mat[matIndex,4] = "Yes" 
-    alpha_mat[matIndex,5] = "Yes"
-    alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
-    pval_alpha = pval_alpha/2
-    newList1 <- splitAllGroups(nSpikes,timesinBoxes,i,min(newgroup1),max(newgroup1),pval_alpha,alpha_mat)
-    final_group <- list.append(final_group,unlist(newList1$final_group))
-    alpha_mat <- newList1$alpha_mat
-  }else if(length(newgroup1)==2){
-    alpha_mat[matIndex,4] = "Yes" 
-    alpha_mat[matIndex,5] = "No"
-    alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
-    final_group <- list.append(final_group,newgroup1[1])
-    final_group <- list.append(final_group,newgroup1[2])
-  }else if(length(newgroup1)==1) {
+  if(length(newgroup1)==1) {
     #stop split and add to final group
     
     alpha_mat[matIndex,4] = "NA"
     alpha_mat[matIndex,5] = "No"
     alpha_mat[matIndex,1] = unlist(newgroup1)
     final_group <- list.append(final_group,newgroup1)
+  }else if(length(newgroup1)==2){
+    pval1 = testHomogeneity(newNspikes1,newTimesinBoxes1)
+    
+    alpha_mat[matIndex,1] = paste( unlist(newgroup1), collapse=',')
+    alpha_mat[matIndex,2] = pval_alpha ## Alpha level for H0
+    alpha_mat[matIndex,3] = pval1 ## Pval of H0 test
+    
+    if(is.nan(pval1)){
+      
+      alpha_mat[matIndex,4] = "No"
+      alpha_mat[matIndex,5] = "No"
+      alpha_mat[matIndex,1] = paste( unlist(newgroup1), collapse=',')
+      final_group <- list.append(final_group,unlist(newgroup1))
+    }else if(pval1 < pval_alpha){
+      final_group <- list.append(final_group,newgroup1[1])
+      final_group <- list.append(final_group,newgroup1[2])
+      alpha_mat[matIndex,4] = "Yes" 
+      alpha_mat[matIndex,5] = "No"
+    }else{
+      final_group <- list.append(final_group,unlist(newgroup1))
+      alpha_mat[matIndex,4] = "No" 
+      alpha_mat[matIndex,5] = "No"
+    }
+    
+  }else{
+    output1 <- groupBoxesForChiSqTest(nSpikes[,i,drop=FALSE],timesinBoxes[,i,drop=FALSE],start_trial,round2((end_trial+start_trial)/2,0))
+    pval1 <- testHomogeneity(output1$newSpikes[[1]],output1$newTimesinBox[[1]])
+    
+    
+    alpha_mat[matIndex,2] = pval_alpha ## Alpha level for H0
+    alpha_mat[matIndex,3] = pval1 ## Pval of H0 test
+    
+    
+    ### No spikes in any group, combine them
+    if(is.nan(pval1)){
+      
+      alpha_mat[matIndex,4] = "No"
+      alpha_mat[matIndex,5] = "No"
+      alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
+      final_group <- list.append(final_group,unlist(output1$groups[[1]]))
+    }else  if(pval1 > pval_alpha){
+      
+      alpha_mat[matIndex,4] = "No"
+      alpha_mat[matIndex,5] = "No"
+      alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
+      final_group <- list.append(final_group,unlist(output1$groups[[1]]))
+    }else if(length(newgroup1)>2){
+      alpha_mat[matIndex,4] = "Yes" 
+      alpha_mat[matIndex,5] = "Yes"
+      alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
+      pval_alpha = pval_alpha/2
+      newList1 <- splitAllGroups(nSpikes,timesinBoxes,i,min(newgroup1),max(newgroup1),pval_alpha,alpha_mat)
+      final_group <- list.append(final_group,newList1$final_group)
+      alpha_mat <- newList1$alpha_mat
+    }
   }
-
-
-  output2 = groupBoxesForChiSqTest(nSpikes[,i,drop=FALSE],timesinBoxes[,i,drop=FALSE],round2((((end_trial+start_trial)/2) + 1),0),end_trial)
-  pval2 = testHomogeneity(output2$newSpikes[[1]],output2$newTimesinBox[[1]])
-  matIndex=max(which(alpha_mat[,1] != "0"))+1
-  alpha_mat[matIndex,1] = paste( unlist(output2$groups[[1]]), collapse=',')## Newgroup
-  alpha_mat[matIndex,2] = pval_alpha ## Alpha level for H0
-  alpha_mat[matIndex,3] = pval2 ## Pval of H0 test
   
-  if(is.nan(pval2)){
-    
-    alpha_mat[matIndex,4] = "No"
-    alpha_mat[matIndex,5] = "No"
-    alpha_mat[matIndex,1] = paste(min(unlist(output2$groups[[1]])),max(unlist(output2$groups[[1]])),sep=":")
-    final_group <- list.append(final_group,unlist(output2$groups[[1]]))
-  }else if(pval2 > pval_alpha){
-    
-    alpha_mat[matIndex,4] = "No"
-    alpha_mat[matIndex,5] = "No"
-    alpha_mat[matIndex,1] = paste(min(unlist(output2$groups[[1]])),max(unlist(output2$groups[[1]])),sep=":")
-    final_group <- list.append(final_group,unlist(output2$groups[[1]]))
-    
-  }else if(length(newgroup2)>2) {
-    alpha_mat[matIndex,4] = "Yes" 
-    alpha_mat[matIndex,5] = "Yes"
-    alpha_mat[matIndex,1] = paste(min(unlist(output2$groups[[1]])),max(unlist(output2$groups[[1]])),sep=":")
-    pval_alpha = pval_alpha/2
-    newList2 <- splitAllGroups(nSpikes,timesinBoxes,i,min(newgroup2),max(newgroup2),pval_alpha,alpha_mat)
-    final_group <- list.append(final_group,unlist(newList2$final_group))
-    alpha_mat <- newList2$alpha_mat
-    
-  }else if(length(newgroup2)==2){
-    alpha_mat[matIndex,4] = "Yes" 
-    alpha_mat[matIndex,5] = "No"
-    alpha_mat[matIndex,1] = paste(min(unlist(output2$groups[[1]])),max(unlist(output2$groups[[1]])),sep=":")
-    final_group <- list.append(final_group,newgroup2[1])
-    final_group <- list.append(final_group,newgroup2[2])
-  }else if(length(newgroup2)==1) {
+  ##############################New group 2###############################3  
+  matIndex=max(which(alpha_mat[,1] != "0"))+1
+  if(length(newgroup2)==1) {
     #stop split and add to final group
     
     alpha_mat[matIndex,4] = "NA"
     alpha_mat[matIndex,5] = "No"
-    alpha_mat[matIndex,1] = unlist(newgroup1)
+    alpha_mat[matIndex,1] = unlist(newgroup2)
     final_group <- list.append(final_group,newgroup2)
-  } 
+  }else if(length(newgroup2)==2){
+    pval2 = testHomogeneity(newNspikes2,newTimesinBoxes2)
+   
+    alpha_mat[matIndex,1] = paste( unlist(newgroup2), collapse=',')
+    alpha_mat[matIndex,2] = pval_alpha ## Alpha level for H0
+    alpha_mat[matIndex,3] = pval2 ## Pval of H0 test
+    
+    ### No spikes in group, and not visited, combine
+    if(is.nan(pval2)){
+      
+      alpha_mat[matIndex,4] = "No"
+      alpha_mat[matIndex,5] = "No"
+      alpha_mat[matIndex,1] = paste( unlist(newgroup2), collapse=',')
+      final_group <- list.append(final_group,unlist(newgroup2))
+    }else if(pval2 < pval_alpha){
+      
+      final_group <- list.append(final_group,newgroup2[1])
+      final_group <- list.append(final_group,newgroup2[2])
+      alpha_mat[matIndex,4] = "Yes" 
+      alpha_mat[matIndex,5] = "No"
+    }else{
+      
+      final_group <- list.append(final_group,unlist(newgroup2))
+      alpha_mat[matIndex,4] = "No" 
+      alpha_mat[matIndex,5] = "No"
+    }
+    
+   
+  }else{
+    output2 = groupBoxesForChiSqTest(nSpikes[,i,drop=FALSE],timesinBoxes[,i,drop=FALSE],round2((((end_trial+start_trial)/2) + 1),0),end_trial)
+    pval2 = testHomogeneity(output2$newSpikes[[1]],output2$newTimesinBox[[1]])
+    alpha_mat[matIndex,1] = paste( unlist(output2$groups[[1]]), collapse=',')## Newgroup
+    alpha_mat[matIndex,2] = pval_alpha ## Alpha level for H0
+    alpha_mat[matIndex,3] = pval2 ## Pval of H0 test
+    
+    if(is.nan(pval2)){
+      
+      alpha_mat[matIndex,4] = "No"
+      alpha_mat[matIndex,5] = "No"
+      alpha_mat[matIndex,1] = paste(min(unlist(output2$groups[[1]])),max(unlist(output2$groups[[1]])),sep=":")
+      final_group <- list.append(final_group,unlist(output2$groups[[1]]))
+    }else if(pval2 > pval_alpha){
+      
+      alpha_mat[matIndex,4] = "No"
+      alpha_mat[matIndex,5] = "No"
+      alpha_mat[matIndex,1] = paste(min(unlist(output2$groups[[1]])),max(unlist(output2$groups[[1]])),sep=":")
+      final_group <- list.append(final_group,unlist(output2$groups[[1]]))
+      
+    }else if(pval2 < pval_alpha && length(newgroup2)>2) {
+      alpha_mat[matIndex,4] = "Yes" 
+      alpha_mat[matIndex,5] = "Yes"
+      alpha_mat[matIndex,1] = paste(min(unlist(output2$groups[[1]])),max(unlist(output2$groups[[1]])),sep=":")
+      pval_alpha = pval_alpha/2
+      newList2 <- splitAllGroups(nSpikes,timesinBoxes,i,min(newgroup2),max(newgroup2),pval_alpha,alpha_mat)
+      final_group <- list.append(final_group,newList2$final_group)
+      alpha_mat <- newList2$alpha_mat
+      
+    }
+    
+  }
+
   
   
 #print(alpha_mat[which(alpha_mat[1] != "0"),])

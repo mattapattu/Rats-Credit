@@ -630,7 +630,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(2)) {
+  for (i in c(1)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
@@ -743,9 +743,9 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
     #debug(plot.heatmap)
-    plot.heatmap(enreg,rat[i])
+    #plot.heatmap(enreg,rat[i])
     
-    #plot.reward_proportion(enreg,rat[i])
+    plot.reward_proportion(enreg,rat[i])
   }
   return(tree)
 }

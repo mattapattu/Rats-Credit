@@ -745,7 +745,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     debug(plot.heatmap)
     plot.heatmap(enreg,rat[i])
     
-    plot.reward_proportion(enreg,rat[i])
+    #plot.reward_proportion(enreg,rat[i])
   }
   return(tree)
 }

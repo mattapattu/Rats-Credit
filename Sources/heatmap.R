@@ -354,9 +354,9 @@ plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,
       firingrates[which(timesinBoxes[,i]==0),i] <- NA
     }else{
       for(j in 1:len){
-        nspikes <- sum(nSpikes[min(final_groups[[i]]):max(final_groups[[i]]),i])
-        timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]]),i])
-        firingrates[min(final_groups[[i]]):max(final_groups[[i]]),i]=nspikes*1000/timeinboxes
+        nspikes <- sum(nSpikes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
+        timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
+        firingrates[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i]=nspikes*1000/timeinboxes
         firingrates[which(timesinBoxes[,i]==0),i] <- NA
       }
     }

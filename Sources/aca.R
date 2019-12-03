@@ -635,7 +635,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     #spols = list()
-    for(ses in c(1:length(enreg))){
+    for(ses in c(53)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       if(is.null(enreg[[ses]])){
@@ -742,10 +742,10 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath5,rat[i],"5")
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
-    #debug(plot.heatmap)
-    #plot.heatmap(enreg,rat[i])
+    debug(plot.heatmap)
+    plot.heatmap(enreg,rat[i])
     
-    plot.reward_proportion(enreg,rat[i])
+    #plot.reward_proportion(enreg,rat[i])
   }
   return(tree)
 }

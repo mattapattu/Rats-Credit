@@ -24,6 +24,7 @@ plot.heatmap=function(enreg,rat){
   }else if(grepl("113", rat)){
     seslist <- c(1,2,3,15,16,17)
   }
+  seslist <- c(53)
   for(ses in seslist){
     
     
@@ -344,14 +345,23 @@ plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,
   total_boxes = dim(timesinBoxes)[2]
   firingrates= matrix(0,total_trials,total_boxes)
   for(i in 1:total_boxes){
-    for(j in 1:length(final_groups[[i]])){
-      
-      nspikes <- sum(nSpikes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
-      timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
-      firingrates[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i]=nspikes*1000/timeinboxes
+    len=0
+    if(typeof(final_groups[[i]])=="integer"){
+      len=1
+      nspikes <- sum(nSpikes[min(final_groups[[i]]):max(final_groups[[i]]),i])
+      timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]]),i])
+      firingrates[min(final_groups[[i]]):max(final_groups[[i]]),i]=nspikes*1000/timeinboxes
       firingrates[which(timesinBoxes[,i]==0),i] <- NA
+    }else{
+      for(j in 1:len){
+        nspikes <- sum(nSpikes[min(final_groups[[i]]):max(final_groups[[i]]),i])
+        timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]]),i])
+        firingrates[min(final_groups[[i]]):max(final_groups[[i]]),i]=nspikes*1000/timeinboxes
+        firingrates[which(timesinBoxes[,i]==0),i] <- NA
+      }
     }
   }
+  print(firingrates)
   matrix.seriate(t(firingrates),neuron,ses,rat)
 }
 

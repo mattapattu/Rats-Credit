@@ -630,12 +630,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(1)) {
+  for (i in c(1:2)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     #spols = list()
-    for(ses in c(53)){
+    for(ses in c(1:length(enreg))){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       if(is.null(enreg[[ses]])){

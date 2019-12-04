@@ -20,11 +20,11 @@ plot.heatmap=function(enreg,rat){
   
   ###spikes 1s before reward, Reward, 1s after reward
   if(grepl("103", rat)){
-    seslist <- c(1,3,4,25,26,27,52,53,55)
+    seslist <- c(25,26,27,52,53,55)
   }else if(grepl("113", rat)){
     seslist <- c(1,2,3,15,16,17)
   }
-  seslist <- c(53)
+ 
   for(ses in seslist){
     
     
@@ -35,7 +35,7 @@ plot.heatmap=function(enreg,rat){
     
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
-        allpaths<-strsplit(allpaths,"(?<=[eib])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    allpaths<-strsplit(allpaths,"(?<=[eib])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
     
     
     neurons <- max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))
@@ -344,25 +344,24 @@ plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,
   total_trials =dim(timesinBoxes)[1]
   total_boxes = dim(timesinBoxes)[2]
   firingrates= matrix(0,total_trials,total_boxes)
+  labels = matrix("",total_trials,total_boxes)
   for(i in 1:total_boxes){
-    len=0
     if(typeof(final_groups[[i]])=="integer"){
-      len=1
       nspikes <- sum(nSpikes[min(final_groups[[i]]):max(final_groups[[i]]),i])
-      timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]]),i])
-      firingrates[min(final_groups[[i]]):max(final_groups[[i]]),i]=nspikes*1000/timeinboxes
+      timeinboxes <- sum(timesinBoxes[min(final_groups[[i]]):max(final_groups[[i]]),i])
+      firingrates[,i]=nspikes*1000/timeinboxes
       firingrates[which(timesinBoxes[,i]==0),i] <- NA
     }else{
-      for(j in 1:len){
+      for(j in 1:length(final_groups[[i]])){
         nspikes <- sum(nSpikes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
         timeinboxes <- sum(timesinBoxes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
         firingrates[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i]=nspikes*1000/timeinboxes
-        firingrates[which(timesinBoxes[,i]==0),i] <- NA
+        labels[which(timesinBoxes[,i]==0),i] <- "*"
       }
     }
   }
   print(firingrates)
-  matrix.seriate(t(firingrates),neuron,ses,rat)
+  matrix.seriate(firingrates,neuron,ses,rat)
 }
 
 ############################
@@ -682,7 +681,9 @@ return(newList)
 ###########################################################################
 #### Plot seriated matrix 
 matrix.seriate=function(mat,neuron,ses,rat){
-
+  
+  rownames <- c("A","B","B'","C","C'","D","H","E","E'","I","I'","F","J","K","G")
+  mat<-mat[rownames,,drop=FALSE]
   longData<-melt(t(mat))
   #mat[which(is.nan(mat))]<-0
   #mat[which(is.infinite(mat))] <- 0
@@ -697,7 +698,7 @@ matrix.seriate=function(mat,neuron,ses,rat){
     labs(x="Trials", y="Boxes", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
     theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=0.3),
                        axis.text.y=element_text(size=9),
-                       plot.title=element_text(size=11)) + scale_y_continuous(breaks=c(1:15),labels= c("A","B","B'","C","C'","D","E","E'","F","G","H","I","I'","J","K") )
+                       plot.title=element_text(size=11)) 
 
   
   ggsave(paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)

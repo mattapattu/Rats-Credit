@@ -525,7 +525,7 @@ alex.mergeBoxes=function(boxes)
   list.remove(boxes,c(2,4,6,9,11,17))
 }
 
-getSpatialPolygons=function(boxes)
+getSpatialPolygons=function(boites)
 {
   Nboites=length(boites)
   mescol=colorRampPalette(c('red','yellow','green','blue'))(Nboites)

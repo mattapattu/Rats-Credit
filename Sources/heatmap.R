@@ -20,7 +20,7 @@ plot.heatmap=function(enreg,rat){
   
   ###spikes 1s before reward, Reward, 1s after reward
   if(grepl("103", rat)){
-    seslist <- c(25,26,27,52,53,55)
+    seslist <- c(1,3,4,25,26,27,52,53,55)
   }else if(grepl("113", rat)){
     seslist <- c(1,2,3,15,16,17)
   }
@@ -332,9 +332,10 @@ plot.heatmap=function(enreg,rat){
       }
       #print(final_groups)
       print(alpha_mat[which(alpha_mat[,1] != "0"),])
-      newList =plot.heatmap.by.finalgroups(nSpikes,timesinBoxes,final_groups,neuron,ses,rat)
+      firingrates =plot.heatmap.by.finalgroups(nSpikes,timesinBoxes,final_groups,neuron,ses,rat)
       filename = paste(rat,'_Neuron_',neuron,'_ses_',ses,'.Rdata',sep="")
-      save(reward49_trials,reward51_trials,alpha_mat[allpaths,which(alpha_mat[,1] != "0"),],newList$firingrates,newList$labels,file=filename)
+      alpha_mat<-alpha_mat[which(alpha_mat[,1] != "0"),]
+      save(reward49_trials,reward51_trials,alpha_mat,firingrates,file=filename)
     } 
   }
   print("Returning from plot")
@@ -365,10 +366,9 @@ plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,
     }
   }
   #print(firingrates)
-  matrix.seriate(firingrates,neuron,ses,rat)
-  
-  newList <- list("firingrates" = firingrates, "labels" = labels)
-  return(newList)
+  matrix.seriate(firingrates,neuron,ses,rat,labels)
+  firingrates[which(labels=="*")] <- NA
+  return(firingrates)
 }
 
 ############################
@@ -687,7 +687,7 @@ return(newList)
 
 ###########################################################################
 #### Plot seriated matrix 
-matrix.seriate=function(mat,neuron,ses,rat){
+matrix.seriate=function(mat,neuron,ses,rat,labels){
   
   rownames <- c("A","B","B'","C","C'","D","H","E","E'","I","I'","F","J","K","G")
   mat<-mat[,rownames,drop=FALSE]
@@ -699,14 +699,22 @@ matrix.seriate=function(mat,neuron,ses,rat){
    #longData$Var1 <- factor(longData$Var1, (unlist(o[[1]][])))
    #longData$Var2 <- factor(longData$Var2, names(unlist(o[[2]][])))
   # longData<-longData[longData$value!=0,]
+  # ggplot(longData, aes(x = Var2, y = Var1)) + 
+  #   geom_raster(aes(fill=value)) + 
+  #   scale_fill_continuous(low="grey90", high="red", 
+  #                         guide="colorbar",na.value="white") +
+  #   labs(x="Trials", y="Boxes", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
+  #   theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=0.3),
+  #                      axis.text.y=element_text(size=9),
+  #                      plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(labels)))
   ggplot(longData, aes(x = Var2, y = Var1)) + 
     geom_raster(aes(fill=value)) + 
-    scale_fill_continuous(low="grey90", high="red", 
+    scale_fill_continuous(low="white", high="red", 
                           guide="colorbar",na.value="white") +
     labs(x="Trials", y="Boxes", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
     theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=0.3),
                        axis.text.y=element_text(size=9),
-                       plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(labels)))
+                       plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(t(labels))),size=15)
 
   
   ggsave(paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)

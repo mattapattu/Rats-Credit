@@ -742,7 +742,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath5,rat[i],"5")
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
-    debug(plot.heatmap)
+    #debug(plot.heatmap)
     plot.heatmap(enreg,rat[i])
     
     #plot.reward_proportion(enreg,rat[i])

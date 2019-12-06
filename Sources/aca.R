@@ -162,7 +162,9 @@ add.box.to.pos=function(ses,enreg,spolygons){
   g <- enreg[[ses]]$POS[,"boxname"]
   i<-1:length(g)
   j<-2:length(g)
+  j<-c(j,rep(0,1))
   k<-3:length(g)
+  k<-c(k,rep(0,2))
   l <- which(g[j]!=g[k]&g[j]!=g[i])
   n<- l+1
   for(index in n){
@@ -630,12 +632,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(1:2)) {
+  for (i in c(1)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     #spols = list()
-    for(ses in c(1:length(enreg))){
+    for(ses in c(1)){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       if(is.null(enreg[[ses]])){
@@ -743,9 +745,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
     #debug(plot.heatmap)
-    plot.heatmap(enreg,rat[i])
+    #plot.heatmap(enreg,rat[i])
     
     #plot.reward_proportion(enreg,rat[i])
+    
+    debug(get.procedural.errors)
+    get.procedural.errors(enreg,rat[i])
   }
   return(tree)
 }

@@ -88,10 +88,13 @@ recordingsInFolder=function(folderNm){
       #sone=str_locate(fileNm,"_S")
       #two=str_locate(fileNm,"t")
       #sessionNb=as.integer(substr(fileNm, one[2]+1, two[1]-1))
-    sessionNb=str_match(fileNm,"_S(\\d+)t")[,2]
+    sessionNb=str_match(fileNm,"S(\\d+)t")[,2]
+    if(!is.na(sessionNb)){
+      allSNbs=c(allSNbs,sessionNb)
+    }
     # print(fileNm)
     # print(sessionNb)
-    allSNbs=c(allSNbs,sessionNb)
+    
   }
   setsession=unique(allSNbs)
   

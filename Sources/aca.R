@@ -73,7 +73,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,boxname="")
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,trial="")
  
-  pts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49"),2]),as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49"),3])))
+  #pts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49"),2]),as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49"),3])))
   # plot(spolygons)
   # points(pts, pch=16, cex=.5,col="red")
 
@@ -632,16 +632,19 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
   
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
-  for (i in c(1)) {
+  for (i in c(1:6)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
     #print(enreg)
     #spols = list()
-    for(ses in c(1)){
+    for(ses in c(1:length(enreg))){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       if(is.null(enreg[[ses]])){
         print(sprintf("No enreg in  %s session %i",rat, ses))
+        next
+      }else if(isempty(enreg[[ses]]$EVENTS)){
+        print(sprintf("No EVENT record in  %s session %i",rat, ses))
         next
       }
       
@@ -749,8 +752,8 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     
     #plot.reward_proportion(enreg,rat[i])
     
-    debug(get.procedural.errors)
-    get.procedural.errors(enreg,rat[i])
+    #debug(plot.task.errors)
+    plot.task.errors(enreg,rat[i])
   }
   return(tree)
 }

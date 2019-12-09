@@ -82,12 +82,16 @@ plot.task.errors=function(enreg,rat,dirpath1){
         prev51Rewarded=FALSE
       }
     }
+    
+    
 
     wm_err <-c(wm_err,length(which(allpaths[,"Error"]=="WM Err - 51"|allpaths[,"Error"]=="WM Err - 49"))) 
     perseverance_err <-c(perseverance_err,length(which(allpaths[,"Error"]=="WM Err - 51"|allpaths[,"Error"]=="WM Err - 49"))) 
     procedural_err <- c(procedural_err,length(which(allpaths[,"Error"]=="Procedural Err")))
-    err_unk <- c(err_unk
-                 ,length(which(allpaths[,"Error"]=="Unknown Err")))
+    unk_err <- c(unk_err ,length(which(allpaths[,"Error"]=="Unknown Err")))
+    
+    filename = file.path(dirpath1,paste(rat,'_ses_',ses,'.Rdata',sep=""))   
+    save(allpaths,file=filename)
   }
   #filename = paste(rat,"_task_errors",".jpg",sep="")
   filename=file.path(dirpath1,paste(rat,"_task_errors",".jpg",sep=""))

@@ -629,7 +629,7 @@ plot.actions=function(enreg,spolygons){
 set.neurons.to.boxes=function(tree,rightPath,boites){
   # rightPath='abcdefg'
   # For each rat
-  
+    
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
   for (i in c(1:6)) {
@@ -641,10 +641,10 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       print(sprintf("Rat = %i , Session = %i",i,ses))
       
       if(is.null(enreg[[ses]])){
-        print(sprintf("No enreg in  %s session %i",rat, ses))
+        print(sprintf("No enreg in  %s session %i",rat[i], ses))
         next
       }else if(isempty(enreg[[ses]]$EVENTS)){
-        print(sprintf("No EVENT record in  %s session %i",rat, ses))
+        print(sprintf("No EVENT record in  %s session %i",rat[i], ses))
         next
       }
       
@@ -653,36 +653,36 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       
       enreg=add.rewards.to.pos(ses,enreg)
       
-      if(sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "49"))) == 0 && sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "51"))) == 0){
-        print(sprintf("No rewards in  %s session %i",rat, ses))
-        animalNb  = gsub("rat_", "", rat[i])
-        #n$RemoveChild(paste(animalNb,"_session_",ses,sep=""))
-        next
-      }
+      # if(sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "49"))) == 0 && sum(as.numeric(as.numeric(enreg[[ses]]$EVENTS[,2] == "51"))) == 0){
+      #   print(sprintf("No rewards in  %s session %i",rat, ses))
+      #   animalNb  = gsub("rat_", "", rat[i])
+      #   #n$RemoveChild(paste(animalNb,"_session_",ses,sep=""))
+      #   next
+      # }
       
       ### Before adding boxes, shift POS if first POS recording is negative
       
-      if(sum(as.numeric(as.numeric(enreg[[ses]]$POS[,2])< 0)) > 0 || sum(as.numeric(as.numeric(enreg[[ses]]$POS[,3])< 0)) > 0){
-        #debug(alignBoxes)
-        shift=alignBoxes(enreg,ses,spolygons,boites)
-        shiftx=shift[1]
-        shifty=shift[2]
-        # shiftx=130
-        # shifty=129.5
-        print(sprintf("Shifx=%f,shifty=%f",shiftx,shifty))
-        lb=length(boxes)
-        # enreg[[ses]]$POS[,2] = enreg[[ses]]$POS[,2]+shiftx
-        # enreg[[ses]]$POS[,3] = enreg[[ses]]$POS[,3]+shifty
-        for(r in 1:lb){
-          boxes[[r]]=rbind(boxes[[r]][1,]-shiftx,boxes[[r]][2,]-shifty)
-        }
-        
-        spolygons=getSpatialPolygons(boxes)
-        # pts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[,2]),as.numeric(enreg[[ses]]$POS[,3])))
-        # plot(spolygons)
-        # points(pts, pch=16, cex=.5,col="red")
-        # 
-        }
+      # if(sum(as.numeric(as.numeric(enreg[[ses]]$POS[,2])< 0)) > 0 || sum(as.numeric(as.numeric(enreg[[ses]]$POS[,3])< 0)) > 0){
+      #   #debug(alignBoxes)
+      #   shift=alignBoxes(enreg,ses,spolygons,boites)
+      #   shiftx=shift[1]
+      #   shifty=shift[2]
+      #   # shiftx=130
+      #   # shifty=129.5
+      #   print(sprintf("Shifx=%f,shifty=%f",shiftx,shifty))
+      #   lb=length(boxes)
+      #   # enreg[[ses]]$POS[,2] = enreg[[ses]]$POS[,2]+shiftx
+      #   # enreg[[ses]]$POS[,3] = enreg[[ses]]$POS[,3]+shifty
+      #   for(r in 1:lb){
+      #     boxes[[r]]=rbind(boxes[[r]][1,]-shiftx,boxes[[r]][2,]-shifty)
+      #   }
+      #   
+      #   spolygons=getSpatialPolygons(boxes)
+      #   # pts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[,2]),as.numeric(enreg[[ses]]$POS[,3])))
+      #   # plot(spolygons)
+      #   # points(pts, pch=16, cex=.5,col="red")
+      #   # 
+      # }
       
       #print.plot.journeys(DATA,FindNode(tree,"Experiment in Marseille"),boites)
 
@@ -748,12 +748,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
     #debug(plot.heatmap)
-    #plot.heatmap(enreg,rat[i])
+    plot.heatmap(enreg,rat[i])
     
     #plot.reward_proportion(enreg,rat[i])
     
     #debug(plot.task.errors)
-    plot.task.errors(enreg,rat[i])
+    #plot.task.errors(enreg,rat[i])
   }
   return(tree)
 }

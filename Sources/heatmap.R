@@ -19,13 +19,30 @@ plot.heatmap=function(enreg,rat){
   #plot for all rewarded i visit trials
   
   ###spikes 1s before reward, Reward, 1s after reward
-  if(grepl("103", rat)){
-    seslist <- c(1,3,4,25,26,27,52,53,55)
-  }else if(grepl("113", rat)){
-    seslist <- c(1,2,3,15,16,17)
-  }
- 
-  for(ses in seslist){
+  # if(grepl("103", rat)){
+  #   seslist <- c(1,3,4,25,26,27,52,53,55)
+  # }else if(grepl("113", rat)){
+  #   seslist <- c(1,2,3,15,16,17)
+  # }
+  path = getwd()
+  time1 = format(Sys.time(), "%F %H-%M")
+  dirpath1 = file.path("~/intership2/Results","Plots",time1)
+  dir.create(dirpath1)
+  dirpath2 = file.path(dirpath1,rat)
+  dir.create(dirpath2)
+  
+  
+  for(ses in 1:length(enreg)){
+    dirpath = file.path(dirpath2,paste("Session-",ses,sep=""))
+    dir.create(dirpath)
+    
+    if(is.null(enreg[[ses]])){
+      print(sprintf("skipping %s ses %i as enreg is empty",rat,ses))
+      next
+    }else if(isempty(enreg[[ses]]$EVENTS)){
+      print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
+      next
+    }
     
     
     last_trial <- as.numeric(enreg[[ses]]$POS[length(enreg[[ses]]$POS[,1]),"trial"])
@@ -333,8 +350,9 @@ plot.heatmap=function(enreg,rat){
       }
       #print(final_groups)
       print(alpha_mat[which(alpha_mat[,1] != "0"),])
-      firingrates =plot.heatmap.by.finalgroups(nSpikes,timesinBoxes,final_groups,neuron,ses,rat)
-      filename = paste(rat,'_Neuron_',neuron,'_ses_',ses,'.Rdata',sep="")
+      firingrates =plot.heatmap.by.finalgroups(nSpikes,timesinBoxes,final_groups,neuron,ses,rat,dirpath)
+      #filename = paste(rat,'_Neuron_',neuron,'_ses_',ses,'.Rdata',sep="")
+      filename = file.path(dirpath,paste(rat,'_Neuron_',neuron,'_ses_',ses,'.Rdata',sep=""))
       pval_matrix<-alpha_mat[which(alpha_mat[,1] != "0"),]
       save(reward49_trials,reward51_trials,pval_matrix,firingrates,file=filename)
     } 
@@ -344,7 +362,7 @@ plot.heatmap=function(enreg,rat){
 
 ################################################################################3
 ##### Plot Heatmap based on final groups
-plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,ses,rat){
+plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,ses,rat,dirpath){
   total_trials =dim(timesinBoxes)[1]
   total_boxes = dim(timesinBoxes)[2]
   firingrates= matrix(0,total_trials,total_boxes)
@@ -362,7 +380,7 @@ plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,
       }
       
       #firingrates[which(timesinBoxes[,i]==0),i] <- NA
-      labels[which(timesinBoxes[,i]==0),i] <- "*"
+      labels[which(timesinBoxes[,i]==0),i] <- "-"
     }else{
       for(j in 1:length(final_groups[[i]])){
         nspikes <- sum(nSpikes[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i])
@@ -373,13 +391,13 @@ plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,
           firingrates[min(final_groups[[i]][[j]]):max(final_groups[[i]][[j]]),i]=nspikes*1000/timeinboxes
         }
         
-        labels[which(timesinBoxes[,i]==0),i] <- "*"
+        labels[which(timesinBoxes[,i]==0),i] <- "-"
       }
     }
   }
   #print(firingrates)
   #debug(matrix.seriate)
-  matrix.seriate(firingrates,neuron,ses,rat,labels)
+  matrix.seriate(firingrates,neuron,ses,rat,labels,dirpath)
   firingrates[which(labels=="*")] <- NA
   return(firingrates)
 }
@@ -474,7 +492,7 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,start_trial,end_trial){
         newSpikes[[i]] <- c(newSpikes[[i]],sum(nSpikes[(prevIndex+1):j,i]))
         newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[(prevIndex+1):j,i]))
       }
-      else if(j==end_trial && sum >5 && length(groups[[i]]) ==0){
+      else if(j==end_trial && sum >=5 && length(groups[[i]]) ==0){
         ### Just 1 group, so cannot do chi-square
         ### Split into 2 groups to do Sepideh's test
         #print("Split into 2 groups to do Sepideh's test as there is just 1 group and sum < 5 ")
@@ -490,7 +508,7 @@ groupBoxesForChiSqTest=function(nSpikes,timesinBoxes,start_trial,end_trial){
         newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[start_trial:round2((end_trial+start_trial)/2,0),i]))
         newTimesinBox[[i]] <- c(newTimesinBox[[i]],sum(timesinBoxes[round2((end_trial+start_trial)/2+1,0): end_trial ,i]))
         
-      }else if(j==end_trial && sum >5 && length(groups[[i]]) == 1){
+      }else if(j==end_trial && sum >=5 && length(groups[[i]]) == 1){
         ### Just 1 group, so cannot do chi-square
         ### Group the rest together into 2nd group to do Sepideh's test
         #print("Split into 2 groups to do Sepideh's test as there are 0 groups and sum < 5 ")
@@ -700,7 +718,7 @@ return(newList)
 
 ###########################################################################
 #### Plot seriated matrix 
-matrix.seriate=function(mat,neuron,ses,rat,labels){
+matrix.seriate=function(mat,neuron,ses,rat,labels,dirpath){
   
   rownames <- c("A","B","B'","C","C'","D","H","E","E'","I","I'","F","J","K","G")
   mat<-mat[,rownames,drop=FALSE]
@@ -730,5 +748,5 @@ matrix.seriate=function(mat,neuron,ses,rat,labels){
                        plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(t(labels))),size=13,vjust = 0.8, hjust = 0.5)
 
   
-  ggsave(paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)
+  ggsave(path=dirpath,filename=paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)
 }

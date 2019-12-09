@@ -1,21 +1,23 @@
-plot.task.errors=function(enreg,rat){
+plot.task.errors=function(enreg,rat,dirpath1){
 
   procedural_err <-numeric()
   wm_err <- numeric()
   perseverance_err <- numeric()
+  unk_err <- numeric()
   
   for(ses in 1:length(enreg)){
     
     if(is.null(enreg[[ses]])){
+      print(sprintf("skipping %s ses %i as enreg is empty",rat,ses))
       next
-    }else if(sum(enreg[[ses]]$EVENTS[,2]==49)+sum(enreg[[ses]]$EVENTS[,2]==51)==0){
-      print(sprintf("No rewards in session %i",ses))
+    }else if(isempty(enreg[[ses]]$EVENTS)){
+      print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
       next
     }
     
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
-    allpaths<-strsplit(allpaths,"(?<=[eib])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
     allpaths<-cbind(allpaths, Rewards="0",Error="0")
   
     prev49Rewarded= FALSE
@@ -23,7 +25,7 @@ plot.task.errors=function(enreg,rat){
     prev49WMerr = FALSE
     prev51WMerr = FALSE
     
-    for(trial in 1:length(allpaths)){
+    for(trial in 1:length(allpaths[,1])){
       
       ### If 49 rewarded, update trial with reward and error=0
       if(sum(as.numeric(as.numeric(enreg[[ses]]$POS[,"trial"])==trial & enreg[[ses]]$POS[,"Reward"]==49))==1){
@@ -73,6 +75,8 @@ plot.task.errors=function(enreg,rat){
           prev49WMerr = FALSE
           prev51WMerr = TRUE
           
+        }else{
+          allpaths[trial,"Error"]="Unknown Err"
         }
         prev49Rewarded= FALSE
         prev51Rewarded=FALSE
@@ -82,14 +86,17 @@ plot.task.errors=function(enreg,rat){
     wm_err <-c(wm_err,length(which(allpaths[,"Error"]=="WM Err - 51"|allpaths[,"Error"]=="WM Err - 49"))) 
     perseverance_err <-c(perseverance_err,length(which(allpaths[,"Error"]=="WM Err - 51"|allpaths[,"Error"]=="WM Err - 49"))) 
     procedural_err <- c(procedural_err,length(which(allpaths[,"Error"]=="Procedural Err")))
-    
+    err_unk <- c(err_unk
+                 ,length(which(allpaths[,"Error"]=="Unknown Err")))
   }
-  filename = paste(rat,"_task_errors",".jpg",sep="")
+  #filename = paste(rat,"_task_errors",".jpg",sep="")
+  filename=file.path(dirpath1,paste(rat,"_task_errors",".jpg",sep=""))
   jpeg(filename)
   plot(procedural_err,col='black',type='l',xlab="Sessions",ylab="Nb of Errors",main=paste(rat,"_errors per session",sep=""))
   lines(wm_err,col='red')
   lines(perseverance_err,col='blue')
-  legend("topright", legend=c("Nb of procedural errors", "Nb of WM errors","Nb of perseverance errors"),lty=c(1,1,1),col=c("black", "red","blue"),cex=0.5,bty = "n")
+  lines(err_unk,col='green')
+  legend("topright", legend=c("Nb of procedural errors", "Nb of WM errors","Nb of perseverance errors", "Nb of unknown errors"),lty=c(1,1,1),col=c("black", "red","blue","green"),cex=0.7,bty = "n")
   dev.off()
   print("Exiting ")
   
@@ -116,7 +123,7 @@ plot.reward_proportion=function(enreg,rat){
     
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
-    allpaths<-strsplit(allpaths,"(?<=[eib])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
     
     correct_turns <- numeric()
     correct_left <- numeric()

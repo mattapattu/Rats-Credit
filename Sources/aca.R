@@ -192,7 +192,7 @@ add.trial.to.pos=function(enreg,ses){
   
   r <- rle(enreg[[ses]]$POS[,"boxname"])
   allpaths <- toString(r$values)
-  allpaths<-strsplit(allpaths,"(?<=[eib])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+  allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
   start_rle_index=1
   stop_rle_index = 0
   start_pos_index=1
@@ -324,7 +324,7 @@ add.dist.to.pos=function(ses,enreg,spolygons){
 
 ## Use POS data to add boxes to spikes
 ## Spikes of neuron 0 are ignored
-  add.boxes.to.spikes=function(ses,enreg){
+add.boxes.to.spikes=function(ses,enreg){
  # print("Inside1")
   #enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Spikes=0)
   enreg[[ses]]$SPIKES = cbind(enreg[[ses]]$SPIKES,trial=-1)
@@ -632,6 +632,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
+  
+  path = getwd()
+  time1 = format(Sys.time(), "%F %H-%M")
+  dirpath1 = file.path("~/intership2/Results","Plots",time1)
+  dir.create(dirpath1)
+  
   for (i in c(1:6)) {
     n=FindNode(tree,rat[[i]])
     enreg=convert.node.to.enreg(n)
@@ -747,13 +753,16 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     # plot.c.turn.event.by.distance(enreg,dirpath5,rat[i],"5")
     # plot.c.turn.event.by.distance(enreg,dirpath6,rat[i],"6")
     
-    #debug(plot.heatmap)
-    plot.heatmap(enreg,rat[i])
+    
+    
     
     #plot.reward_proportion(enreg,rat[i])
     
     #debug(plot.task.errors)
-    #plot.task.errors(enreg,rat[i])
+    plot.task.errors(enreg,rat[i],dirpath1)
+    
+    #debug(plot.heatmap)
+    #plot.heatmap(enreg,rat[i],dirpath1)
   }
   return(tree)
 }

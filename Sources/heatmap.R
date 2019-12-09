@@ -11,8 +11,8 @@ round2 = function(x, n) {
   z*posneg
 }
 
-
-plot.heatmap=function(enreg,rat){
+#### Function to call for plotting heatmap
+plot.heatmap=function(enreg,rat,dirpath1){
   #plot for all rewarded e/i visit trials
   #plot for all unrewarded e/i visit trials
   #plot for all rewarded e visit trials 
@@ -24,10 +24,7 @@ plot.heatmap=function(enreg,rat){
   # }else if(grepl("113", rat)){
   #   seslist <- c(1,2,3,15,16,17)
   # }
-  path = getwd()
-  time1 = format(Sys.time(), "%F %H-%M")
-  dirpath1 = file.path("~/intership2/Results","Plots",time1)
-  dir.create(dirpath1)
+  
   dirpath2 = file.path(dirpath1,rat)
   dir.create(dirpath2)
   
@@ -46,22 +43,24 @@ plot.heatmap=function(enreg,rat){
     
     
     last_trial <- as.numeric(enreg[[ses]]$POS[length(enreg[[ses]]$POS[,1]),"trial"])
-    
     reward49_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "49"),"trial"])
     reward51_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "51"),"trial"])
     
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
-    allpaths<-strsplit(allpaths,"(?<=[eib])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
     
     
     neurons <- max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))
     for(neuron in 1:neurons){
       print(sprintf("%s session %i neuron %i",rat, ses,neuron))
+      #### Mat is not required, just to get image
       mat <-matrix(0, last_trial, 15)
       colnames(mat) <- c("A","B","B'","C","C'","D","E","E'","F","G","H","I","I'","J","K")
       trialIndex = 1
+      ### nSpikes - store spikes in each box for every trial
       nSpikes <- matrix(0, last_trial, 15)
+      ### timesinBoxes - store time spend in each box for every trial
       timesinBoxes <- matrix(0, last_trial, 15)
       
       for(t in 1:last_trial){
@@ -273,15 +272,8 @@ plot.heatmap=function(enreg,rat){
         
         pvals <- c(pvals,testHomogeneity(output$newSpikes[[i]],output$newTimesinBox[[i]]))
       }
-      
-      #adjusted_pvals <- p.adjust(pvals, method = "bonferroni", n = length(pvals))
-      
-      #### initialize tree of pvalues
-      
-      # pval_graph <- make_empty_graph()
-      # alpha_graph <- make_empty_graph()
-      
-      
+    
+      #####  alpha-mat - matrix to store pvals for every grouping      
       alpha_mat <- matrix(0,2000,5)
       colnames(alpha_mat) <- c("Box/Newgroup","Alpha","pval","H0 Rej","Split Further")
       matIndex=0
@@ -361,7 +353,7 @@ plot.heatmap=function(enreg,rat){
 }
 
 ################################################################################3
-##### Plot Heatmap based on final groups
+##### Plot Heatmap based on the final groups
 plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,ses,rat,dirpath){
   total_trials =dim(timesinBoxes)[1]
   total_boxes = dim(timesinBoxes)[2]
@@ -426,11 +418,13 @@ testHomogeneity=function(newSpikes,newTimesinBox){
   pval=0
   options(warn=1)
   if(length(newSpikes)==2){
+    ### Do Sepideh's Test
     pval1 = 2*pbinom(newSpikes[1],size=sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox))
     pval2 = 2*(1-pbinom((newSpikes[1]-1),size = sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox)))
     pval=min(c(pval1,pval2,1))
     
   }else{
+    ### do ChiSquare Test
     pval <- chisq.test(newSpikes,p=newTimesinBox/sum(newTimesinBox))[[3]]
   }
   options(warn=0)
@@ -548,20 +542,6 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
   #print(sprintf("Inside split group, i=%i",i))
   
   final_group <- list()
-  #for(j in 1:length(newgroups)){
-  ## Get nspikes for newgroups[[i]]
-  ## Get timeiin boxes for newgroups[[i]]
-  # if(length(newgroups)==1){
-  #   final_group <- list.append(final_group,newgroups)
-  #   alpha_mat[matIndex,1] =  paste( unlist(newgroups), collapse=',')## Newgroup
-  #   alpha_mat[matIndex,2] = NA ## Alpha level for H0
-  #   alpha_mat[matIndex,3] = NA ## Pval of H0 test
-  #   alpha_mat[matIndex,4] = NA ### ## H0 rejected 
-  #   alpha_mat[matIndex,5] = "No" ### Split further
-  #   
-  # }
-  #else{
-  
   pval_alpha_orig = pval_alpha
   #### Split nspikes into 2 and use groupforchisq test to get new groups
   newgroup1 = start_trial:round2((end_trial+start_trial)/2,0)
@@ -573,7 +553,7 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
   newTimesinBoxes1 = timesinBoxes[newgroup1,i]
   newTimesinBoxes2 = timesinBoxes[newgroup2,i]
 
-  ##############################New group 1###############################3  
+  ############################## New group 1 - newgroup1 ###############################3  
   matIndex=max(which(alpha_mat[,1] != "0"))+1
   if(length(newgroup1)==1) {
     #stop split and add to final group
@@ -639,7 +619,7 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
     }
   }
   
-  ##############################New group 2###############################3  
+  ##############################New group 2 - newgroup2###############################3  
   matIndex=max(which(alpha_mat[,1] != "0"))+1
   if(length(newgroup2)==1) {
     #stop split and add to final group
@@ -745,7 +725,7 @@ matrix.seriate=function(mat,neuron,ses,rat,labels,dirpath){
     labs(x="Trials", y="Boxes", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
     theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=-2),
                        axis.text.y=element_text(size=9),
-                       plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(t(labels))),size=13,vjust = 0.8, hjust = 0.5)
+                       plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(t(labels))),size=13,vjust = 0.4, hjust = 0.5)
 
   
   ggsave(path=dirpath,filename=paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)

@@ -418,7 +418,7 @@ testHomogeneity=function(newSpikes,newTimesinBox){
   pval=0
   options(warn=1)
   if(length(newSpikes)==2){
-    ### Do Sepideh's Test
+    ### Do Sepideh's Test as there are only 2 groups
     pval1 = 2*pbinom(newSpikes[1],size=sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox))
     pval2 = 2*(1-pbinom((newSpikes[1]-1),size = sum(newSpikes),prob=newTimesinBox[1]/sum(newTimesinBox)))
     pval=min(c(pval1,pval2,1))
@@ -543,26 +543,29 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
   
   final_group <- list()
   pval_alpha_orig = pval_alpha
-  #### Split nspikes into 2 and use groupforchisq test to get new groups
+  #### Split trials into 2 groups - newgroup1 & newgroup2 
   newgroup1 = start_trial:round2((end_trial+start_trial)/2,0)
   newgroup2 = round2((((end_trial+start_trial)/2) + 1),0):end_trial
-  
+  #### Split nSpikes into 2 groups accroding to above groups - newNspikes1 & newNspikes2 
   newNspikes1 = nSpikes[newgroup1,i]
   newNspikes2 = nSpikes[newgroup2,i]
-  
+  #### Split timesinBoxes into 2 groups accroding to above groups - newTimesinBoxes1 & newTimesinBoxes2
   newTimesinBoxes1 = timesinBoxes[newgroup1,i]
   newTimesinBoxes2 = timesinBoxes[newgroup2,i]
 
   ############################## New group 1 - newgroup1 ###############################3  
   matIndex=max(which(alpha_mat[,1] != "0"))+1
   if(length(newgroup1)==1) {
-    #stop split and add to final group
+    #stop split and add to final group as length =1
     
     alpha_mat[matIndex,4] = "NA"
     alpha_mat[matIndex,5] = "No"
     alpha_mat[matIndex,1] = unlist(newgroup1)
     final_group <- list.append(final_group,newgroup1)
   }else if(length(newgroup1)==2){
+    ## Only 2 trials in newgroup1, if not homogeneous, add them as separate cells - no need to split further
+    
+    ### Test for homogeneity in newgroup1
     pval1 = testHomogeneity(newNspikes1,newTimesinBoxes1)
     
     alpha_mat[matIndex,1] = paste( unlist(newgroup1), collapse=',')
@@ -570,24 +573,29 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
     alpha_mat[matIndex,3] = pval1 ## Pval of H0 test
     
     if(is.nan(pval1)){
-      
+      ### 0 spikes in all trials in newgroup1, combine them
       alpha_mat[matIndex,4] = "No"
       alpha_mat[matIndex,5] = "No"
       alpha_mat[matIndex,1] = paste( unlist(newgroup1), collapse=',')
       final_group <- list.append(final_group,unlist(newgroup1))
     }else if(pval1 < pval_alpha_orig){
+      ## not homogeneous, add them as separate cells - no need to split further
       final_group <- list.append(final_group,newgroup1[1])
       final_group <- list.append(final_group,newgroup1[2])
       alpha_mat[matIndex,4] = "Yes" 
       alpha_mat[matIndex,5] = "No"
     }else{
+      ## all trials in newgroup1 are  homogeneous - add to final_group
       final_group <- list.append(final_group,unlist(newgroup1))
       alpha_mat[matIndex,4] = "No" 
       alpha_mat[matIndex,5] = "No"
     }
     
   }else{
+    ## More than  2 trials in newgroup1, if not homogeneous, call splitAllGroups recursively
     output1 <- groupBoxesForChiSqTest(nSpikes[,i,drop=FALSE],timesinBoxes[,i,drop=FALSE],start_trial,round2((end_trial+start_trial)/2,0))
+    
+    ### Test for homogeneity in newgroup1
     pval1 <- testHomogeneity(output1$newSpikes[[1]],output1$newTimesinBox[[1]])
     
     
@@ -595,7 +603,7 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
     alpha_mat[matIndex,3] = pval1 ## Pval of H0 test
     
     
-    ### No spikes in any group, combine them
+    ### 0 spikes in all trials in newgroup1, combine them
     if(is.nan(pval1)){
       
       alpha_mat[matIndex,4] = "No"
@@ -603,12 +611,13 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
       alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
       final_group <- list.append(final_group,unlist(output1$groups[[1]]))
     }else  if(pval1 > pval_alpha_orig){
-      
+      ## all trials in newgroup1 are  homogeneous - add to final_group
       alpha_mat[matIndex,4] = "No"
       alpha_mat[matIndex,5] = "No"
       alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
       final_group <- list.append(final_group,unlist(output1$groups[[1]]))
     }else if(length(newgroup1)>2){
+      ## all trials in newgroup1 are not  homogeneous - call splitAllGroups recursively until homogeneous groups are found.
       alpha_mat[matIndex,4] = "Yes" 
       alpha_mat[matIndex,5] = "Yes"
       alpha_mat[matIndex,1] = paste(min(unlist(output1$groups[[1]])),max(unlist(output1$groups[[1]])),sep=":")
@@ -620,7 +629,9 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
   }
   
   ##############################New group 2 - newgroup2###############################3  
+  
   matIndex=max(which(alpha_mat[,1] != "0"))+1
+  
   if(length(newgroup2)==1) {
     #stop split and add to final group
     
@@ -628,7 +639,8 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
     alpha_mat[matIndex,5] = "No"
     alpha_mat[matIndex,1] = unlist(newgroup2)
     final_group <- list.append(final_group,newgroup2)
-  }else if(length(newgroup2)==2){
+  }
+  else if(length(newgroup2)==2){
     pval2 = testHomogeneity(newNspikes2,newTimesinBoxes2)
    
     alpha_mat[matIndex,1] = paste( unlist(newgroup2), collapse=',')
@@ -655,7 +667,6 @@ splitAllGroups=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_alpha,
       alpha_mat[matIndex,5] = "No"
     }
     
-   
   }else{
     output2 = groupBoxesForChiSqTest(nSpikes[,i,drop=FALSE],timesinBoxes[,i,drop=FALSE],round2((((end_trial+start_trial)/2) + 1),0),end_trial)
     pval2 = testHomogeneity(output2$newSpikes[[1]],output2$newTimesinBox[[1]])

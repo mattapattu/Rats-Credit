@@ -4,17 +4,6 @@ library(data.tree)
 library(igraph)
 
 
-###TO DO : Linearization
-## Classify neuron activity :
-## 1) By space (Allocentric firing) - Do the same neurons fire everytime when the rat is in the same box for different trials? 
-##    How to : Dissociate each trial and calulate the average Pearson correlation coefficient of cell activity between each trial.
-##    Info required : For each trial get the activity of the neurons in  every box.
-## 2) By time - Do neurons fire after fixed time ?
-##    How to : Sum up the spike-time series for each neuron and average the total firing activity in bins of size 1s    
-##    Info required : Spike-time series of neurons for every session  
-## 3) By distance - Do neurons fire when the rat travels a fixed distance ?
-##    How to : Sum up the total distance travelled by the rat and average the cell activity in bins of size 10 cm . 
-##    Info required : Neuron activity as a function of distance covered
 
 get_str_recur <- function(x,text2,y){
   
@@ -42,31 +31,6 @@ convert.node.to.enreg=function(rat){
   return(enr)
 }
 
-# Return the path if the neuron belongs to a rightPath
-# otherwise an empty string ""
-in.right.path=function(ses,spikyBoxes,time,rpath){
-  inPath=FALSE
-  #Change rightPath,boxName in enreg$SPIKES
-  #SPIKES=spks,#temps, tetrode, neuron, rightPath,boxName,boxSensitivity
-  string_split <- strsplit(str_sub(rightPath,0,-2), "")[[1]]
-  
-  for(bx in string_split){
-    sb=spikyBoxes[[ses]][[bx]]
-    for(t in seq(from=0, to=length(sbx$pass)-1, by=2)){
-      if(time  >= sb$pass[t] 
-         && time <= sb$pass[t+1]){
-        inPath=TRUE
-        break
-      }
-      # if the time is greater than an exit time  
-      # there is no need to continue
-      else if(time > sb$pass[t+1]){
-        break
-      }
-    }
-  }
-  return(inPath)
-}
 
 
 add.box.to.pos=function(ses,enreg,spolygons){
@@ -360,69 +324,7 @@ get.box=function(enreg,ses,spolygons,index){
   return(nbx)
 }
 
-# spikyBoxes$h$spikes (time,tetrod neuron rightPath boxName boxSensitivity)
-#enreg=set.boxes.to.neurons(ses,spikyBoxes,Enreg,spolygons,rightPath)
-set.boxes.to.neurons=function(ses,spikyBoxes,enreg,spolygons,rightPath){
-  #neurons=spikyBoxes[[ses]][[bx]]$spikes[,3][(spikyBoxes[[ses]][[bx]]$spikes[,3]!=0)]
-  
-  for(idx in 1:length(enreg[[ses]]$SPIKES[,1])){
-      #n=enreg$SPIKES[idx,3]
-      time=enreg[[ses]]$SPIKES[[idx,1]]
-      #nbx=get.box(enreg[[ses]]$POS,spolygons,time)
-      nbx=get.box(enreg,ses,spolygons,time)
-      
-      enreg[[ses]]$SPIKES[idx,"boxName"]   = nbx
-      
-     
-      if(in.right.path(ses,spikyBoxes,time)){
-        enreg[[ses]]$SPIKES[idx,"rightPath"] = rightPath
-      }
-    }
-  
-  return(enreg)
-}
-#Change in enreg$PATHS
-#pth=list("trial"=1, "path"="", "boxNm"="", "activity"="")
-set.activity.to.boxes=function(ses,spikyBoxes,enreg,rightPath){
-  #h: spikyBoxes$h$duration (total duration), 
-  #spikyBoxes$h$pass (column i: entering time, i+1: exiting time),
-  #spikyBoxes$h$spikes (time,tetrod neuron rightPath boxName boxSensitivity)
-  
-  neuronThruBoxes=list()
-  string_split <- strsplit(str_sub(rightPath,0,-2), "")[[1]]
-  #bxs=replicate(length(string_split),0)  
-  #The indexes of the vector are the right path boxes
-  #names(bxs)=string_split
-  
-  count =0
-  #For each box
-  for(bx in string_split){
-    trial=1
-    sb=spikyBoxes[[ses]][[bx]]
-    for(t in seq(from=1, to=length(sb$pass)-1, by=2)){
-      
-      duration=sb$pass[t+1]-sb$pass[t]
-      neurons=sb$spikes[,3][(sb$spikes[,3]!=0)]
-      a=length(neurons)/duration
-      
-      if(count==0){
-        enreg[[ses]]$PATHS <-append(enreg[[ses]]$PATHS, c("trial"=trial, "path"=rightPath, "boxNm"=bx,"activity"=a))
-      }else{
-        values <- list(trial, rightPath, bx,a)
-#        print(values)
-        enreg[[ses]]$PATHS <- mapply(append, enreg[[ses]]$PATHS, values, SIMPLIFY = FALSE)
-        #enreg[[ses]]$PATHS.append("trial"=trial, "path"=rightPath, "boxNm"=bx,"activity"=a)
-      }
-      trial=trial+1
-      count = count+1
-#      enreg[[ses]]$PATHS <-append(enreg[[ses]]$PATH, c("trial"=1, "path"=rightPath, "boxNm"=bx,"activity"=a))
-    }
-  }
-  df1 <- data.frame(sapply(enreg[[ses]]$PATHS,c))
-  enreg[[ses]]$PATHS = list(df1)
-  #print(enreg[[ses]]$PATHS, pruneMethod = NULL)
-  return(enreg)
-}
+
 
 change.tree.node=function(rat,animalNb,tree,enreg,ses){
   #print(paste("rat",animalNb,sep=","))
@@ -668,7 +570,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       
       ### Before adding boxes, shift POS if first POS recording is negative
       
-      # if(sum(as.numeric(as.numeric(enreg[[ses]]$POS[,2])< 0)) > 0 || sum(as.numeric(as.numeric(enreg[[ses]]$POS[,3])< 0)) > 0){
+      #if(sum(as.numeric(as.numeric(enreg[[ses]]$POS[,2])< 0)) > 0 || sum(as.numeric(as.numeric(enreg[[ses]]$POS[,3])< 0)) > 0){
       #   #debug(alignBoxes)
       #   shift=alignBoxes(enreg,ses,spolygons,boites)
       #   shiftx=shift[1]
@@ -682,23 +584,25 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       #   for(r in 1:lb){
       #     boxes[[r]]=rbind(boxes[[r]][1,]-shiftx,boxes[[r]][2,]-shifty)
       #   }
-      #   
+      # 
       #   spolygons=getSpatialPolygons(boxes)
       #   # pts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[,2]),as.numeric(enreg[[ses]]$POS[,3])))
       #   # plot(spolygons)
       #   # points(pts, pch=16, cex=.5,col="red")
-      #   # 
+      #   #
       # }
       
       #print.plot.journeys(DATA,FindNode(tree,"Experiment in Marseille"),boites)
 
       #debug(add.box.to.pos)
+      ### Function to add boxname to POS data
       enreg=add.box.to.pos(ses,enreg,spolygons)
       
       #debug(add.dist.to.pos)
       #enreg=add.dist.to.pos(ses,enreg,spolygons)
       
       #debug(add.boxes.to.spikes)
+      ### Function to add boxname to SPIKE data
       enreg=add.boxes.to.spikes(ses,enreg)
       
       

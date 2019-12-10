@@ -119,6 +119,29 @@ add.box.to.pos=function(ses,enreg,spolygons){
     }
   }
   
+  l <- which(enreg[[ses]]$POS[,"boxname"] == "")
+  for(i in l){
+    spts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[i,2]),as.numeric(enreg[[ses]]$POS[i,3])))
+    dist <- gDistance(spts,spolygons,byid=TRUE)
+    if(min(dist) > 0) {
+      index = max(which(enreg[[ses]]$POS[1:i,"boxname"] != ""))
+      #### If l starts with 1,2,3,...., index will be -Infinity
+      if(is.finite(index)){ 
+        if(as.numeric(enreg[[ses]]$POS[i,1])-as.numeric(enreg[[ses]]$POS[index,1]) < 100){
+          bxname = enreg[[ses]]$POS[index,"boxname"]
+          neighbours <- V(graph)$name[neighbors(graph, as.character(convertToIndex(bxname)), mode = "total")]
+          neighbours <- c(neighbours,convertToIndex(bxname))
+          neighbour_dist <- dist[as.numeric(neighbours)]
+          newbxname = neighbours[which.min(neighbour_dist)]
+          enreg[[ses]]$POS[i,"boxname"]=convertToLetter(newbxname)
+          #print(sprintf("New boxname - %s, prev box - %s",newbxname,bxname))
+        }
+      }else{
+        enreg[[ses]]$POS[i,"boxname"] = convertToLetter(as.character(which.min(dist)))
+      }
+    }
+  }
+  
   enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == ""),"boxname"]="unk"
   #print(sprintf("boxname1=%s",enreg[[ses]]$POS[4698,"boxname"]))
 
@@ -535,9 +558,10 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
 
   rat=tree$Get('name', filterFun = function(x) x$level == 3)
   
+  setwd('..')
   path = getwd()
   time1 = format(Sys.time(), "%F %H-%M")
-  dirpath1 = file.path("~/intership2/Results","Plots",time1)
+  dirpath1 = file.path(path,"Results","Plots",time1)
   dir.create(dirpath1)
   
   for (i in c(1:6)) {
@@ -594,8 +618,9 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
       
       #print.plot.journeys(DATA,FindNode(tree,"Experiment in Marseille"),boites)
 
-      #debug(add.box.to.pos)
+      
       ### Function to add boxname to POS data
+      #debug(add.box.to.pos)
       enreg=add.box.to.pos(ses,enreg,spolygons)
       
       #debug(add.dist.to.pos)

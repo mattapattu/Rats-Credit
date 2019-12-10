@@ -54,18 +54,18 @@ plot.task.errors=function(enreg,rat,dirpath1){
           prev51WMerr = FALSE
         }
         ### Check if error is WM 49 error or repeated WM error (Perseverative 49 Err )
-        else if(grepl("j.*k.*a.*b.*c.*h.*i",allpaths[trial]) && prev51Rewarded ){
-          allpaths[trial,"Error"]="WM Err - 51"
+        else if(grepl("j.*k.*a.*b.*c.*h.*i",allpaths[trial])){
+          
           if(prev51WMerr){
             allpaths[trial,"Error"]="Perseverative Err - 51"
           }else{
-            allpaths[trial,"Error"]="WM Err"
+            allpaths[trial,"Error"]="WM Err - 51"
           }
           prev49WMerr = FALSE
           prev51WMerr = TRUE
         }
         ### Check if error is WM 51 error or repeated WM error (Perseverative 51 Err )
-        else if(grepl("f.*g.*a.*b.*c.*d.*e",allpaths[trial]) && prev49Rewarded){
+        else if(grepl("f.*g.*a.*b.*c.*d.*e",allpaths[trial])){
           
           #### If rat re-enters same arm after gettign rewarded in previous trial, set err to WM err
           ### If rat repeats WM error, then set error to Preseverence Err
@@ -88,7 +88,7 @@ plot.task.errors=function(enreg,rat,dirpath1){
     
 
     wm_err <-c(wm_err,length(which(allpaths[,"Error"]=="WM Err - 51"|allpaths[,"Error"]=="WM Err - 49"))) 
-    perseverance_err <-c(perseverance_err,length(which(allpaths[,"Error"]=="WM Err - 51"|allpaths[,"Error"]=="WM Err - 49"))) 
+    perseverance_err <-c(perseverance_err,length(which(allpaths[,"Error"]=="Perseverative Err - 49"|allpaths[,"Error"]=="Perseverative Err - 51"))) 
     procedural_err <- c(procedural_err,length(which(allpaths[,"Error"]=="Procedural Err")))
     unk_err <- c(unk_err ,length(which(allpaths[,"Error"]=="Unknown Err")))
     
@@ -98,11 +98,11 @@ plot.task.errors=function(enreg,rat,dirpath1){
   #filename = paste(rat,"_task_errors",".jpg",sep="")
   filename=file.path(dirpath1,paste(rat,"_task_errors",".jpg",sep=""))
   jpeg(filename)
-  plot(procedural_err,col='black',type='l',ylim=c(0,100),xlab="Sessions",ylab="Nb of Errors",main=paste(rat,"_errors per session",sep=""))
+  plot(procedural_err,col='black',type='l',ylim=range(0,procedural_err),xlab="Sessions",ylab="Nb of Errors",main=paste(rat,"_errors per session",sep=""))
   lines(wm_err,col='red')
   lines(perseverance_err,col='blue')
   lines(unk_err,col='green')
-  legend("topright", legend=c("Nb of procedural errors", "Nb of WM errors","Nb of perseverance errors", "Nb of unknown errors"),lty=c(1,1,1),col=c("black", "red","blue","green"),cex=0.7,bty = "n")
+  legend("topright", legend=c("Nb of procedural errors", "Nb of WM errors","Nb of perseverance errors", "Nb of unknown errors"),lty=c(1,1,1),col=c("black", "red","blue","green"),cex=0.9,bty = "n")
   dev.off()
   print("Exiting ")
   

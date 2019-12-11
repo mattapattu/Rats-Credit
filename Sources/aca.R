@@ -688,12 +688,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #plot.reward_proportion(enreg,rat[i])
     
     #debug(plot.task.errors)
-    #plot.task.errors(enreg,rat[i],dirpath1)
+    plot.task.errors(enreg,rat[i],dirpath1)
     
     #debug(plot.heatmap)
     #plot.heatmap(enreg,rat[i],dirpath1)
     
-    plot.average.frequency.by.boxes2(enreg,rat[i],dirpath1)
+    #plot.average.frequency.by.boxes2(enreg,rat[i],dirpath1)
   }
   return(tree)
 }

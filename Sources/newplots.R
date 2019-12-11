@@ -4,6 +4,12 @@ plot.task.errors=function(enreg,rat,dirpath1){
   wm_err <- numeric()
   perseverance_err <- numeric()
   unk_err <- numeric()
+  type1 <- numeric()
+  type2 <- numeric()
+  type1_repeat <- numeric()
+  type2_repeat <- numeric()
+  corr_comb <- numeric()
+  corr_comb_repeat <- numeric()
   
   for(ses in 1:length(enreg)){
     
@@ -87,7 +93,13 @@ plot.task.errors=function(enreg,rat,dirpath1){
       }
     }
     
-    
+    newlist <- getAllPathsStats(allpaths)
+    type1 <- c(type1,newlist[1])
+    type2 <- c(type2,newlist[2])
+    type1_repeat <- c(type1_repeat,newlist[3])
+    type2_repeat <- c(type2_repeat,newlist[4])
+    corr_comb <- c(corr_comb,newlist[5])
+    corr_comb_repeat <- c(corr_comb_repeat,newlist[6])
 
     wm_err <-c(wm_err,length(which(allpaths[,"Error"]=="WM Err - 51"|allpaths[,"Error"]=="WM Err - 49"))) 
     perseverance_err <-c(perseverance_err,length(which(allpaths[,"Error"]=="Perseverative Err - 49"|allpaths[,"Error"]=="Perseverative Err - 51"))) 
@@ -106,6 +118,19 @@ plot.task.errors=function(enreg,rat,dirpath1){
   lines(unk_err,col='green')
   legend("topright", legend=c("Nb of procedural errors", "Nb of WM errors","Nb of perseverance errors", "Nb of unknown errors"),lty=c(1,1,1),col=c("black", "red","blue","green"),cex=0.9,bty = "n")
   dev.off()
+  
+  filename=file.path(dirpath1,paste(rat,"_pathPatterns",".jpg",sep=""))
+  jpeg(filename)
+  plot(type1,col='black',type='l',ylim=range(0,type1,type2,corr_comb),xlab="Sessions",ylab="Nb of Patterns",main=paste(rat," Path Patterns",sep=""))
+  lines(type2,col='red')
+  lines(corr_comb,col='blue')
+  lines(type1_repeat,col='green')
+  lines(type2_repeat,col='violet')
+  lines(corr_comb_repeat,col='orange')
+  legend("topright", legend=c("Path1 51 - 49 correct", "Path1 49 - 51 correct","49 corr -51 corr", "Path1 51 - 49 correct repeat","Path1 49 - 51 correct repeat","49 corr -51 corr repeat"),lty=c(1,1,1),col=c("black", "red","blue","green","violet","orange"),cex=0.9,bty = "n")
+  dev.off()
+  
+  
   print("Exiting ")
   
 }
@@ -140,6 +165,54 @@ getPathNb=function(path){
   return(pathnb)
 }
 
+getAllPathsStats=function(allpaths){
+  
+  l <- toString(allpaths[,"Path"])
+  
+  type1 = (unlist(gregexpr("((Path1 49|Corr 51 Path), (Path1 49|Corr 51 Path), )",l)))
+  if(type1[1] != -1){
+    type1 = length(type1)
+  }else{
+    type1=0
+  }
+  type2 = (unlist(gregexpr("((Corr 49 Path|Path1 51), (Corr 49 Path|Path1 51), )",l)))
+  if(type2[1] != -1){
+    type2 = length(type2)
+  }else{
+    type2=0
+  }
+  
+  type1_repeat = (unlist(gregexpr("((Path1 49|Corr 51 Path), (Path1 49|Corr 51 Path), )\\1",l)))
+  if(type1_repeat[1] != -1){
+    type1_repeat = length(type1_repeat)
+  }else{
+    type1_repeat=0
+  }
+  
+  type2_repeat = (unlist(gregexpr("((Corr 49 Path|Path1 51), (Corr 49 Path|Path1 51), )\\1",l)))
+  if(type2_repeat[1] != -1){
+    type2_repeat = length(type2_repeat)
+  }else{
+    type2_repeat=0
+  }
+  
+  corr_comb=(unlist(gregexpr("((Corr 51 Path|Corr 49 Path), (Corr 49 Path|Corr 51 Path), )",l)))
+  if(corr_comb[1] != -1){
+    corr_comb = length(corr_comb)
+  }else{
+    corr_comb=0
+  }
+  corr_comb_repeat = (unlist(gregexpr("((Corr 51 Path|Corr 49 Path), (Corr 49 Path|Corr 51 Path), )\\1",l)))
+  if(corr_comb_repeat[1] != -1){
+    corr_comb_repeat = length(corr_comb_repeat)
+  }else{
+    corr_comb_repeat=0
+  }
+  
+  newlist <- c(type1,type2,type1_repeat,type2_repeat,corr_comb,corr_comb_repeat)
+  return(newlist)
+  
+}
 plot.reward_proportion=function(enreg,rat){
   
   if(grepl("103", rat)){

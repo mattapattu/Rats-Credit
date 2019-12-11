@@ -45,7 +45,7 @@ plot.task.errors=function(enreg,rat,dirpath1){
       }
       ### If No reward, update trial with proper error
       else{
-        patternsPrEr <- "d.*c.*.*h.*i|h.*c.*.*d.*e|c.*b.*a|k.*j.*i|g.*f.*e"
+        patternsPrEr <- "d.*c.*.*h.*i|h.*c.*.*d.*e|c.*b.*a|a.*k.*j.*i|a.*g.*f.*e"
         ### Check if error is procedural error
         if(grepl(patternsPrEr,allpaths[trial])){
           ### There is procedure error

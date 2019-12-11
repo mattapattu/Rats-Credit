@@ -127,7 +127,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
       index = max(which(enreg[[ses]]$POS[1:i,"boxname"] != ""))
       #### If l starts with 1,2,3,...., index will be -Infinity
       if(is.finite(index)){ 
-        if(as.numeric(enreg[[ses]]$POS[i,1])-as.numeric(enreg[[ses]]$POS[index,1]) < 100){
+        #if(as.numeric(enreg[[ses]]$POS[i,1])-as.numeric(enreg[[ses]]$POS[index,1]) < 100){
           bxname = enreg[[ses]]$POS[index,"boxname"]
           neighbours <- V(graph)$name[neighbors(graph, as.character(convertToIndex(bxname)), mode = "total")]
           neighbours <- c(neighbours,convertToIndex(bxname))
@@ -135,7 +135,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
           newbxname = neighbours[which.min(neighbour_dist)]
           enreg[[ses]]$POS[i,"boxname"]=convertToLetter(newbxname)
           #print(sprintf("New boxname - %s, prev box - %s",newbxname,bxname))
-        }
+        #}
       }else{
         enreg[[ses]]$POS[i,"boxname"] = convertToLetter(as.character(which.min(dist)))
       }
@@ -688,10 +688,12 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #plot.reward_proportion(enreg,rat[i])
     
     #debug(plot.task.errors)
-    plot.task.errors(enreg,rat[i],dirpath1)
+    #plot.task.errors(enreg,rat[i],dirpath1)
     
     #debug(plot.heatmap)
     #plot.heatmap(enreg,rat[i],dirpath1)
+    
+    plot.average.frequency.by.boxes2(enreg,rat[i],dirpath1)
   }
   return(tree)
 }

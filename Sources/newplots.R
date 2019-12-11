@@ -18,7 +18,7 @@ plot.task.errors=function(enreg,rat,dirpath1){
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
     allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
-    allpaths<-cbind(allpaths, Rewards="0",Error="0")
+    allpaths<-cbind(allpaths, Rewards="0",Error="0",Path="0")
   
     prev49Rewarded= FALSE
     prev51Rewarded=FALSE
@@ -26,6 +26,8 @@ plot.task.errors=function(enreg,rat,dirpath1){
     prev51WMerr = FALSE
     
     for(trial in 1:length(allpaths[,1])){
+      
+      allpaths[trial,"Path"] = getPathNb(allpaths[trial,1])
       
       ### If 49 rewarded, update trial with reward and error=0
       if(sum(as.numeric(as.numeric(enreg[[ses]]$POS[,"trial"])==trial & enreg[[ses]]$POS[,"Reward"]==49))==1){
@@ -108,6 +110,35 @@ plot.task.errors=function(enreg,rat,dirpath1){
   
 }
 
+getPathNb=function(path){
+  path  = gsub("^, ","",path)
+  
+  if(grepl("^d.*c.*h.*i",path)){
+    pathnb = "Path1 51"
+  }else if(grepl("^d.*c.*b.*a.*k.*j.*i",path)){
+    pathnb = "Path2 51"
+  }else if(grepl("^f.*g.*a.*k.*j.*i",path)){
+    pathnb = "Path3 51"
+  }else if(grepl("^j.*k.*a.*b.*c.*h.*i",path)){
+    pathnb = "WM 51 path"
+  }else if(grepl("^f.*g.*a.*b.*c.*h.*i",path)){
+    pathnb = "Corr 51 Path"
+  }else if(grepl("^h.*c.*d.*e",path)){
+    pathnb = "Path1 49"
+  }else if(grepl("^h.*c.*b.*a.*g.*f.*e",path)){
+    pathnb = "Path2 49"
+  }else if(grepl("^j.*k.*a.*g.*f.*e",path)){
+    pathnb = "Path3 49"
+  }else if(grepl("^f.*g.*a.*b.*c.*d.*e",path)){
+    pathnb = "WM 49 path"
+  }else if(grepl("^j.*k.*a.*b.*c.*d.*e",path)){
+    pathnb = "Corr 49 Path"
+  }else{
+    pathnb = "Unknown path"
+  }
+  
+  return(pathnb)
+}
 
 plot.reward_proportion=function(enreg,rat){
   

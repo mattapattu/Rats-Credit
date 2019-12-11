@@ -48,7 +48,7 @@ plot.heatmap=function(enreg,rat,dirpath1){
     
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
-    allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
     
     
     neurons <- max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))

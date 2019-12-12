@@ -134,7 +134,7 @@ recordingsInFolder=function(folderNm){
         SPIKES=rbind(SPIKES,as.matrix(data[[1]][[2]]))#[,1:3])
       }
     }
-    print(setsession[isess])
+    print(sprintf("Setting enreg for session %s",setsession[isess]))
     Enreg[[as.numeric(setsession[isess])]]=list(tet=tet,POS=POS,EVENTS=EVENTS,SPIKES=SPIKES,LFP=LFP)
   }
   setwd(rootPath)

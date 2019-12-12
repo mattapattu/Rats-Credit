@@ -124,7 +124,7 @@ plot.task.errors=function(enreg,rat,dirpath1){
   plot(type1,col='black',type='l',ylim=range(0,type1,type2,corr_comb),xlab="Sessions",ylab="Nb of Patterns",main=paste(rat," Path Patterns",sep=""))
   lines(type2,col='red')
   lines(corr_comb,col='blue')
-  legend("topright", legend=c("Path1 51 - 49 correct", "Path1 49 - 51 correct","49 corr -51 corr"),lty=c(1,1,1),col=c("black", "red","blue"),cex=0.9,bty = "n")
+  legend("topright", legend=c("Path1 49 - 51 correct", "Path1 51 - 49 correct","49 corr -51 corr"),lty=c(1,1,1),col=c("black", "red","blue"),cex=0.9,bty = "n")
   dev.off()
   
   filename=file.path(dirpath1,paste(rat,"_pathPatternRepeats",".jpg",sep=""))
@@ -132,7 +132,7 @@ plot.task.errors=function(enreg,rat,dirpath1){
   plot(type1_repeat,col='black',type='l',ylim=range(0,type1_repeat,type2_repeat,corr_comb_repeat),xlab="Sessions",ylab="Nb of Patterns",main=paste(rat," Path Patterns",sep=""))
   lines(type2_repeat,col='red')
   lines(corr_comb_repeat,col='blue')
-  legend("topright", legend=c( "Path1 51 - 49 correct repeat","Path1 49 - 51 correct repeat","49 corr -51 corr repeat"),lty=c(1,1,1),col=c("black", "red","blue"),cex=0.9,bty = "n")
+  legend("topright", legend=c( "Path1 49 - 51 correct repeat","Path1 51 - 49 correct repeat","49 corr -51 corr repeat"),lty=c(1,1,1),col=c("black", "red","blue"),cex=0.9,bty = "n")
   dev.off()
   
   

@@ -390,7 +390,7 @@ plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,
   #print(firingrates)
   #debug(matrix.seriate)
   matrix.seriate(firingrates,neuron,ses,rat,labels,dirpath)
-  firingrates[which(labels=="*")] <- NA
+  firingrates[which(labels=="-")] <- NA
   return(firingrates)
 }
 

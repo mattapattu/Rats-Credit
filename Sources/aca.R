@@ -71,24 +71,10 @@ add.box.to.pos=function(ses,enreg,spolygons){
   l <- which(enreg[[ses]]$POS[,"boxname"] == "")
   
   for(i in l){
-    spts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[i,2]),as.numeric(enreg[[ses]]$POS[i,3])))
-    dist <- gDistance(spts,spolygons,byid=TRUE)
-    if(min(dist) > 0) {
-      index = max(which(enreg[[ses]]$POS[1:i,"boxname"] != ""))
-      #### If l starts with 1,2,3,...., index will be -Infinity
-      if(is.finite(index)){ 
-        if(as.numeric(enreg[[ses]]$POS[i,1])-as.numeric(enreg[[ses]]$POS[index,1]) < 100){
-          bxname = enreg[[ses]]$POS[index,"boxname"]
-          neighbours <- V(graph)$name[neighbors(graph, as.character(convertToIndex(bxname)), mode = "total")]
-          neighbours <- c(neighbours,convertToIndex(bxname))
-          neighbour_dist <- dist[as.numeric(neighbours)]
-          newbxname = neighbours[which.min(neighbour_dist)]
-          enreg[[ses]]$POS[i,"boxname"]=convertToLetter(newbxname)
-          #print(sprintf("New boxname - %s, prev box - %s",newbxname,bxname))
-        }
-      }else{
-        enreg[[ses]]$POS[i,"boxname"] = convertToLetter(as.character(which.min(dist)))
-      }
+    index = max(which(enreg[[ses]]$POS[1:i,"boxname"] != ""))
+    #### If l starts with 1,2,3,...., index will be -Infinity
+    if(is.finite(index)){ 
+      enreg[[ses]]$POS[i,"boxname"] = enreg[[ses]]$POS[index,"boxname"]
     }
   }
   #print(sprintf("boxname1=%s",enreg[[ses]]$POS[4698,"boxname"]))
@@ -121,27 +107,14 @@ add.box.to.pos=function(ses,enreg,spolygons){
   
   l <- which(enreg[[ses]]$POS[,"boxname"] == "")
   for(i in l){
-    spts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[i,2]),as.numeric(enreg[[ses]]$POS[i,3])))
-    dist <- gDistance(spts,spolygons,byid=TRUE)
-    if(min(dist) > 0) {
-      index = max(which(enreg[[ses]]$POS[1:i,"boxname"] != ""))
-      #### If l starts with 1,2,3,...., index will be -Infinity
-      if(is.finite(index)){ 
-        #if(as.numeric(enreg[[ses]]$POS[i,1])-as.numeric(enreg[[ses]]$POS[index,1]) < 100){
-          bxname = enreg[[ses]]$POS[index,"boxname"]
-          neighbours <- V(graph)$name[neighbors(graph, as.character(convertToIndex(bxname)), mode = "total")]
-          neighbours <- c(neighbours,convertToIndex(bxname))
-          neighbour_dist <- dist[as.numeric(neighbours)]
-          newbxname = neighbours[which.min(neighbour_dist)]
-          enreg[[ses]]$POS[i,"boxname"]=convertToLetter(newbxname)
-          #print(sprintf("New boxname - %s, prev box - %s",newbxname,bxname))
-        #}
-      }else{
-        enreg[[ses]]$POS[i,"boxname"] = convertToLetter(as.character(which.min(dist)))
-      }
+    index = max(which(enreg[[ses]]$POS[1:i,"boxname"] != ""))
+    #### If l starts with 1,2,3,...., index will be -Infinity
+    if(is.finite(index)){ 
+      enreg[[ses]]$POS[i,"boxname"] = enreg[[ses]]$POS[index,"boxname"]
     }
   }
   
+  ## If still any boxes are unassigned , name them "unk" and go on with assiging trials
   enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"boxname"] == ""),"boxname"]="unk"
   #print(sprintf("boxname1=%s",enreg[[ses]]$POS[4698,"boxname"]))
 
@@ -149,16 +122,13 @@ add.box.to.pos=function(ses,enreg,spolygons){
   g <- enreg[[ses]]$POS[,"boxname"]
   i<-1:length(g)
   j<-2:length(g)
-  j<-c(j,rep(0,1))
   k<-3:length(g)
-  k<-c(k,rep(0,2))
   l <- which(g[j]!=g[k]&g[j]!=g[i])
   n<- l+1
   for(index in n){
     x=index
     repeat{
       x=x-1
-      
       if(!x %in% l){
         #print(sprintf("index=%i,x=%i",index,x))
         enreg[[ses]]$POS[index,"boxname"]=enreg[[ses]]$POS[x,"boxname"]
@@ -688,10 +658,10 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #plot.reward_proportion(enreg,rat[i])
     
     #debug(plot.task.errors)
-    plot.task.errors(enreg,rat[i],dirpath1)
+    #plot.task.errors(enreg,rat[i],dirpath1)
     
     #debug(plot.heatmap)
-    #plot.heatmap(enreg,rat[i],dirpath1)
+    plot.heatmap(enreg,rat[i],dirpath1)
     
     #plot.average.frequency.by.boxes2(enreg,rat[i],dirpath1)
   }

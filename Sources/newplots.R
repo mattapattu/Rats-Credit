@@ -219,6 +219,10 @@ getAllPathsStats=function(allpaths){
   return(newlist)
   
 }
+
+##########################################################################333
+########################################################################
+
 plot.reward_proportion=function(enreg,rat){
   
   if(grepl("103", rat)){
@@ -328,5 +332,15 @@ plot.reward_proportion=function(enreg,rat){
     dev.off()
   }
   
+  
+}
+
+
+
+########################################################################
+##################################################################
+
+
+plot.path.probabilities=function(enreg,rat){
   
 }

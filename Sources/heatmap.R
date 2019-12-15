@@ -12,23 +12,15 @@ round2 = function(x, n) {
 }
 
 #### Function to call for plotting heatmap
-plot.heatmap=function(enreg,rat,dirpath1){
-  #plot for all rewarded e/i visit trials
-  #plot for all unrewarded e/i visit trials
-  #plot for all rewarded e visit trials 
-  #plot for all rewarded i visit trials
+plot.heatmap=function(enreg,rat,dirpath1,plot){
+
   
-  ###spikes 1s before reward, Reward, 1s after reward
-  # if(grepl("103", rat)){
-  #   seslist <- c(1,3,4,25,26,27,52,53,55)
-  # }else if(grepl("113", rat)){
-  #   seslist <- c(1,2,3,15,16,17)
-  # }
-  
+
   dirpath2 = file.path(dirpath1,rat)
   dir.create(dirpath2)
   
-  
+
+  ### Loop through all enreg[[ses]] of current rat
   for(ses in 1:length(enreg)){
     dirpath = file.path(dirpath2,paste("Session-",ses,sep=""))
     dir.create(dirpath)
@@ -52,9 +44,10 @@ plot.heatmap=function(enreg,rat,dirpath1){
     
     
     neurons <- max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))
+    ### Loop through each neuron in enreg[[ses]] of current rat
     for(neuron in 1:neurons){
       print(sprintf("%s session %i neuron %i",rat, ses,neuron))
-      #### Mat is not required, just to get image
+      #### Note: Mat is not required to compute heatmap, just added to get image of firingrates initially
       mat <-matrix(0, last_trial, 15)
       colnames(mat) <- c("A","B","B'","C","C'","D","E","E'","F","G","H","I","I'","J","K")
       trialIndex = 1
@@ -158,6 +151,7 @@ plot.heatmap=function(enreg,rat,dirpath1){
         k <- which(enreg[[ses]]$POS[,"trial"] == t & enreg[[ses]]$POS[,"boxname"]== "k")
         time_k_0 = getTimeSpentInBox(k,enreg,ses)
         
+        ######## Populate nSpikes, timesinBoxes matrices
         ##### If time_a_0 not null, update nSpikes[a],mat,timesinBoxes[a]
         if(length(time_a_0) >0) {
           
@@ -264,20 +258,22 @@ plot.heatmap=function(enreg,rat,dirpath1){
         trialIndex = trialIndex+1
       }
       
+     ########  Group boxes for chi-square test ##################################
       #debug(groupBoxesForChiSqTest)
       output = groupBoxesForChiSqTest(nSpikes,timesinBoxes,1,last_trial)
       #print(output$groups)
+      
       pvals <-numeric()
       for(i in 1:15){
-        
         pvals <- c(pvals,testHomogeneity(output$newSpikes[[i]],output$newTimesinBox[[i]]))
       }
     
-      #####  alpha-mat - matrix to store pvals for every grouping      
+      #alpha-mat - matrix to store pvals for every grouping      
       alpha_mat <- matrix(0,2000,5)
       colnames(alpha_mat) <- c("Box/Newgroup","Alpha","pval","H0 Rej","Split Further")
       matIndex=0
-      ### Check for homogeneity in each box and regroup if non-homogeneous
+      ########## Check for homogeneity in each box, regroup using splitAllGroups if non-homogeneous #################
+      # final_groups stores the grouping for current session
       final_groups <- list()
       for(i in 1:15){
         pval_alpha <- 0.05/15
@@ -305,26 +301,18 @@ plot.heatmap=function(enreg,rat,dirpath1){
           alpha_mat[matIndex,4] = "Yes"  ## H0 rejected 
           alpha_mat[matIndex,5] = "Yes"  ## Split Further
           
-          ### all trials for box i are not homogeneous
-          ### Combine trials by adding chisq boxes
+          ### all trials for box "i" are not homogeneous
+          ### Split box into groups of homogeneous trial using chisq test.
+          
           #print(sprintf("For box %i, Adjusted pvalue = %f < pval_alpha = %f",i,pvals[i],pval_alpha))
           #print(sprintf("For box %i,H0 can be rejected and box must be regrouped to find homogeneous sub-groups",i))
           #debug(regroupBoxes)
           
-          #pval_graph <- pval_graph + vertices(paste("box",i,pval_alpha,sep=""))
-          #alpha_graph <- alpha_graph + 
           pval_alpha = pval_alpha/2
           matIndex=max(which(alpha_mat[,1] != "0"))+1 ## Add new row in matrix below the current box
-          #print(sprintf("matIndex=%s",matIndex))
-          #newList <- regroupBoxes(output,i,pval_alpha,alpha_mat,matIndex)
           newList <- splitAllGroups(nSpikes,timesinBoxes,i,1,last_trial,pval_alpha,alpha_mat)
           newgroups <- newList$final_group
           alpha_mat <- newList$alpha_mat
-          # print(alpha_mat)
-          # print(sprintf("Returned from regroup"))
-          # for(j in 1:length(newgroups)){
-          #   final_groups[[i]] <- list.append(final_groups[[i]],unlist(output$groups[[i]][min(unlist(newgroups[[j]])):max(unlist(newgroups[[j]]))]))
-          # }
           final_groups[[i]] <- lapply(rapply(newgroups, enquote, how="unlist"), eval)
           
         }else{
@@ -337,24 +325,26 @@ plot.heatmap=function(enreg,rat,dirpath1){
           final_groups[[i]] <- unlist(output$groups[[i]])
           
         }
-        #print(sprintf("matIndex=%s at the end of for loop",max(which(alpha_mat[,1] != "0"))))
-        
+
       }
       #print(final_groups)
       print(alpha_mat[which(alpha_mat[,1] != "0"),])
-      firingrates =plot.heatmap.by.finalgroups(nSpikes,timesinBoxes,final_groups,neuron,ses,rat,dirpath)
-      #filename = paste(rat,'_Neuron_',neuron,'_ses_',ses,'.Rdata',sep="")
+      newlist =plot.heatmap.by.finalgroups(nSpikes,timesinBoxes,final_groups,neuron,ses,rat,dirpath,plot)
+      
       filename = file.path(dirpath,paste(rat,'_Neuron_',neuron,'_ses_',ses,'.Rdata',sep=""))
       pval_matrix<-alpha_mat[which(alpha_mat[,1] != "0"),]
-      save(reward49_trials,reward51_trials,pval_matrix,firingrates,file=filename)
+      labels = newlist$labels
+      firingrates = newlist$firingrates
+      save(firingrates,labels,final_groups,pval_matrix,file=filename)
+      
     } 
   }
-  print("Returning from plot")
+  print("Returning from plot.heatmap")
 }
 
 ################################################################################3
 ##### Plot Heatmap based on the final groups
-plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,ses,rat,dirpath){
+plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,ses,rat,dirpath,plot){
   total_trials =dim(timesinBoxes)[1]
   total_boxes = dim(timesinBoxes)[2]
   firingrates= matrix(0,total_trials,total_boxes)
@@ -389,9 +379,16 @@ plot.heatmap.by.finalgroups = function(nSpikes,timesinBoxes,final_groups,neuron,
   }
   #print(firingrates)
   #debug(matrix.seriate)
-  matrix.seriate(firingrates,neuron,ses,rat,labels,dirpath)
-  firingrates[which(labels=="-")] <- NA
-  return(firingrates)
+  if(plot){
+    matrix.seriate(firingrates,neuron,ses,rat,labels,dirpath)
+  }
+  #firingrates[which(labels=="-")] <- NA
+  
+  results <- list()
+  results$firingrates <- firingrates
+  results$labels <- labels
+
+  return(results)
 }
 
 ############################

@@ -661,7 +661,7 @@ set.neurons.to.boxes=function(tree,rightPath,boites){
     #plot.task.errors(enreg,rat[i],dirpath1)
     
     #debug(plot.heatmap)
-    plot.heatmap(enreg,rat[i],dirpath1)
+    #plot.heatmap(enreg,rat[i],dirpath1)
     
     #plot.average.frequency.by.boxes2(enreg,rat[i],dirpath1)
   }

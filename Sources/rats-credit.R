@@ -9,8 +9,7 @@ library(pracma)
 library(sp) #for spatial polygons
 
 
-## Path of Sources directory
-setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
+setwd("~/intership2/ProgR/Sources")
 
 options(error = recover)
 
@@ -21,8 +20,8 @@ for (f in list.files(pattern="*.R$")) {
     source(f)
 }
 
-## Path of Data dir
-setwd("C:/Rats-Credits/Data")
+#Load SDM and SDL folders (SDM113,SDL101, etc.)
+setwd("~/intership2/Data")
 
 DATA=buildDataTree()
 resalex=leo.boxes()
@@ -71,10 +70,10 @@ for (i in c(1:6)) {
   #plot.reward_proportion(enreg,rat[i])
   
   #debug(plot.task.errors)
-  #plot.task.errors(enreg,rat[i],dirpath1)
+  plot.task.errors(enreg,rat[i],dirpath1,pathProb=T)
   
   #debug(plot.heatmap)
-  plot.heatmap(enreg,rat[i],dirpath1)
+  #plot.heatmap(enreg,rat[i],dirpath1)
   
   #plot.average.frequency.by.boxes2(enreg,rat[i],dirpath1)
   

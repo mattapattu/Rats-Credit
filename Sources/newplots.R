@@ -343,4 +343,5 @@ plot.reward_proportion=function(enreg,rat){
 
 plot.path.probabilities=function(enreg,rat){
   
+  
 }

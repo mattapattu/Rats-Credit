@@ -1,0 +1,150 @@
+
+
+R=matrix(0,nrow=2,ncol=6)
+colnames(R)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+rownames(R)<-c("E","I")
+R[1,4]=1
+R[2,4]=1
+
+
+
+### Action = Path
+## State = E or I
+
+sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda){
+  
+  ## Start form state 1 = Box "E"
+  
+  actions <-list()
+  states <-list()
+  
+  
+  ## One episode = all actions to make a loop around maze, 
+  ## Start at E -> visit I -> return to E
+  
+  visitS2 = F
+  returnS1 = F
+  
+  for(episode in 1:max_steps){
+    
+    S=1
+    E=E*0
+    A=epsilon_greedy(Q,epsilon,S)
+    
+    while(!returnS1){
+      print(sprintf("episode=%i",episode))
+      r=R[S,A]
+      S_prime=getNextState(S,A)
+      A_prime=epsilon_greedy(Q,epsilon,S_prime)
+      E[S,A]=E[S,A]+1
+      delta=r+(gamma* Q[S_prime,A_prime]) - Q[S,A]
+      Q=Q+ (alpha*delta*E)
+      E=E*gamma*lambda
+      
+      actions <- list.append(actions,A)
+      states <- list.append(states,S)
+      
+      if(S==2){
+        visitS2 = T
+      }else if(S==1 && visitS2){
+        returnS1 = T
+      }
+      
+      S=S_prime
+      A=A_prime
+    }
+    visitS2 = F
+    returnS1 = F
+  }
+
+  print(unlist(states))
+  a=as.data.frame(actions)
+  colnames(a)=NULL
+  rownames(a)=NULL
+  print(a)
+  print(Q)
+  return(Q)
+}
+
+getNextState=function(curr_state,action){
+  if(((curr_state==1)|(curr_state==2)) && action == 5){
+    new_state=curr_state
+  }else if(curr_state==1){
+    new_state=2
+  }else if(curr_state==2){
+    new_state=1
+  }
+  
+  return(new_state)
+}
+
+epsilon_greedy=function(Q,epsilon,state){
+  U=runif(1,0,1)
+  action =0
+  if(U <= epsilon){
+    action = sample(c(1:6), 1)
+    print(sprintf("Selecting random action - %i in state - %i",action,state))
+  }else{
+    action = which.max(Q[state,])
+    print(sprintf("Selecting greedy action - %i in state - %i",action,state))
+  }
+  return(action)
+}
+### Init Q
+Q = matrix(0,nrow=2,ncol=6)
+colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+rownames(Q)<-c("E","I")
+Q[1,1]=0.5
+Q[2,1]=0.5
+
+E=matrix(0,nrow=2,ncol=6)
+colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+rownames(E)<-c("E","I")
+
+## Session 1
+
+alpha=0.1
+max_steps=30
+epsilon=0.1
+#gamma=0.3
+gamme=0.9
+lambda=0.8
+#debug(epsilon_greedy)
+#debug(getNextState)
+#debug(sarsa)
+Q1=sarsa(Q,E,alpha,max_steps,epsilon,gamma,lambda)
+
+
+
+## Session 2
+alpha=0.1
+max_steps=100
+epsilon=0.4
+gamma=0.8
+lambda=0.2
+#debug(epsilon_greedy)
+#debug(getNextState)
+#debug(Qlearn)
+Q2=sarsa(Q1,E,alpha,max_steps,epsilon,gamma,lambda)
+# # 
+# # ### Session 3
+# alpha=0.1
+# max_steps=100
+# epsilon=0.4
+# gamma=0.8
+# lambda=0.9
+# #debug(epsilon_greedy)
+# #debug(getNextState)
+# #debug(Qlearn)
+# Q3=sarsa(Q2,E,alpha,max_steps,epsilon,gamma,lambda)
+# # 
+# # ### Session 4
+# alpha=0.8
+# max_steps=100
+# epsilon=0.1
+# gamma=0.8
+# lambda=0.2
+# #debug(epsilon_greedy)
+# #debug(getNextState)
+# #debug(Qlearn)
+# Q4=sarsa(Q3,E,alpha,max_steps,epsilon,gamma,lambda)

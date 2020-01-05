@@ -25,36 +25,42 @@ sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda){
   visitS2 = F
   returnS1 = F
   
-  for(episode in 1:max_steps){
+  S=1
+  E=E*0
+  A=epsilon_greedy(Q,epsilon,S)
+  episode=0
+  
+  for(step in 1:max_steps){
+  
+    print(sprintf("episode=%i",episode))
+    r=R[S,A]
+    S_prime=getNextState(S,A)
+    A_prime=epsilon_greedy(Q,epsilon,S_prime)
+    E[S,A]=E[S,A]+1
+    delta=r+(gamma* Q[S_prime,A_prime]) - Q[S,A]
+    Q=Q+ (alpha*delta*E)
+    E=E*gamma*lambda
     
-    S=1
-    E=E*0
-    A=epsilon_greedy(Q,epsilon,S)
+    print(sprintf("Current state - %i, Action Selected - %i",S,A))
+    actions <- c(actions,sprintf("S%i-P%i",S,A))
+    states <- c(states,S)
     
-    while(!returnS1){
-      print(sprintf("episode=%i",episode))
-      r=R[S,A]
-      S_prime=getNextState(S,A)
-      A_prime=epsilon_greedy(Q,epsilon,S_prime)
-      E[S,A]=E[S,A]+1
-      delta=r+(gamma* Q[S_prime,A_prime]) - Q[S,A]
-      Q=Q+ (alpha*delta*E)
-      E=E*gamma*lambda
-      
-      actions <- list.append(actions,A)
-      states <- list.append(states,S)
-      
-      if(S==2){
-        visitS2 = T
-      }else if(S==1 && visitS2){
-        returnS1 = T
-      }
-      
-      S=S_prime
-      A=A_prime
+    if(S==2){
+      visitS2 = T
+    }else if(S==1 && visitS2){
+      returnS1 = T
     }
-    visitS2 = F
-    returnS1 = F
+    
+    S=S_prime
+    A=A_prime
+    
+    if(visitS2 && returnS1){
+      visitS2 = F
+      returnS1 = F
+      #E=E*0
+      episode  = episode+1
+    }
+    
   }
 
   print(unlist(states))
@@ -67,7 +73,7 @@ sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda){
 }
 
 getNextState=function(curr_state,action){
-  if(((curr_state==1)|(curr_state==2)) && action == 5){
+  if(action == 5){
     new_state=curr_state
   }else if(curr_state==1){
     new_state=2
@@ -83,10 +89,10 @@ epsilon_greedy=function(Q,epsilon,state){
   action =0
   if(U <= epsilon){
     action = sample(c(1:6), 1)
-    print(sprintf("Selecting random action - %i in state - %i",action,state))
+    #print(sprintf("Selecting random action - %i in state - %i",action,state))
   }else{
     action = which.max(Q[state,])
-    print(sprintf("Selecting greedy action - %i in state - %i",action,state))
+    #print(sprintf("Selecting greedy action - %i in state - %i",action,state))
   }
   return(action)
 }
@@ -107,25 +113,35 @@ alpha=0.1
 max_steps=30
 epsilon=0.1
 #gamma=0.3
-gamme=0.9
+gamma=0.9
 lambda=0.8
 #debug(epsilon_greedy)
 #debug(getNextState)
 #debug(sarsa)
 Q1=sarsa(Q,E,alpha,max_steps,epsilon,gamma,lambda)
 
-
-
 ## Session 2
 alpha=0.1
-max_steps=100
-epsilon=0.4
-gamma=0.8
-lambda=0.2
+max_steps=30
+epsilon=0.5
+#gamma=0.3
+gamma=0.9
+lambda=0.8
 #debug(epsilon_greedy)
 #debug(getNextState)
-#debug(Qlearn)
+#debug(sarsa)
 Q2=sarsa(Q1,E,alpha,max_steps,epsilon,gamma,lambda)
+
+# ## Session 2
+# alpha=0.1
+# max_steps=100
+# epsilon=0.4
+# gamma=0.8
+# lambda=0.2
+# #debug(epsilon_greedy)
+# #debug(getNextState)
+# #debug(Qlearn)
+# Q2=sarsa(Q1,E,alpha,max_steps,epsilon,gamma,lambda)
 # # 
 # # ### Session 3
 # alpha=0.1

@@ -71,7 +71,7 @@ sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda){
       changeState = F
       returnToInitState = F
       initState=S
-      #E=E*0
+      E=E*0
       episode  = episode+1
       #print(sprintf("Updating episode to %i",episode))
       if(step < max_steps-1){
@@ -132,7 +132,7 @@ max_steps=30
 epsilon=0.1
 #gamma=0.3
 gamma=0.9
-lambda=0.8
+lambda=1
 #debug(epsilon_greedy)
 #debug(getNextState)
 #debug(sarsa)
@@ -144,7 +144,7 @@ max_steps=80
 epsilon=0.2
 #gamma=0.3
 gamma=0.7
-lambda=0.8
+lambda=1
 #debug(epsilon_greedy)
 #debug(getNextState)
 #debug(sarsa)
@@ -155,7 +155,7 @@ alpha=0.2
 max_steps=100
 epsilon=0.2
 gamma=0.8
-lambda=0.9
+lambda=1
 #debug(epsilon_greedy)
 #debug(getNextState)
 #debug(Qlearn)
@@ -166,7 +166,7 @@ alpha=0.4
 max_steps=100
 epsilon=0.1
 gamma=0.8
-lambda=0.9
+lambda=1
 #debug(epsilon_greedy)
 #debug(getNextState)
 #debug(Qlearn)

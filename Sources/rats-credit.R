@@ -70,11 +70,14 @@ for (i in c(1:6)) {
   #plot.reward_proportion(enreg,rat[i])
   
   #debug(plot.task.errors)
-  plot.task.errors(enreg,rat[i],dirpath1,pathProb=T)
+  #plot.task.errors(enreg,rat[i],dirpath1,pathProb=T)
   
   #debug(plot.heatmap)
   #plot.heatmap(enreg,rat[i],dirpath1)
   
   #plot.average.frequency.by.boxes2(enreg,rat[i],dirpath1)
+  
+  #debug(plot.heatmap.paths)
+  plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
   
 }

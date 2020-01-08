@@ -22,14 +22,16 @@ sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda){
   ## One episode = all actions to make a loop around maze, 
   ## Start at E -> visit I -> return to E
   
-  visitS2 = F
-  returnS1 = F
+  changeState = F
+  returnToInitState = F
   
   S=1
   E=E*0
   A=epsilon_greedy(Q,epsilon,S)
   episode=1
   actions[[episode]] <- vector()
+  initState = S
+
   
   for(step in 1:max_steps-1){
 
@@ -52,21 +54,26 @@ sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda){
     }
     #actions <- c(actions,sprintf("S%i-P%i",S,A))
     states <- c(states,S)
-    
-    if(S==2){
-      visitS2 = T
-    }else if(S==1 && visitS2){
-      returnS1 = T
+    #print(sprintf("Current state = %i, Action = %i", S,A))
+    if(S_prime!=initState){
+      changeState = T
+      #print(sprintf("Setting changeState to T"))
+    }else if(S_prime==initState && changeState){
+      returnToInitState = T
+      #print(sprintf("Setting returnToInitState to T"))
     }
     
     S=S_prime
     A=A_prime
     
-    if(visitS2 && returnS1){
-      visitS2 = F
-      returnS1 = F
+    if(returnToInitState){
+      
+      changeState = F
+      returnToInitState = F
+      initState=S
       #E=E*0
       episode  = episode+1
+      #print(sprintf("Updating episode to %i",episode))
       if(step < max_steps-1){
         actions[[episode]] <- vector()
       }

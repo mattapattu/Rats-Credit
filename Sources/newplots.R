@@ -1,4 +1,4 @@
-plot.task.errors=function(enreg,rat,dirpath1,pathProb){
+  plot.task.errors=function(enreg,rat,dirpath1,pathProb){
 
   procedural_err <-numeric()
   wm_err <- numeric()
@@ -36,18 +36,18 @@ plot.task.errors=function(enreg,rat,dirpath1,pathProb){
     
     if(is.null(enreg[[ses]])){
       print(sprintf("skipping %s ses %i as enreg is empty",rat,ses))
-      pathProbMatrix49[,ses] <- NA
-      pathProbMatrix51[,ses] <- NA
-      path49CorrCombProbMatrix[,ses]<-NA
-      path51CorrCombProbMatrix[,ses]<-NA
+      pathProbMatrix49 <- pathProbMatrix49[,-ses]
+      pathProbMatrix51 <- pathProbMatrix51[,-ses]
+      # path49CorrCombProbMatrix[,ses]<-NA
+      # path51CorrCombProbMatrix[,ses]<-NA
       
       next
     }else if(isempty(enreg[[ses]]$EVENTS)){
       print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
-      pathProbMatrix49[,ses] <- NA
-      pathProbMatrix51[,ses] <- NA
-      path49CorrCombProbMatrix[,ses]<-NA
-      path51CorrCombProbMatrix[,ses]<-NA
+      pathProbMatrix49 <- pathProbMatrix49[,-ses]
+      pathProbMatrix51 <- pathProbMatrix51[,-ses]
+      # path49CorrCombProbMatrix[,ses]<-NA
+      # path51CorrCombProbMatrix[,ses]<-NA
       next
     }
     
@@ -184,6 +184,7 @@ plot.task.errors=function(enreg,rat,dirpath1,pathProb){
   # dev.off()
   
   ###
+  pathProbMatrix49
   filename=file.path(dirpath1,paste(rat,"pathProbAll49",".jpg",sep=""))
   jpeg(filename,width=800,height=800,quality = 100)
   plot(pathProbMatrix49[1,],col='black',type='l',ylim=range(0,1),xlab="Sessions",ylab="Probability of All 49 Paths",main=paste(rat,"_pathProbAll49",sep=""))

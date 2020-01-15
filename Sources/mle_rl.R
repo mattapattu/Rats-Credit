@@ -1,5 +1,5 @@
 
-
+library(GenSA)
 
 #### Function to call for plotting heatmap
 mle_rl=function(enreg,rat){
@@ -49,7 +49,8 @@ mle_rl=function(enreg,rat){
   colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(E)<-c("E","I")
   
-
+  out <- GenSA(lower = c(0.0,0.0,0.0,0.0), upper = c(1,1,1,1), fn = rl_eg_negLogLik,allpaths=allpaths, Q=Q, E=E,control = list(max.time=600, verbose=TRUE))
+  
   est <- optim(c(0.1,0.8,0.1,0.8,0.5,0.5),rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E, method="L-BFGS-B")
   print(sprintf("Estimated parameters for rat %s = %s",rat,est$par ))
 }

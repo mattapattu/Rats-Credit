@@ -26,8 +26,8 @@ mle_rl=function(enreg,rat){
     allpaths_ses<-strsplit(allpaths_ses,"(?<=[ei])(?=(, j, k)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
     allpaths_ses <-cbind(allpaths_ses,ses)
     colnames(allpaths_ses) <- c("Path","Session")
-    l<-list(allpaths,allpaths_ses[-1])
-    allpaths <- rbind(allpaths,allpaths_ses[-1,])
+    l<-list(allpaths,allpaths_ses)
+    allpaths <- rbind(allpaths,allpaths_ses)
 
     
   }
@@ -53,30 +53,60 @@ mle_rl=function(enreg,rat){
   
   #est <- optim(c(0.1,0.8,0.1,0.8,0.5,0.5),rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E, method="L-BFGS-B")
   #print(sprintf("Estimated parameters for rat %s = %s",rat,est$par ))
-  minima=Inf
-  optimal_vals <-numeric()
-  for(alpha in seq(0.1,1,0.1)){
-    for(gamma in seq(0.1,1,0.1)){
-      for(epsilon in seq(0.1,1,0.1)){
-        for(lambda in seq(0.1,1,0.1)){
-          for(path1_prb1 in seq(0.1,1,0.1)){
-            for(path1_prb2 in seq(0.1,1,0.1)){
-              
-              log_likelihood=rl_eg_negLogLik(c(alpha,gamma,epsilon,lambda,path1_prb1,path1_prb2),allpaths,Q,E)
-               if(log_likelihood < minima){
-                 minima=log_likelihood
-                 optimal_vals <- c(alpha,gamma,epsilon,lambda,path1_prb1,path1_prb2)
-               }
-            }
-            
-          }
-          
-        }
-      }
-    }
-  }
-  print(minima)
-  print(optimal_vals)
+  
+  # startIter <- 20
+  # # set the number of values for which to run optim in full
+  # fullIter <- 5
+  # # define a set of starting values
+  # starting_values <- expand.grid(seq(0.1,1,by=0.3),seq(0.1,1,by=0.3),seq(0.1,1,by=0.3),seq(0.1,1,by=0.3),seq(0.1,1,by=0.3),seq(0.1,1,by=0.3))
+  # # call optim with startIter iterations for each starting value
+  # opt <- apply(starting_values,1,function(x) optimParallel(x,rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
+  # # define new starting values as the fullIter best values found thus far
+  # starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
+  # # run optim in full for these new starting values
+  # opt <- lapply(starting_values_2,optim,fn=rl_eg_negLogLik,allpaths=allpaths, method="L-BFGS-B")
+  # # find the element in opt with the lowest value
+  # opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]
+  # 
+  # n.cores <- detectCores()
+  # n.cores
+  # clust <- makeCluster(n.cores)
+  # clusterExport(clust, list("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg","ses"))
+  # a <- parLapply(clust, starting_values, model.mse)
+  # out <- DEoptim(rl_eg_negLogLik,lower = c(0.0,0.0,0.0,0.0,0.0,0.0), upper = c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E,DEoptim.control(NP=60,F=0.8, CR = 0.9,trace=TRUE,parallelType=1,packages=c(),parVar=c("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg","ses")))
+  # 
+  # 
+  # setDefaultCluster(cl=clust) # set 'cl' as default cluster
+  # optimParallel(par=c(1,1), fn=negll, x=x,
+  #               method = "L-BFGS-B", lower=c(-Inf, .0001))
+  
+  # minima=Inf
+  # optimal_vals <-numeric()
+  # 
+  # 
+  # 
+  # for(alpha in seq(0.1,1,0.1)){
+  #   for(gamma in seq(0.1,1,0.1)){
+  #     for(epsilon in seq(0.1,1,0.1)){
+  #       for(lambda in seq(0.1,1,0.1)){
+  #         # for(path1_prb1 in seq(0.1,1,0.1)){
+  #         #   for(path1_prb2 in seq(0.1,1,0.1)){
+  #             
+  #             log_likelihood=rl_eg_negLogLik(c(alpha,gamma,epsilon,lambda,0.5,0.5),allpaths,Q,E)
+  #              if(log_likelihood < minima){
+  #                minima=log_likelihood
+  #                optimal_vals <- c(alpha,gamma,epsilon,lambda,path1_prb1,path1_prb2)
+  #              }
+  #         #   }
+  #         #   
+  #         # }
+  #         
+  #       }
+  #     }
+  #   }
+  # }
+  # print(minima)
+  # print(optimal_vals)
   
 }
 
@@ -95,25 +125,25 @@ updatePathNb=function(allpaths){
 getPathNumber=function(path){
   path  = gsub("^, ","",path)
   
-  if(grepl("^d.*c.*h.*i",path)){
+  if(grepl("^d.*c.*h.*i$",path)){
     pathnb = 1
-  }else if(grepl("^d.*c.*b.*a.*k.*j.*i",path)){
+  }else if(grepl("^d.*c.*b.*a.*k.*j.*i$",path)){
     pathnb = 2
-  }else if(grepl("^f.*g.*a.*k.*j.*i",path)){
+  }else if(grepl("^f.*g.*a.*k.*j.*i$",path)){
     pathnb = 3
-  }else if(grepl("^j.*i",path)){
+  }else if(grepl("^j.*i$",path)||grepl("^h.*i$",path)){
     pathnb = 5
-  }else if(grepl("^f.*g.*a.*b.*c.*h.*i",path)){
+  }else if(grepl("^f.*g.*a.*b.*c.*h.*i$",path)){
     pathnb = 4
-  }else if(grepl("^h.*c.*d.*e",path)){
+  }else if(grepl("^h.*c.*d.*e$",path)){
     pathnb = 1
-  }else if(grepl("^h.*c.*b.*a.*g.*f.*e",path)){
+  }else if(grepl("^h.*c.*b.*a.*g.*f.*e$",path)){
     pathnb = 2
-  }else if(grepl("^j.*k.*a.*g.*f.*e",path)){
+  }else if(grepl("^j.*k.*a.*g.*f.*e$",path)){
     pathnb = 3
-  }else if(grepl("^f.*e",path)){
+  }else if(grepl("^f.*e$",path)||grepl("^d.*e$",path)){
     pathnb = 5
-  }else if(grepl("^j.*k.*a.*b.*c.*d.*e",path)){
+  }else if(grepl("^j.*k.*a.*b.*c.*d.*e$",path)){
     pathnb = 4
   }else if(grepl("^.*e$",path)){
     pathnb = 6
@@ -129,7 +159,17 @@ getPathNumber=function(path){
 
 ### Action = Path
 ## State = E or I
-sarsa_mle=function(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths,Q,E){
+sarsa_mle=function(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths){
+  
+  ### Init Q
+  Q = matrix(0,nrow=2,ncol=6)
+  colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+  rownames(Q)<-c("E","I")
+  
+  ### Init E
+  E=matrix(0,nrow=2,ncol=6)
+  colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+  rownames(E)<-c("E","I")
   
   actions <-list()
   states <-list()
@@ -162,14 +202,17 @@ sarsa_mle=function(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths,Q,E
 
   for(i in 2:(length(allpaths[,1])-1)){
 
+    
     if(A==which.max(Q[S,])){
       QProb <- c(QProb,(1-epsilon +epsilon/6))
     }else{
       QProb <- c(QProb,(epsilon/6))
     }
     
-    l<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==i)
-    R=sum(as.numeric(enreg[[ses]]$POS[l,"Reward"]))
+    ses=as.numeric(allpaths[i,"Session"])
+    trial=i-which(allpaths[,"Session"]==ses)[1]+1
+    pos_trial_t<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
+    R=sum(as.numeric(enreg[[ses]]$POS[pos_trial_t,"Reward"]))
     reward=0
     if(R>0){
       reward=1
@@ -225,9 +268,9 @@ sarsa_mle=function(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths,Q,E
 
 
 getNextState=function(allpaths,i){
-  if(grepl("^.*e",allpaths[i,1])){
+  if(grepl("^.*e$",allpaths[i,1])){
     next_state = 1
-  }else if(grepl("^.*i",allpaths[i,1])){
+  }else if(grepl("^.*i$",allpaths[i,1])){
     next_state = 2
   }
   ### If allpaths[i,] does not end in E/I , use the begining of next path to find the new state 
@@ -248,14 +291,14 @@ getNextState=function(allpaths,i){
 }
 
 
-rl_eg_negLogLik <- function(par,allpaths,Q,E) {
+rl_eg_negLogLik <- function(par,allpaths) {
   alpha <- par[1]
   gamma <- par[2]
   epsilon <- par[3]
   lambda <- par[4]
   path1_prb1 <- par[5]
   path1_prb2 <- par[6]
-  lik <- sarsa_mle(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths,Q,E)
+  lik <- sarsa_mle(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths)
   negLogLik <- -sum(log(lik))
   return(negLogLik)
 }

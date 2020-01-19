@@ -123,7 +123,7 @@ getPathNumber=function(path){
 
 ### Action = Path
 ## State = E or I
-aca_mle=function(alpha,n,allpaths,H,Score,Visits){
+aca_mle=function(alpha,n,allpaths){
   
   ### Init H
   H = matrix(0,nrow=2,ncol=6)
@@ -131,9 +131,9 @@ aca_mle=function(alpha,n,allpaths,H,Score,Visits){
   rownames(H)<-c("E","I")
   
   ### Init S - for scores
-  Scores = matrix(0,nrow=2,ncol=6)
-  colnames(Scores)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-  rownames(Scores)<-c("E","I")
+  Score = matrix(0,nrow=2,ncol=6)
+  colnames(Score)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+  rownames(Score)<-c("E","I")
   
   ## Counter for Actions
   Visits = matrix(0,nrow=2,ncol=6)
@@ -340,10 +340,10 @@ getNextState=function(allpaths,i){
 }
 
 
-rl_aca_negLogLik <- function(par,allpaths,H,Scores,V) {
+rl_aca_negLogLik <- function(par,allpaths) {
   alpha <- par[1]
   n <- par[2]
-  lik <- aca_mle(alpha,n,allpaths,H,Scores,V)
+  lik <- aca_mle(alpha,n,allpaths)
   negLogLik <- -sum(log(lik))
   return(as.numeric(negLogLik))
 }

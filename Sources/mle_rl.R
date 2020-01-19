@@ -33,21 +33,21 @@ mle_rl=function(enreg,rat){
   }
   allpaths = updatePathNb(allpaths)
   
-  R=matrix(0,nrow=2,ncol=6)
-  colnames(R)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-  rownames(R)<-c("E","I")
-  R[1,4]=1
-  R[2,4]=1
-  
-  ### Init Q
-  Q = matrix(0,nrow=2,ncol=6)
-  colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-  rownames(Q)<-c("E","I")
-
-  
-  E=matrix(0,nrow=2,ncol=6)
-  colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-  rownames(E)<-c("E","I")
+  # R=matrix(0,nrow=2,ncol=6)
+  # colnames(R)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+  # rownames(R)<-c("E","I")
+  # R[1,4]=1
+  # R[2,4]=1
+  # 
+  # ### Init Q
+  # Q = matrix(0,nrow=2,ncol=6)
+  # colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+  # rownames(Q)<-c("E","I")
+  # 
+  # 
+  # E=matrix(0,nrow=2,ncol=6)
+  # colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+  # rownames(E)<-c("E","I")
   
   #out <- GenSA(lower = c(0.0,0.0,0.0,0.0), upper = c(1,1,1,1), fn = rl_eg_negLogLik,allpaths=allpaths, Q=Q, E=E,control = list(max.time=600, verbose=TRUE))
   
@@ -80,33 +80,39 @@ mle_rl=function(enreg,rat){
   # optimParallel(par=c(1,1), fn=negll, x=x,
   #               method = "L-BFGS-B", lower=c(-Inf, .0001))
   
-  # minima=Inf
-  # optimal_vals <-numeric()
-  # 
-  # 
-  # 
-  # for(alpha in seq(0.1,1,0.1)){
-  #   for(gamma in seq(0.1,1,0.1)){
-  #     for(epsilon in seq(0.1,1,0.1)){
-  #       for(lambda in seq(0.1,1,0.1)){
-  #         # for(path1_prb1 in seq(0.1,1,0.1)){
-  #         #   for(path1_prb2 in seq(0.1,1,0.1)){
-  #             
-  #             log_likelihood=rl_eg_negLogLik(c(alpha,gamma,epsilon,lambda,0.5,0.5),allpaths,Q,E)
-  #              if(log_likelihood < minima){
-  #                minima=log_likelihood
-  #                optimal_vals <- c(alpha,gamma,epsilon,lambda,path1_prb1,path1_prb2)
-  #              }
-  #         #   }
-  #         #   
-  #         # }
-  #         
-  #       }
-  #     }
-  #   }
-  # }
-  # print(minima)
-  # print(optimal_vals)
+  cl <- makeCluster(detectCores()-1)
+  setDefaultCluster(cl=cl)
+  clusterExport(cl, varlist=c("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg"))
+  
+  minima=Inf
+  optimal_vals <-numeric()
+
+
+
+  for(alpha in seq(0.1,1,0.3)){
+    for(gamma in seq(0.1,1,0.3)){
+      for(epsilon in seq(0.1,1,0.3)){
+        for(lambda in seq(0.1,1,0.3)){
+           # for(path1_prb1 in seq(0.1,1,0.3)){
+           #   for(path1_prb2 in seq(0.1,1,0.3)){
+
+              #log_likelihood=rl_eg_negLogLik(c(alpha,gamma,epsilon,lambda,0.5,0.5),allpaths,Q,E)
+              est <- optimParallel(c(alpha,gamma,epsilon,lambda,0.5,0.5),rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
+              
+               if(est$value < minima){
+                 minima=est$value
+                 optimal_vals <- est$par
+               }
+          #    }
+          # 
+          # }
+
+        }
+      }
+    }
+  }
+ print(minima)
+ print(optimal_vals)
   
 }
 

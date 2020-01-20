@@ -1,5 +1,8 @@
 
 library(GenSA)
+library(parallel)
+library(optimParallel)
+library(randtoolbox)
 
 #### Function to call for plotting heatmap
 mle_rl=function(enreg,rat){
@@ -74,7 +77,7 @@ mle_rl=function(enreg,rat){
   # clusterExport(clust, list("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg","ses"))
   # a <- parLapply(clust, starting_values, model.mse)
   # out <- DEoptim(rl_eg_negLogLik,lower = c(0.0,0.0,0.0,0.0,0.0,0.0), upper = c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E,DEoptim.control(NP=60,F=0.8, CR = 0.9,trace=TRUE,parallelType=1,packages=c(),parVar=c("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg","ses")))
-  # 
+
   # 
   # setDefaultCluster(cl=clust) # set 'cl' as default cluster
   # optimParallel(par=c(1,1), fn=negll, x=x,
@@ -83,36 +86,21 @@ mle_rl=function(enreg,rat){
   cl <- makeCluster(detectCores()-1)
   setDefaultCluster(cl=cl)
   clusterExport(cl, varlist=c("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg"))
+  startIter <- 3
+  # set the number of values for which to run optim in full
+  fullIter <- 5
+  # define a set of starting values
+  starting_values<-generate_starting_values(4,c(0.001,0.001,0.001,0.001),c(0.999,0.999,0.999,0.999))
+  # call optim with startIter iterations for each starting value
+  opt <- apply(starting_values,2,function(x) optimParallel(x,rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
+  # define new starting values as the fullIter best values found thus far
+  starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
+  # run optim in full for these new starting values
+  opt <- lapply(starting_values_2,optimParallel,fn=rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths,method="L-BFGS-B",parallel=list(loginfo=TRUE))
   
-  minima=Inf
-  optimal_vals <-numeric()
-
-
-
-  for(alpha in seq(0.1,1,0.3)){
-    for(gamma in seq(0.1,1,0.3)){
-      for(epsilon in seq(0.1,1,0.3)){
-        for(lambda in seq(0.1,1,0.3)){
-           # for(path1_prb1 in seq(0.1,1,0.3)){
-           #   for(path1_prb2 in seq(0.1,1,0.3)){
-
-              #log_likelihood=rl_eg_negLogLik(c(alpha,gamma,epsilon,lambda,0.5,0.5),allpaths,Q,E)
-              est <- optimParallel(c(alpha,gamma,epsilon,lambda,0.5,0.5),rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
-              
-               if(est$value < minima){
-                 minima=est$value
-                 optimal_vals <- est$par
-               }
-          #    }
-          # 
-          # }
-
-        }
-      }
-    }
-  }
- print(minima)
- print(optimal_vals)
+  optimal_vals<-opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]$par
+  
+  print(sprintf("%s,optimal_vals: %s",rat,paste(optimal_vals,collapse = " ")))
   
 }
 
@@ -125,6 +113,17 @@ updatePathNb=function(allpaths){
     return(allpaths)
 }
 
+generate_starting_values <- function(n,min,max) {
+  if(length(min) != length(max)) stop("min and max should have the same length")
+  dim <- length(min)
+  # generate Sobol values
+  start <- sobol(n,dim=dim)
+  # transform these to lie between min and max on each dimension
+  for(i in 1:ncol(start)) {
+    start[,i] <- min[i] + (max[i]-min[i])*start[,i]
+  }
+  return(start)
+}
 
 
 
@@ -302,8 +301,8 @@ rl_eg_negLogLik <- function(par,allpaths) {
   gamma <- par[2]
   epsilon <- par[3]
   lambda <- par[4]
-  path1_prb1 <- par[5]
-  path1_prb2 <- par[6]
+  path1_prb1 <- 0.5
+  path1_prb2 <- 0.5
   lik <- sarsa_mle(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths)
   negLogLik <- -sum(log(lik))
   return(negLogLik)

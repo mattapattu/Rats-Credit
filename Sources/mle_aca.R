@@ -46,25 +46,56 @@ mle_aca=function(enreg,rat){
   n_init=l[1]+10
   alpha_min=0
   n_min=0
+  n_max=n_init+100
   
-  for(alpha in seq(0.1,1,0.1)){
-    for(n in seq(n_init,200)){
-      
-    
-      log_likelihood=rl_aca_negLogLik(c(alpha,n),allpaths,H,Scores,Visits)
-      
-      if(log_likelihood < minima){
-        minima=log_likelihood
-        alpha_min=alpha
-        n_min=n
-      }
-    }
-    
-  }
-  print(sprintf("alpha_min=%f,n_min=%i",alpha_min,n_min))
+  # for(alpha in seq(0.1,1,0.1)){
+  #   for(n in seq(n_init,200)){
+  #     
+  #   
+  #     log_likelihood=rl_aca_negLogLik(c(alpha,n),allpaths,H,Scores,Visits)
+  #     
+  #     if(log_likelihood < minima){
+  #       minima=log_likelihood
+  #       alpha_min=alpha
+  #       n_min=n
+  #     }
+  #   }
+  #   
+  # }
+  # print(sprintf("alpha_min=%f,n_min=%i",alpha_min,n_min))
+  
+  cl <- makeCluster(detectCores()-1)
+  setDefaultCluster(cl=cl)
+  clusterExport(cl, varlist=c("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg"))
+  startIter <- 3
+  # set the number of values for which to run optim in full
+  fullIter <- 5
+  # define a set of starting values
+  starting_values<-generate_starting_values(4,c(0.001,n_init),c(0.999,n_max))
+  # call optim with startIter iterations for each starting value
+  opt <- apply(starting_values,2,function(x) optimParallel(x,rl_eg_negLogLik,lower=c(0.001,n_init),upper=c(0.999,n_max),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
+  # define new starting values as the fullIter best values found thus far
+  starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
+  # run optim in full for these new starting values
+  opt <- lapply(starting_values_2,optimParallel,fn=rl_eg_negLogLik,lower=c(0.001,n_init),upper=c(0.999,n_max),allpaths=allpaths,method="L-BFGS-B",parallel=list(loginfo=TRUE))
+  
+  optimal_vals<-opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]$par
+  
+  print(sprintf("%s,optimal_vals: %s",rat,paste(optimal_vals,collapse = " ")))
           
 }
 
+generate_starting_values <- function(n,min,max) {
+  if(length(min) != length(max)) stop("min and max should have the same length")
+  dim <- length(min)
+  # generate Sobol values
+  start <- sobol(n,dim=dim)
+  # transform these to lie between min and max on each dimension
+  for(i in 1:ncol(start)) {
+    start[,i] <- min[i] + (max[i]-min[i])*start[,i]
+  }
+  return(start)
+}
 
 updatePathNb=function(allpaths){
   allpaths <- cbind(allpaths,Path=0,Reward=0)

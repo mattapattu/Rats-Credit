@@ -23,28 +23,28 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
   actions[[episode]] <- vector()
   states[[episode]] <- vector()
   
-  initState=0
+  initState=1
   changeState = F
   returnToInitState = F
   reward=0
-  
-  for(i in 1:max_steps)){
+  S=initState
+  for(i in c(1:max_steps)){
     
     
-    S=getNextState(allpaths,i)
-    A=as.numeric(allpaths[i,3])
+    if(step<= exploration_end){
+      A=sample(c(1:6),size=1)
+    }else{
+      A=softmax_policy(H,S)
+    }
+    ## Update S based on action A
+    S=getNextState(S,A)  
     
     
     if(length(actions[[episode]])==0){
       initState=S
     }
     
-    ses=as.numeric(allpaths[i,"Session"])
-    trial=i-which(allpaths[,"Session"]==ses)[1]+1
-    pos_trial_t<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
-    R=sum(as.numeric(enreg[[ses]]$POS[pos_trial_t,"Reward"]))
-    
-    if(R>0){
+    if(R[S,A]>0){
       reward=reward+1
     }else{
       reward=reward+0
@@ -92,8 +92,8 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
               ## During exploration
               ### Credit = Score * activity
               ## Activity of (A,S) = #Nb of times Action A is taken in State S/ # Nb of times State S is visited
-              time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
-              H[state,action]=reward*1000/time_spent_in_trial
+              #time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
+              H[state,action]=reward
               if(is.nan(H[state,action])){
                 stop("H[state,action] is NaN")
               }
@@ -207,17 +207,25 @@ getNextState=function(curr_state,action){
   return(new_state)
 }
 
-epsilon_greedy=function(Q,epsilon,state){
-  U=runif(1,0,1)
-  action =0
-  if(U <= epsilon){
-    action = sample(c(1:6), 1)
-    #print(sprintf("Selecting random action - %i in state - %i",action,state))
-  }else{
-    action = which.max(Q[state,])
-    #print(sprintf("Selecting greedy action - %i in state - %i",action,state))
-  }
-  return(action)
+
+softmax_policy=function(H,state){
+  
+ x1=exp(H[state,1])
+ x2=exp(H[state,2])
+ x3=exp(H[state,3])
+ x4=exp(H[state,4])
+ x5=exp(H[state,5])
+ x6=exp(H[state,6])
+ 
+ p1=x1/(x1+x2+x3+x4+x5+x6)
+ p2=x2/(x1+x2+x3+x4+x5+x6)
+ p3=x3/(x1+x2+x3+x4+x5+x6)
+ p4=x4/(x1+x2+x3+x4+x5+x6)
+ p5=x5/(x1+x2+x3+x4+x5+x6)
+ p6=x6/(x1+x2+x3+x4+x5+x6)
+ 
+ action = sample(c(1:6),size=1,prob=c(p1,p2,p3,p4,p5,p6))
+ return(action)
 }
 ### Init Q
 Q = matrix(0,nrow=2,ncol=6)

@@ -96,9 +96,17 @@ mle_rl=function(enreg,rat){
   # define new starting values as the fullIter best values found thus far
   starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
   # run optim in full for these new starting values
-  opt <- lapply(starting_values_2,optimParallel,fn=rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths,method="L-BFGS-B",parallel=list(loginfo=TRUE))
+  # opt <- lapply(starting_values_2,optimParallel,fn=rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths,method="L-BFGS-B",parallel=list(loginfo=TRUE))
+  # 
+  # optimal_vals<-opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]$par
   
-  optimal_vals<-opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]$par
+  
+  for(i in 1:length(starting_values_2)){
+    if(!is.null(starting_values_2[[i]])){
+      est <- optimParallel(starting_values_2[[i]],rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
+  
+    }
+  }
   
   print(sprintf("%s,optimal_vals: %s",rat,paste(optimal_vals,collapse = " ")))
   

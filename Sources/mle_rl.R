@@ -36,53 +36,6 @@ mle_rl=function(enreg,rat){
   }
   allpaths = updatePathNb(allpaths)
   
-  # R=matrix(0,nrow=2,ncol=6)
-  # colnames(R)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-  # rownames(R)<-c("E","I")
-  # R[1,4]=1
-  # R[2,4]=1
-  # 
-  # ### Init Q
-  # Q = matrix(0,nrow=2,ncol=6)
-  # colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-  # rownames(Q)<-c("E","I")
-  # 
-  # 
-  # E=matrix(0,nrow=2,ncol=6)
-  # colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-  # rownames(E)<-c("E","I")
-  
-  #out <- GenSA(lower = c(0.0,0.0,0.0,0.0), upper = c(1,1,1,1), fn = rl_eg_negLogLik,allpaths=allpaths, Q=Q, E=E,control = list(max.time=600, verbose=TRUE))
-  
-  #est <- optim(c(0.1,0.8,0.1,0.8,0.5,0.5),rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E, method="L-BFGS-B")
-  #print(sprintf("Estimated parameters for rat %s = %s",rat,est$par ))
-  
-  # startIter <- 20
-  # # set the number of values for which to run optim in full
-  # fullIter <- 5
-  # # define a set of starting values
-  # starting_values <- expand.grid(seq(0.1,1,by=0.3),seq(0.1,1,by=0.3),seq(0.1,1,by=0.3),seq(0.1,1,by=0.3),seq(0.1,1,by=0.3),seq(0.1,1,by=0.3))
-  # # call optim with startIter iterations for each starting value
-  # opt <- apply(starting_values,1,function(x) optimParallel(x,rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
-  # # define new starting values as the fullIter best values found thus far
-  # starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
-  # # run optim in full for these new starting values
-  # opt <- lapply(starting_values_2,optim,fn=rl_eg_negLogLik,allpaths=allpaths, method="L-BFGS-B")
-  # # find the element in opt with the lowest value
-  # opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]
-  # 
-  # n.cores <- detectCores()
-  # n.cores
-  # clust <- makeCluster(n.cores)
-  # clusterExport(clust, list("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg","ses"))
-  # a <- parLapply(clust, starting_values, model.mse)
-  # out <- DEoptim(rl_eg_negLogLik,lower = c(0.0,0.0,0.0,0.0,0.0,0.0), upper = c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E,DEoptim.control(NP=60,F=0.8, CR = 0.9,trace=TRUE,parallelType=1,packages=c(),parVar=c("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg","ses")))
-
-  # 
-  # setDefaultCluster(cl=clust) # set 'cl' as default cluster
-  # optimParallel(par=c(1,1), fn=negll, x=x,
-  #               method = "L-BFGS-B", lower=c(-Inf, .0001))
-  
   cl <- makeCluster(detectCores()-1)
   setDefaultCluster(cl=cl)
   clusterExport(cl, varlist=c("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg"))
@@ -100,11 +53,16 @@ mle_rl=function(enreg,rat){
   # 
   # optimal_vals<-opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]$par
   
+  optimal_vals <-numeric()
+  min_val=Inf
   
   for(i in 1:length(starting_values_2)){
     if(!is.null(starting_values_2[[i]])){
-      est <- optimParallel(starting_values_2[[i]],rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
-  
+      est <- optimParallel(starting_values_2[[i]],rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
+      if(est$value<min_val){
+        min_val = est$value
+        optimal_vals <- est$par
+      }
     }
   }
   

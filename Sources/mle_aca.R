@@ -56,11 +56,11 @@ mle_aca=function(enreg,rat){
   #print(sprintf("Estimated parameters for rat %s = %s",rat,est$par ))
   minima=Inf
   
-  l<-which(as.numeric(allpaths[,"Reward"])!=0)
-  n_init=l[1]+10
-  alpha_min=0
-  n_min=0
-  n_max=n_init+100
+  # l<-which(as.numeric(allpaths[,"Reward"])!=0)
+  # n_init=l[1]+10
+  # alpha_min=0
+  # n_min=0
+  # n_max=n_init+100
   
   cl <- makeCluster(detectCores()-1)
   setDefaultCluster(cl=cl)
@@ -70,23 +70,22 @@ mle_aca=function(enreg,rat){
   # set the number of values for which to run optim in full
   fullIter <- 5
   # define a set of starting values
-  starting_values<-generate_starting_values(2,c(0.001,n_init),c(0.999,n_max))
+  starting_values<-generate_starting_values(2,c(0.001,0,0),c(0.999,1,1))
   # call optim with startIter iterations for each starting value
-  opt <- apply(starting_values,2,function(x) optimParallel(x,rl_aca_negLogLik,lower=c(0.001,n_init),upper=c(0.999,n_max),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
+  opt <- apply(starting_values,2,function(x) optimParallel(x,rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
   # define new starting values as the fullIter best values found thus far
   starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
 
   optimal_vals <-numeric()
   min_val=Inf
   
-  for(i in 1:length(starting_values_2)){
-    if(!is.null(starting_values_2[[i]])){
-      est <- optimParallel(starting_values_2[[i]],rl_aca_negLogLik,lower=c(0.001,n_init),upper=c(0.999,n_max),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
-      if(est$value<min_val){
+  for(i in 1:length(starting_values[,1])){
+      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
+      if(est$value<min_val && est$convergence==0){
         min_val = est$value
         optimal_vals <- est$par
       }
-    }
+    
   }
   
   print(sprintf("%s,optimal_vals: %s, min_val :%f",rat,paste(optimal_vals,collapse = " "),min_val))
@@ -162,7 +161,7 @@ getPathNumber=function(path){
 
 ### Action = Path
 ## State = E or I
-aca_mle=function(alpha,n,allpaths){
+aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
   
   ### Init H
   H = matrix(0,nrow=2,ncol=6)
@@ -265,16 +264,16 @@ aca_mle=function(alpha,n,allpaths){
             }
             
             
-            if(i<=n){
-              ## During exploration
-              ### Credit = Score * activity
-              ## Activity of (A,S) = #Nb of times Action A is taken in State S/ # Nb of times State S is visited
-              time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
-              H[state,action]=reward*1000/time_spent_in_trial
-              if(is.nan(H[state,action])){
-                stop("H[state,action] is NaN")
-              }
-            }else{
+            # if(i<=n){
+            #   ## During exploration
+            #   ### Credit = Score * activity
+            #   ## Activity of (A,S) = #Nb of times Action A is taken in State S/ # Nb of times State S is visited
+            #   time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
+            #   H[state,action]=reward*1000/time_spent_in_trial
+            #   if(is.nan(H[state,action])){
+            #     stop("H[state,action] is NaN")
+            #   }
+            # }else{
               ## After exploration
               ## expected_score = E(Score of Action A in State S) = #Total Score of Action A in State S before current trial/#Nb of times Action A is taken in State S
               
@@ -287,25 +286,23 @@ aca_mle=function(alpha,n,allpaths){
               if(is.nan(H[state,action])){
                 stop("H[state,action] is NaN")
               }
-            }
+            # }
             
             ## Update Score of current Action A in current state S
             Score[state,action]=Score[state,action]+reward
             Visits[state,action]=Visits[state,action]+1
             
-          }
-          
-          
+           }
           ## If S,A is not visited in the episode
           else{
             if(action==49|action==51){
               action=4
             }
             
-            if(i<=n){
-              ## During exploration
-              ### No Credit update as reward=0 during exploration
-            }else{
+            # if(i<=n){
+            #   ## During exploration
+            #   ### No Credit update as reward=0 during exploration
+            # }else{
               ## After exploration
               
               if(Visits[state,action]==0){
@@ -316,7 +313,7 @@ aca_mle=function(alpha,n,allpaths){
               
               H[state,action]=H[state,action]-alpha*(reward-expected_score)*(as.numeric(softmax(action,state,H)))
 
-            }
+            # }
           }
         }
         
@@ -334,11 +331,12 @@ aca_mle=function(alpha,n,allpaths){
     ### End episode check
     
     
-    if(i<=n){
-      QProb<-c(QProb,mpfr(1/6,128))
-    }else{
-      QProb<-c(QProb,mpfr(softmax(A,S,H),128))
-    }
+    # if(i<=n){
+    #   QProb<-c(QProb,mpfr(1/6,128))
+    # }else{
+    #   QProb<-c(QProb,mpfr(softmax(A,S,H),128))
+    # }
+    QProb<-c(QProb,mpfr(softmax(A,S,H),128))
     
     S=S_prime
 
@@ -375,7 +373,8 @@ getNextState=function(allpaths,i){
 
 rl_aca_negLogLik <- function(par,allpaths) {
   alpha <- par[1]
-  n <- par[2]
+  path1_prob1 <- par[2]
+  path1_prob2 <- par[3]
   lik <- aca_mle(alpha,n,allpaths)
   negLogLik <- -sum(log(lik))
   return(as.numeric(negLogLik))
@@ -390,11 +389,6 @@ softmax=function(A,S,H){
     x6 <- mpfr(exp(H[S,5]), precBits = 128)
     x7 <- mpfr(exp(H[S,6]), precBits = 128)
     pr_A=(x1)/((x2)+(x3)+(x4)+(x5)+(x6)+(x7))
-    # if(pr_A==1){
-    #   stop(sprintf("pr_A is 1 = %.20f, Action=%i,State=%i, H=%s",pr_A,A,S,paste(as.numeric(x1),as.numeric(x2),as.numeric(x3),as.numeric(x4),as.numeric(x5),as.numeric(x6), sep=" ")))
-    # }else if(pr_A==0){
-    #   stop(sprintf("pr_A is 1 = %.20f, Action=%i,State=%i, H=%s",pr_A,A,S,paste(as.numeric(x1),as.numeric(x2),as.numeric(x3),as.numeric(x4),as.numeric(x5),as.numeric(x6), sep=" ")))
-    # }
     return(pr_A)
 }
 

@@ -56,28 +56,16 @@ mle_rl=function(enreg,rat){
   fullIter <- 5
   # define a set of starting values
   starting_values<-generate_starting_values(10,c(0.001,0.001,0.001,0.001,0,0),c(0.999,0.999,0.999,0.999,1,1))
-  # call optim with startIter iterations for each starting value
-  opt <- apply(starting_values,2,function(x) optimParallel(x,rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001,0,0),upper=c(0.999,0.999,0.999,0.999,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
-  # define new starting values as the fullIter best values found thus far
-  starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
-  # run optim in full for these new starting values
-  # opt <- lapply(starting_values_2,optimParallel,fn=rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths,method="L-BFGS-B",parallel=list(loginfo=TRUE))
-  # 
-  # optimal_vals<-opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]$par
-  
   optimal_vals <-numeric()
   min_val=Inf
-  
-  for(i in 1:length(starting_values_2)){
-    if(!is.null(starting_values_2[[i]])){
-      est <- optimParallel(starting_values_2[[i]],rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001,0,0),upper=c(0.999,0.999,0.999,0.999,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
-      if(est$value<min_val){
+  for(i in 1:length(starting_values[,1])){
+      est <- optimParallel(starting_values[i,],rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001,0,0),upper=c(0.999,0.999,0.999,0.999,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
+      if(est$value<min_val && est$convergence==0){
         min_val = est$value
         optimal_vals <- est$par
-      }
     }
   }
-  
+
   print(sprintf("%s,optimal_vals: %s, min_val :%f",rat,paste(optimal_vals,collapse = " "),min_val))
 
   

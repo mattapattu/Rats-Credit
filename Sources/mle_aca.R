@@ -1,6 +1,8 @@
 
 library(GenSA)
 library(Rmpfr)
+library(parallel)
+library(optimParallel)
 
 #### Function to call for plotting heatmap
 mle_aca=function(enreg,rat){
@@ -16,6 +18,18 @@ mle_aca=function(enreg,rat){
     }else if(isempty(enreg[[ses]]$EVENTS)){
       print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
       next
+    }else if(rat=="rat_106" && ses==3){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }else if(rat=="rat_112" && ses==1){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }else if(rat=="rat_113" && ses==13){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
     }
     
     last_trial <- as.numeric(enreg[[ses]]$POS[length(enreg[[ses]]$POS[,1]),"trial"])
@@ -32,7 +46,7 @@ mle_aca=function(enreg,rat){
     
     
   }
-  allpaths = updatePathNb(allpaths)
+  allpaths = updateACAPathNb(allpaths)
   
 
   
@@ -48,48 +62,34 @@ mle_aca=function(enreg,rat){
   n_min=0
   n_max=n_init+100
   
-  # for(alpha in seq(0.1,1,0.1)){
-  #   for(n in seq(n_init,200)){
-  #     
-  #   
-  #     log_likelihood=rl_aca_negLogLik(c(alpha,n),allpaths,H,Scores,Visits)
-  #     
-  #     if(log_likelihood < minima){
-  #       minima=log_likelihood
-  #       alpha_min=alpha
-  #       n_min=n
-  #     }
-  #   }
-  #   
-  # }
-  # print(sprintf("alpha_min=%f,n_min=%i",alpha_min,n_min))
-  
   cl <- makeCluster(detectCores()-1)
   setDefaultCluster(cl=cl)
-  clusterExport(cl, varlist=c("sarsa_mle","rl_eg_negLogLik","getNextState","getPathNumber","updatePathNb","enreg"))
+  clusterExport(cl, varlist=c("aca_mle","rl_aca_negLogLik","getNextState","getPathNumber","updateACAPathNb","enreg","softmax"))
+  clusterEvalQ(cl, library("Rmpfr"))
   startIter <- 3
   # set the number of values for which to run optim in full
   fullIter <- 5
   # define a set of starting values
-  starting_values<-generate_starting_values(4,c(0.001,n_init),c(0.999,n_max))
+  starting_values<-generate_starting_values(2,c(0.001,n_init),c(0.999,n_max))
   # call optim with startIter iterations for each starting value
   opt <- apply(starting_values,2,function(x) optimParallel(x,rl_aca_negLogLik,lower=c(0.001,n_init),upper=c(0.999,n_max),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
   # define new starting values as the fullIter best values found thus far
   starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
-  # run optim in full for these new starting values
-  # opt <- lapply(starting_values_2,optimParallel,fn=rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths,method="L-BFGS-B",parallel=list(loginfo=TRUE))
-  # 
-  # optimal_vals<-opt[[which.min(unlist(lapply(opt,function(x) x$value)))]]$par
-  
+
+  optimal_vals <-numeric()
+  min_val=Inf
   
   for(i in 1:length(starting_values_2)){
     if(!is.null(starting_values_2[[i]])){
       est <- optimParallel(starting_values_2[[i]],rl_aca_negLogLik,lower=c(0.001,n_init),upper=c(0.999,n_max),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
-      
+      if(est$value<min_val){
+        min_val = est$value
+        optimal_vals <- est$par
+      }
     }
   }
   
-  print(sprintf("%s,optimal_vals: %s",rat,paste(optimal_vals,collapse = " ")))
+  print(sprintf("%s,optimal_vals: %s, min_val :%f",rat,paste(optimal_vals,collapse = " "),min_val))
           
 }
 
@@ -105,7 +105,7 @@ generate_starting_values <- function(n,min,max) {
   return(start)
 }
 
-updatePathNb=function(allpaths){
+updateACAPathNb=function(allpaths){
   allpaths <- cbind(allpaths,Path=0,Reward=0)
   for(i in 1:(length(allpaths[,1]))){
     ses=as.numeric(allpaths[i,"Session"])
@@ -189,16 +189,24 @@ aca_mle=function(alpha,n,allpaths){
   actions[[episode]] <- vector()
   states[[episode]] <- vector()
   
+  if(grepl("^.*e$",allpaths[1,1])){
+    S = 1
+  }else if(grepl("^.*i$",allpaths[1,1])){
+    S = 2
+  }else{
+    print("Unknown intial state. Check")
+  }
+  
+  A  = as.numeric(allpaths[1,3])
+  episode=1
+  
+  
   initState=0
   changeState = F
   returnToInitState = F
   reward=0
   
-  for(i in 1:(length(allpaths[,1]))){
-    
-    
-    S=getNextState(allpaths,i)
-    A=as.numeric(allpaths[i,3])
+  for(i in 2:(length(allpaths[,1]))-1){
     
     
     if(length(actions[[episode]])==0){
@@ -216,6 +224,9 @@ aca_mle=function(alpha,n,allpaths){
       reward=reward+0
     }
     
+    A=as.numeric(allpaths[i,3])
+    S_prime=getNextState(allpaths,i)
+    
     if(A == 4 & S == 1){
       actions[[episode]] <- append(actions[[episode]],51)
     }else if(A == 4 & S == 2){
@@ -226,10 +237,10 @@ aca_mle=function(alpha,n,allpaths){
     #actions <- c(actions,sprintf("S%i-P%i",S,A))
     states[[episode]] <- append(states[[episode]],unname(S))
     #print(sprintf("Current state = %i, Action = %i", S,A))
-    if(S!=initState){
+    if(S_prime!=initState){
       changeState = T
       #print(sprintf("Setting changeState to T"))
-    }else if(S==initState && changeState){
+    }else if(S_prime==initState && changeState){
       returnToInitState = T
       #print(sprintf("Setting returnToInitState to T"))
     }
@@ -320,7 +331,7 @@ aca_mle=function(alpha,n,allpaths){
         states[[episode]] <- vector()
       }
     }
-    ### Start new episode
+    ### End episode check
     
     
     if(i<=n){
@@ -328,25 +339,8 @@ aca_mle=function(alpha,n,allpaths){
     }else{
       QProb<-c(QProb,mpfr(softmax(A,S,H),128))
     }
-    #print(sprintf("QProb=%f",QProb[i]))
     
-    ## i+1 is used as I am adding "1" to QProb when initializing
-    # if(is.nan(QProb[i+1])){
-    #   stop(sprintf("i=%i,Qprob is 1 = %.20f, Action=%i,State=%i, Matrix = %s",i,QProb[i+1],A,S,paste(as.vector(H), collapse=" ")))
-    #   print(sprintf('%.20f',QProb[i+1]))
-    #   print(sprintf("Action=%i,State=%i",A,S))
-    #   print(H)
-    # }else if((QProb[i+1]==1)){
-    #   stop(sprintf("i=%i,alpha=%f,n=%f,Qprob is 1 = %.20f, Action=%i,State=%i, Matrix = %s",i,alpha,n,QProb[i+1],A,S,paste(as.vector(H), collapse=" ")))
-    #   print(sprintf("Qprob is 1 = %.20f, Action=%i,State=%i, Matrix = %s",QProb[i+1],A,S,paste(as.vector(H), collapse=" ")))
-    #   print(sprintf("Action=%i,State=%i",A,S))
-    #   print(H)
-    # }else if((QProb[i+1]==0)){
-    #   stop(sprintf("i=%i,Qprob is 1 = %.20f, Action=%i,State=%i, Matrix = %s",i,QProb[i+1],A,S,paste(as.vector(H), collapse=" ")))
-    #   print(sprintf('%.20f',QProb[i+1]))
-    #   print(sprintf("Action=%i,State=%i",A,S))
-    #   print(H)
-    # }
+    S=S_prime
 
   }
   return(QProb)

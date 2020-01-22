@@ -18,6 +18,18 @@ mle_rl=function(enreg,rat){
     }else if(isempty(enreg[[ses]]$EVENTS)){
       print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
       next
+    }else if(rat=="rat_106" && ses==3){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }else if(rat=="rat_112" && ses==1){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }else if(rat=="rat_113" && ses==13){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
     }
 
     last_trial <- as.numeric(enreg[[ses]]$POS[length(enreg[[ses]]$POS[,1]),"trial"])
@@ -43,9 +55,9 @@ mle_rl=function(enreg,rat){
   # set the number of values for which to run optim in full
   fullIter <- 5
   # define a set of starting values
-  starting_values<-generate_starting_values(4,c(0.001,0.001,0.001,0.001),c(0.999,0.999,0.999,0.999))
+  starting_values<-generate_starting_values(10,c(0.001,0.001,0.001,0.001,0,0),c(0.999,0.999,0.999,0.999,1,1))
   # call optim with startIter iterations for each starting value
-  opt <- apply(starting_values,2,function(x) optimParallel(x,rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
+  opt <- apply(starting_values,2,function(x) optimParallel(x,rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001,0,0),upper=c(0.999,0.999,0.999,0.999,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
   # define new starting values as the fullIter best values found thus far
   starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
   # run optim in full for these new starting values
@@ -58,7 +70,7 @@ mle_rl=function(enreg,rat){
   
   for(i in 1:length(starting_values_2)){
     if(!is.null(starting_values_2[[i]])){
-      est <- optimParallel(starting_values_2[[i]],rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001),upper=c(0.999,0.999,0.999,0.999),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
+      est <- optimParallel(starting_values_2[[i]],rl_eg_negLogLik,lower=c(0.001,0.001,0.001,0.001,0,0),upper=c(0.999,0.999,0.999,0.999,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
       if(est$value<min_val){
         min_val = est$value
         optimal_vals <- est$par
@@ -66,7 +78,8 @@ mle_rl=function(enreg,rat){
     }
   }
   
-  print(sprintf("%s,optimal_vals: %s",rat,paste(optimal_vals,collapse = " ")))
+  print(sprintf("%s,optimal_vals: %s, min_val :%f",rat,paste(optimal_vals,collapse = " "),min_val))
+
   
 }
 
@@ -160,9 +173,6 @@ sarsa_mle=function(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths){
   }
   
   A  = as.numeric(allpaths[1,3])
-  if(A==7){
-    as.numeric(allpaths[1,3])
-  }
   episode=1
   actions[[episode]] <- vector()
   
@@ -267,8 +277,8 @@ rl_eg_negLogLik <- function(par,allpaths) {
   gamma <- par[2]
   epsilon <- par[3]
   lambda <- par[4]
-  path1_prb1 <- 0.5
-  path1_prb2 <- 0.5
+  path1_prb1 <- par[5]
+  path1_prb2 <- par[6]
   lik <- sarsa_mle(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths)
   negLogLik <- -sum(log(lik))
   return(negLogLik)

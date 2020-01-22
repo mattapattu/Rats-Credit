@@ -1,4 +1,5 @@
 
+library(Rmpfr)
 
 R=matrix(0,nrow=2,ncol=6)
 colnames(R)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
@@ -17,8 +18,9 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
   
   actions <-list()
   states <-list()
+  probMatrix_aca=matrix(0,12,max_steps)
+  rownames(probMatrix_aca)<-c("State 1, Path1","State 1, Path2","State 1, Path3","State 1, Path4","State 1, Path5","State 1, Path6","State 2, Path1","State 2, Path2","State 2, Path3","State 2, Path4","State 2, Path5","State 2, Path6")
   
-  QProb<-mpfrArray(1, prec = 128, dim = 1)
   episode=1
   actions[[episode]] <- vector()
   states[[episode]] <- vector()
@@ -28,16 +30,16 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
   returnToInitState = F
   reward=0
   S=initState
+  
   for(i in c(1:max_steps)){
     
-    
-    if(step<= exploration_end){
+    if(i<= n){
       A=sample(c(1:6),size=1)
     }else{
       A=softmax_policy(H,S)
     }
     ## Update S based on action A
-    S=getNextState(S,A)  
+    S_prime=getNextState(S,A)  
     
     
     if(length(actions[[episode]])==0){
@@ -60,19 +62,24 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
     #actions <- c(actions,sprintf("S%i-P%i",S,A))
     states[[episode]] <- append(states[[episode]],unname(S))
     #print(sprintf("Current state = %i, Action = %i", S,A))
-    if(S!=initState){
+    if(S_prime!=initState){
       changeState = T
       #print(sprintf("Setting changeState to T"))
-    }else if(S==initState && changeState){
+    }else if(S_prime==initState && changeState){
       returnToInitState = T
       #print(sprintf("Setting returnToInitState to T"))
     }
+    
+ 
     
     
     ## Check if episode ended
     if(returnToInitState){
       changeState = F
       returnToInitState = F
+      
+      probMatrix_aca[1:6,max_steps]=H[1,]
+      probMatrix_aca[7:12,max_steps]=H[2,]
       
       a<-actions[[episode]]
       s<-states[[episode]]
@@ -149,43 +156,17 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
       episode = episode+1
       
       #print(sprintf("Updating episode to %i",episode))
-      if(i < length(allpaths[,1])-1){
+      if(i < (max_steps-1)){
         actions[[episode]] <- vector()
         states[[episode]] <- vector()
       }
     }
-    ### Start new episode
+    ### End of episode checkd
+    S=S_prime
     
-    
-    if(i<=n){
-      QProb<-c(QProb,mpfr(1/6,128))
-    }else{
-      QProb<-c(QProb,mpfr(softmax(A,S,H),128))
-    }
-    #print(sprintf("QProb=%f",QProb[i]))
-    
-    ## i+1 is used as I am adding "1" to QProb when initializing
-    # if(is.nan(QProb[i+1])){
-    #   stop(sprintf("i=%i,Qprob is 1 = %.20f, Action=%i,State=%i, Matrix = %s",i,QProb[i+1],A,S,paste(as.vector(H), collapse=" ")))
-    #   print(sprintf('%.20f',QProb[i+1]))
-    #   print(sprintf("Action=%i,State=%i",A,S))
-    #   print(H)
-    # }else if((QProb[i+1]==1)){
-    #   stop(sprintf("i=%i,alpha=%f,n=%f,Qprob is 1 = %.20f, Action=%i,State=%i, Matrix = %s",i,alpha,n,QProb[i+1],A,S,paste(as.vector(H), collapse=" ")))
-    #   print(sprintf("Qprob is 1 = %.20f, Action=%i,State=%i, Matrix = %s",QProb[i+1],A,S,paste(as.vector(H), collapse=" ")))
-    #   print(sprintf("Action=%i,State=%i",A,S))
-    #   print(H)
-    # }else if((QProb[i+1]==0)){
-    #   stop(sprintf("i=%i,Qprob is 1 = %.20f, Action=%i,State=%i, Matrix = %s",i,QProb[i+1],A,S,paste(as.vector(H), collapse=" ")))
-    #   print(sprintf('%.20f',QProb[i+1]))
-    #   print(sprintf("Action=%i,State=%i",A,S))
-    #   print(H)
-    # }
-    
+
   }
 
-
-  
   print(unlist(states))
   # a=as.data.frame(actions)
   # colnames(a)=NULL
@@ -207,6 +188,22 @@ getNextState=function(curr_state,action){
   return(new_state)
 }
 
+softmax=function(A,S,H){
+  x1 <- mpfr(exp(H[S,A]), precBits = 128)
+  x2 <- mpfr(exp(H[S,1]), precBits = 128)
+  x3 <- mpfr(exp(H[S,2]), precBits = 128)
+  x4 <- mpfr(exp(H[S,3]), precBits = 128)
+  x5 <- mpfr(exp(H[S,4]), precBits = 128)
+  x6 <- mpfr(exp(H[S,5]), precBits = 128)
+  x7 <- mpfr(exp(H[S,6]), precBits = 128)
+  pr_A=(x1)/((x2)+(x3)+(x4)+(x5)+(x6)+(x7))
+  # if(pr_A==1){
+  #   stop(sprintf("pr_A is 1 = %.20f, Action=%i,State=%i, H=%s",pr_A,A,S,paste(as.numeric(x1),as.numeric(x2),as.numeric(x3),as.numeric(x4),as.numeric(x5),as.numeric(x6), sep=" ")))
+  # }else if(pr_A==0){
+  #   stop(sprintf("pr_A is 1 = %.20f, Action=%i,State=%i, H=%s",pr_A,A,S,paste(as.numeric(x1),as.numeric(x2),as.numeric(x3),as.numeric(x4),as.numeric(x5),as.numeric(x6), sep=" ")))
+  # }
+  return(pr_A)
+}
 
 softmax_policy=function(H,state){
   
@@ -226,93 +223,31 @@ softmax_policy=function(H,state){
  
  action = sample(c(1:6),size=1,prob=c(p1,p2,p3,p4,p5,p6))
  return(action)
-}
-### Init Q
-Q = matrix(0,nrow=2,ncol=6)
-colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-rownames(Q)<-c("E","I")
-Q[1,1]=0.5
-Q[2,1]=0.5
 
-E=matrix(0,nrow=2,ncol=6)
-colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-rownames(E)<-c("E","I")
+}
+
+### Init H
+H = matrix(0,nrow=2,ncol=6)
+colnames(H)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+rownames(H)<-c("E","I")
+H[1,1]=0.5
+H[2,1]=0.5
+
+### Init S - for scores
+Score = matrix(0,nrow=2,ncol=6)
+colnames(Score)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+rownames(Score)<-c("E","I")
+
+## Counter for Actions
+Visits = matrix(0,nrow=2,ncol=6)
+colnames(Visits)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+rownames(Visits)<-c("E","I")
 
 ## Session 1
-alpha=0.1
-max_steps=30
-epsilon=0.1
-#gamma=0.3
-gamma=0.9
-lambda=1
+alpha=0.04
+max_steps=100
+n=96
 #debug(epsilon_greedy)
 #debug(getNextState)
 #debug(sarsa)
-Q1=sarsa(Q,E,alpha,max_steps,epsilon,gamma,lambda)
-
-## Session 2
-alpha=0.1
-max_steps=80
-epsilon=0.2
-#gamma=0.3
-gamma=0.7
-lambda=1
-#debug(epsilon_greedy)
-#debug(getNextState)
-#debug(sarsa)
-Q2=sarsa(Q1,E,alpha,max_steps,epsilon,gamma,lambda)
-
-### Session 3
-alpha=0.2
-max_steps=100
-epsilon=0.2
-gamma=0.8
-lambda=1
-#debug(epsilon_greedy)
-#debug(getNextState)
-#debug(Qlearn)
-Q3=sarsa(Q2,E,alpha,max_steps,epsilon,gamma,lambda)
-
-# ### Session 4
-alpha=0.4
-max_steps=100
-epsilon=0.1
-gamma=0.8
-lambda=1
-#debug(epsilon_greedy)
-#debug(getNextState)
-#debug(Qlearn)
-Q4=sarsa(Q3,E,alpha,max_steps,epsilon,gamma,lambda)
-
-# ## Session 2
-# alpha=0.1
-# max_steps=100
-# epsilon=0.4
-# gamma=0.8
-# lambda=0.2
-# #debug(epsilon_greedy)
-# #debug(getNextState)
-# #debug(Qlearn)
-# Q2=sarsa(Q1,E,alpha,max_steps,epsilon,gamma,lambda)
-# # 
-# # ### Session 3
-# alpha=0.1
-# max_steps=100
-# epsilon=0.4
-# gamma=0.8
-# lambda=0.9
-# #debug(epsilon_greedy)
-# #debug(getNextState)
-# #debug(Qlearn)
-# Q3=sarsa(Q2,E,alpha,max_steps,epsilon,gamma,lambda)
-# # 
-# # ### Session 4
-# alpha=0.8
-# max_steps=100
-# epsilon=0.1
-# gamma=0.8
-# lambda=0.2
-# #debug(epsilon_greedy)
-# #debug(getNextState)
-# #debug(Qlearn)
-# Q4=sarsa(Q3,E,alpha,max_steps,epsilon,gamma,lambda)
+Q1=aca_rl(H,Visits,Scores,alpha,n,max_steps)

@@ -12,14 +12,14 @@ R[2,4]=1
 ### Action = Path
 ## State = E or I
 
-aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
+aca_rl=function(H,Visits,Scores,alpha,n,max_steps,sessions){
   
   ## Start form state 1 = Box "E"
   
   actions <-list()
   states <-list()
   probMatrix_aca=matrix(0,12,max_steps)
-  rownames(probMatrix_aca)<-c("State 1, Path1","State 1, Path2","State 1, Path3","State 1, Path4","State 1, Path5","State 1, Path6","State 2, Path1","State 2, Path2","State 2, Path3","State 2, Path4","State 2, Path5","State 2, Path6")
+  rownames(probMatrix_aca)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
   
   episode=1
   actions[[episode]] <- vector()
@@ -134,7 +134,7 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
         states[[episode]] <- vector()
         activations[[episode]] <- vector()
       }
-    }
+   
     }
     ### End of episode checkd
     S=S_prime
@@ -208,17 +208,9 @@ rownames(H)<-c("E","I")
 H[1,1]=0.5
 H[2,1]=0.5
 
-### Init S - for scores
-Score = matrix(0,nrow=2,ncol=6)
-colnames(Score)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-rownames(Score)<-c("E","I")
-
-## Counter for Actions
-Visits = matrix(0,nrow=2,ncol=6)
-colnames(Visits)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-rownames(Visits)<-c("E","I")
 
 ## Session 1
+sessions <-c(100,200,300,400)
 alpha=0.04
 max_steps=100
 n=96

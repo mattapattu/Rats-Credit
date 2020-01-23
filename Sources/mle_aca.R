@@ -253,7 +253,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
       a<-actions[[episode]]
       s<-states[[episode]]
       
-      avg_score = avg_score + (score_episode-avg_score)/i
+      avg_score = avg_score + (score_episode-avg_score)/episode
       for(state in 1:2){
         for(action in c(1,2,3,49,51,5,6)){
           

@@ -84,7 +84,7 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
       a<-actions[[episode]]
       s<-states[[episode]]
       
-      avg_score = avg_score + (score_episode-avg_score)/i
+      avg_score = avg_score + (score_episode-avg_score)/episode
       for(state in 1:2){
         for(action in c(1,2,3,49,51,5,6)){
           

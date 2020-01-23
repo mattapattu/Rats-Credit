@@ -54,32 +54,27 @@ mle_aca=function(enreg,rat){
   
   #est <- optim(c(0.1,0.8,0.1,0.8,0.5,0.5),rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E, method="L-BFGS-B")
   #print(sprintf("Estimated parameters for rat %s = %s",rat,est$par ))
-  minima=Inf
-  
-  # l<-which(as.numeric(allpaths[,"Reward"])!=0)
-  # n_init=l[1]+10
-  # alpha_min=0
-  # n_min=0
-  # n_max=n_init+100
-  
+
+
   cl <- makeCluster(detectCores()-1)
   setDefaultCluster(cl=cl)
   clusterExport(cl, varlist=c("aca_mle","rl_aca_negLogLik","getNextState","getPathNumber","updateACAPathNb","enreg","softmax"))
   clusterEvalQ(cl, library("Rmpfr"))
-  startIter <- 3
-  # set the number of values for which to run optim in full
-  fullIter <- 5
+  # startIter <- 3
+  # # set the number of values for which to run optim in full
+  # fullIter <- 5
   # define a set of starting values
-  starting_values<-generate_starting_values(2,c(0.001,0,0),c(0.999,1,1))
+  starting_values<-generate_starting_values(10,c(0.001,0,0),c(0.999,1,1))
   # call optim with startIter iterations for each starting value
-  opt <- apply(starting_values,2,function(x) optimParallel(x,rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
-  # define new starting values as the fullIter best values found thus far
-  starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
+  # opt <- apply(starting_values,2,function(x) optimParallel(x,rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
+  # # define new starting values as the fullIter best values found thus far
+  # starting_values_2 <- lapply(opt[order(unlist(lapply(opt,function(x) x$value)))[1:fullIter]],function(x) x$par)
 
   optimal_vals <-numeric()
   min_val=Inf
   
   for(i in 1:length(starting_values[,1])){
+    print(sprintf("starting_values=%s",paste(starting_values[i,],collapse = " ")))
       est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
       if(est$value<min_val && est$convergence==0){
         min_val = est$value
@@ -179,14 +174,16 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
   rownames(Visits)<-c("E","I")
   
   ## 
-  
+  avg_score=0
   actions <-list()
   states <-list()
+  activations <- list()
   
   QProb<-mpfrArray(1, prec = 128, dim = 1)
   episode=1
   actions[[episode]] <- vector()
   states[[episode]] <- vector()
+  activations[[episode]] <- vector()
   
   if(grepl("^.*e$",allpaths[1,1])){
     S = 1
@@ -196,14 +193,14 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     print("Unknown intial state. Check")
   }
   
-  A  = as.numeric(allpaths[1,3])
+  #A  = as.numeric(allpaths[1,3])
   episode=1
   
   
   initState=0
   changeState = F
   returnToInitState = F
-  reward=0
+  score_episode=0
   
   for(i in 2:(length(allpaths[,1]))-1){
     
@@ -216,11 +213,13 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     trial=i-which(allpaths[,"Session"]==ses)[1]+1
     pos_trial_t<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
     R=sum(as.numeric(enreg[[ses]]$POS[pos_trial_t,"Reward"]))
+    time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
+    
     
     if(R>0){
-      reward=reward+1
+      score_episode=score_episode+1
     }else{
-      reward=reward+0
+      score_episode=score_episode+0
     }
     
     A=as.numeric(allpaths[i,3])
@@ -233,6 +232,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     }else{
       actions[[episode]] <- append(actions[[episode]],unname(A))
     }
+    activations[[episode]] <- append(activations[[episode]],1/time_spent_in_trial)
     #actions <- c(actions,sprintf("S%i-P%i",S,A))
     states[[episode]] <- append(states[[episode]],unname(S))
     #print(sprintf("Current state = %i, Action = %i", S,A))
@@ -253,89 +253,59 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
       a<-actions[[episode]]
       s<-states[[episode]]
       
+      avg_score = avg_score + (score_episode-avg_score)/i
       for(state in 1:2){
         for(action in c(1,2,3,49,51,5,6)){
           
+          if(state==1 && action ==49){
+            next
+          }else if(state==2 && action ==51){
+            next
+          }
+
           ## If S,A is visited in the episode
           if(any(s[which(a %in% action)]==state)){
             
             if(action==49|action==51){
               action=4
+              
             }
             
-            
-            # if(i<=n){
-            #   ## During exploration
-            #   ### Credit = Score * activity
-            #   ## Activity of (A,S) = #Nb of times Action A is taken in State S/ # Nb of times State S is visited
-            #   time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
-            #   H[state,action]=reward*1000/time_spent_in_trial
-            #   if(is.nan(H[state,action])){
-            #     stop("H[state,action] is NaN")
-            #   }
-            # }else{
-              ## After exploration
-              ## expected_score = E(Score of Action A in State S) = #Total Score of Action A in State S before current trial/#Nb of times Action A is taken in State S
+            if(Visits[state,action]==0){
+              expected_score=0
+            }else{
               
-              if(Visits[state,action]==0){
-                expected_score=0
-              }else{
-                expected_score = Score[state,action]/Visits[state,action]
-              }
-              H[state,action]=H[state,action]+alpha*(reward-expected_score)*(1-as.numeric(softmax(action,state,H)))
-              if(is.nan(H[state,action])){
-                stop("H[state,action] is NaN")
-              }
-            # }
+            }
+            H[state,action]=H[state,action]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action,state,H)))
             
-            ## Update Score of current Action A in current state S
-            Score[state,action]=Score[state,action]+reward
-            Visits[state,action]=Visits[state,action]+1
+            if(is.nan(H[state,action])){
+              stop("H[state,action] is NaN")
+            }
             
-           }
+          }
           ## If S,A is not visited in the episode
           else{
             if(action==49|action==51){
               action=4
             }
+            H[state,action]=H[state,action]-alpha*(score_episode-avg_score)*(as.numeric(softmax(action,state,H)))
             
-            # if(i<=n){
-            #   ## During exploration
-            #   ### No Credit update as reward=0 during exploration
-            # }else{
-              ## After exploration
-              
-              if(Visits[state,action]==0){
-                expected_score=0
-              }else{
-                expected_score = Score[state,action]/Visits[state,action]
-              }
-              
-              H[state,action]=H[state,action]-alpha*(reward-expected_score)*(as.numeric(softmax(action,state,H)))
-
-            # }
           }
         }
-        
       }
       ## reset rewards
-      reward=0
+      score_episode=0
       episode = episode+1
       
       #print(sprintf("Updating episode to %i",episode))
       if(i < length(allpaths[,1])-1){
         actions[[episode]] <- vector()
         states[[episode]] <- vector()
+        activations[[episode]] <- vector()
       }
     }
     ### End episode check
     
-    
-    # if(i<=n){
-    #   QProb<-c(QProb,mpfr(1/6,128))
-    # }else{
-    #   QProb<-c(QProb,mpfr(softmax(A,S,H),128))
-    # }
     QProb<-c(QProb,mpfr(softmax(A,S,H),128))
     
     S=S_prime
@@ -375,7 +345,7 @@ rl_aca_negLogLik <- function(par,allpaths) {
   alpha <- par[1]
   path1_prob1 <- par[2]
   path1_prob2 <- par[3]
-  lik <- aca_mle(alpha,n,allpaths)
+  lik <- aca_mle(alpha,path1_prob1,path1_prob2,allpaths)
   negLogLik <- -sum(log(lik))
   return(as.numeric(negLogLik))
 }

@@ -84,82 +84,57 @@ aca_rl=function(H,Visits,Scores,alpha,n,max_steps){
       a<-actions[[episode]]
       s<-states[[episode]]
       
+      avg_score = avg_score + (score_episode-avg_score)/i
       for(state in 1:2){
         for(action in c(1,2,3,49,51,5,6)){
+          
+          if(state==1 && action ==49){
+            next
+          }else if(state==2 && action ==51){
+            next
+          }
           
           ## If S,A is visited in the episode
           if(any(s[which(a %in% action)]==state)){
             
             if(action==49|action==51){
               action=4
-            }
-            
-            
-            if(i<=n){
-              ## During exploration
-              ### Credit = Score * activity
-              ## Activity of (A,S) = #Nb of times Action A is taken in State S/ # Nb of times State S is visited
-              #time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
-              H[state,action]=reward
-              if(is.nan(H[state,action])){
-                stop("H[state,action] is NaN")
-              }
-            }else{
-              ## After exploration
-              ## expected_score = E(Score of Action A in State S) = #Total Score of Action A in State S before current trial/#Nb of times Action A is taken in State S
               
-              if(Visits[state,action]==0){
-                expected_score=0
-              }else{
-                expected_score = Score[state,action]/Visits[state,action]
-              }
-              H[state,action]=H[state,action]+alpha*(reward-expected_score)*(1-as.numeric(softmax(action,state,H)))
-              if(is.nan(H[state,action])){
-                stop("H[state,action] is NaN")
-              }
             }
             
-            ## Update Score of current Action A in current state S
-            Score[state,action]=Score[state,action]+reward
-            Visits[state,action]=Visits[state,action]+1
+            if(Visits[state,action]==0){
+              expected_score=0
+            }else{
+              
+            }
+            H[state,action]=H[state,action]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action,state,H)))
+            
+            if(is.nan(H[state,action])){
+              stop("H[state,action] is NaN")
+            }
             
           }
-          
-          
           ## If S,A is not visited in the episode
           else{
             if(action==49|action==51){
               action=4
             }
+            H[state,action]=H[state,action]-alpha*(score_episode-avg_score)*(as.numeric(softmax(action,state,H)))
             
-            if(i<=n){
-              ## During exploration
-              ### No Credit update as reward=0 during exploration
-            }else{
-              ## After exploration
-              
-              if(Visits[state,action]==0){
-                expected_score=0
-              }else{
-                expected_score = Score[state,action]/Visits[state,action]
-              }
-              
-              H[state,action]=H[state,action]-alpha*(reward-expected_score)*(as.numeric(softmax(action,state,H)))
-              
-            }
           }
         }
-        
       }
       ## reset rewards
-      reward=0
+      score_episode=0
       episode = episode+1
       
       #print(sprintf("Updating episode to %i",episode))
-      if(i < (max_steps-1)){
+      if(i < length(allpaths[,1])-1){
         actions[[episode]] <- vector()
         states[[episode]] <- vector()
+        activations[[episode]] <- vector()
       }
+    }
     }
     ### End of episode checkd
     S=S_prime

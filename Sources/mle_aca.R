@@ -75,7 +75,7 @@ mle_aca=function(enreg,rat){
   
   for(i in 1:length(starting_values[,1])){
     print(sprintf("starting_values=%s",paste(starting_values[i,],collapse = " ")))
-      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths, method="L-BFGS-B",parallel=list(loginfo=TRUE))
+      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths, method="L-BFGS-B")
       if(est$value<min_val && est$convergence==0){
         min_val = est$value
         optimal_vals <- est$par
@@ -268,14 +268,8 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
             
             if(action==49|action==51){
               action=4
-              
             }
-            
-            if(Visits[state,action]==0){
-              expected_score=0
-            }else{
-              
-            }
+
             H[state,action]=H[state,action]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action,state,H)))
             
             if(is.nan(H[state,action])){
@@ -288,6 +282,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
             if(action==49|action==51){
               action=4
             }
+            
             H[state,action]=H[state,action]-alpha*(score_episode-avg_score)*(as.numeric(softmax(action,state,H)))
             
           }

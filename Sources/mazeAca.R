@@ -71,12 +71,12 @@ mazeACA=function(enreg,rat){
   H = matrix(0,nrow=2,ncol=6)
   colnames(H)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(H)<-c("E","I")
-  H[1,1]=0.25
-  H[2,1]=0.75
-  
-  
-  #sessions <-c(1,100,200,300,400)
-  alpha=0.04177
+  # H[1,1]=0.25
+  # H[2,1]=0.75
+  # alpha=0.04177
+  H[1,1]=0.125
+  H[2,1]=0.375
+  alpha=0.02892765
   #max_steps=500
   #debug(aca_rl)
   probACA=aca_rl(H,alpha,max_steps,sessions)

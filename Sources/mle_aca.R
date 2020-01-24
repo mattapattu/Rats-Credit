@@ -72,10 +72,10 @@ mle_aca=function(enreg,rat){
 
   optimal_vals <-numeric()
   min_val=Inf
-  
+  control <- list(factr=.01/.Machine$double.eps)
   for(i in 1:length(starting_values[,1])){
     print(sprintf("starting_values=%s",paste(starting_values[i,],collapse = " ")))
-      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths, method="L-BFGS-B")
+      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths, control=control)
       if(est$value<min_val && est$convergence==0){
         min_val = est$value
         optimal_vals <- est$par

@@ -259,8 +259,8 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
       s<-states[[episode]]
       
       total_actions= length((actions[[episode]]))
-      avg_score = avg_score + (score_episode-avg_score)/episode
-      activations[[episode]]<-activations[[episode]]/sum(activations[[episode]])
+      avg_score = avg_score + ((score_episode/total_actions)-avg_score)/episode
+      #activations[[episode]]<-activations[[episode]]/sum(activations[[episode]])
       for(state in 1:2){
         for(action in c(1,2,3,49,51,5,6)){
           
@@ -277,7 +277,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
               action=4
             }
             
-            activity=sum(activations[[episode]][which(actions[[episode]]==action)])
+            activity=sum(activations[[episode]][which(actions[[episode]]==action)])/sum(activations[[episode]])
             #print(sprintf("Activty=%f",score_episode*activity))
             H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
             

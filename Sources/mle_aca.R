@@ -278,6 +278,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
             }
             
             activity=sum(activations[[episode]][which(actions[[episode]]==action)])
+            #print(sprintf("Activty=%f",score_episode*activity))
             H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
             
             if(is.nan(H[state,action])){
@@ -290,12 +291,14 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
             if(action==49|action==51){
               action=4
             }
-            
+            print(sprintf("Activty=%f",score_episode/total_actions))
             H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
             
           }
         }
       }
+      
+      #print(H)
       ## reset rewards
       score_episode=0
       episode = episode+1
@@ -308,8 +311,11 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
       }
     }
     ### End episode check
-    
-    QProb<-c(QProb,mpfr(softmax(A,S,H),128))
+    x<-mpfr(softmax(A,S,H),128)
+    if(is.infinite(as.numeric(x))){
+      stop("softmax return Inf")
+    }
+    QProb<-c(QProb,x)
     
     S=S_prime
 
@@ -350,7 +356,12 @@ rl_aca_negLogLik <- function(par,allpaths) {
   path1_prob2 <- par[3]
   lik <- aca_mle(alpha,path1_prob1,path1_prob2,allpaths)
   negLogLik <- -sum(log(lik))
-  return(as.numeric(negLogLik))
+  if(is.infinite(negLogLik)){
+    return(1000000)
+  }else{
+    return(as.numeric(negLogLik))
+  }
+  
 }
 
 softmax=function(A,S,H){

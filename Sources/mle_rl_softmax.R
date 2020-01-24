@@ -283,7 +283,12 @@ rl_eg_negLogLik_softmax <- function(par,allpaths) {
   path1_prb2 <- par[4]
   lik <- sarsa_mle_softmax(alpha,epsilon,gamma,lambda,path1_prb1,path1_prb2,allpaths)
   negLogLik <- -sum(log(lik))
-  return(as.numeric(negLogLik))
+  
+  if(is.infinite(negLogLik)){
+    return(1000000)
+  }else{
+    return(as.numeric(negLogLik))
+  }
 }
 
 

@@ -204,6 +204,8 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
   
   for(i in 2:(length(allpaths[,1]))-1){
     
+    print(sprintf("i=%i,episode=%i",i,episode))
+    
     
     if(length(actions[[episode]])==0){
       initState=S
@@ -214,6 +216,9 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     pos_trial_t<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
     R=sum(as.numeric(enreg[[ses]]$POS[pos_trial_t,"Reward"]))
     time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
+    if(time_spent_in_trial==0){
+      time_spent_in_trial=20
+    }
     
     
     if(R>0){
@@ -232,7 +237,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     }else{
       actions[[episode]] <- append(actions[[episode]],unname(A))
     }
-    activations[[episode]] <- append(activations[[episode]],1/time_spent_in_trial)
+    activations[[episode]] <- append(activations[[episode]],1000/time_spent_in_trial)
     #actions <- c(actions,sprintf("S%i-P%i",S,A))
     states[[episode]] <- append(states[[episode]],unname(S))
     #print(sprintf("Current state = %i, Action = %i", S,A))
@@ -253,7 +258,9 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
       a<-actions[[episode]]
       s<-states[[episode]]
       
+      total_actions= length((actions[[episode]]))
       avg_score = avg_score + (score_episode-avg_score)/episode
+      activations[[episode]]<-activations[[episode]]/sum(activations[[episode]])
       for(state in 1:2){
         for(action in c(1,2,3,49,51,5,6)){
           
@@ -269,8 +276,9 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
             if(action==49|action==51){
               action=4
             }
-
-            H[state,action]=H[state,action]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action,state,H)))
+            
+            activity=sum(activations[[episode]][which(actions[[episode]]==action)])
+            H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
             
             if(is.nan(H[state,action])){
               stop("H[state,action] is NaN")
@@ -283,7 +291,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
               action=4
             }
             
-            H[state,action]=H[state,action]-alpha*(score_episode-avg_score)*(as.numeric(softmax(action,state,H)))
+            H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
             
           }
         }

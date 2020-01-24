@@ -11,7 +11,7 @@ R[2,4]=1
 ### Action = Path
 ## State = E or I
 
-sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions){
+sarsa_smax=function(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions){
   
   ## Start form state 1 = Box "E"
   
@@ -30,7 +30,7 @@ sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions){
   
   S=1
   E=E*0
-  A=epsilon_greedy_sarsa(Q,epsilon,S)
+  A=softmax_policy_sarsa(Q,S)
   episode=1
   actions[[episode]] <- vector()
   initState = S
@@ -42,7 +42,7 @@ sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions){
     #print(sprintf("episode=%i",episode))
     r=R[S,A]
     S_prime=getNextState_sarsa(S,A)
-    A_prime=epsilon_greedy_sarsa(Q,epsilon,S_prime)
+    A_prime=softmax_policy_sarsa(Q,S_prime)
     E[S,A]=E[S,A]+1
     delta=r+(gamma* Q[S_prime,A_prime]) - Q[S,A]
     Q=Q+ (alpha*delta*E)
@@ -118,18 +118,6 @@ getNextState_sarsa=function(curr_state,action){
   return(new_state)
 }
 
-epsilon_greedy_sarsa=function(Q,epsilon,state){
-  U=runif(1,0,1)
-  action =0
-  if(U <= epsilon){
-    action = sample(c(1:6), 1)
-    #print(sprintf("Selecting random action - %i in state - %i",action,state))
-  }else{
-    action = which.max(Q[state,])
-    #print(sprintf("Selecting greedy action - %i in state - %i",action,state))
-  }
-  return(action)
-}
 
 getStatsOfLastSession_sarsa=function(probMatrix_sarsa,session_start,session,actions,states){
   mat<-matrix(0,0,2)
@@ -161,6 +149,46 @@ getStatsOfLastSession_sarsa=function(probMatrix_sarsa,session_start,session,acti
   
   return(probMatrix_sarsa)
 }
+
+softmax_sarsa=function(A,S,Q){
+  x1 <- mpfr(exp(Q[S,A]), precBits = 128)
+  x2 <- mpfr(exp(Q[S,1]), precBits = 128)
+  x3 <- mpfr(exp(Q[S,2]), precBits = 128)
+  x4 <- mpfr(exp(Q[S,3]), precBits = 128)
+  x5 <- mpfr(exp(Q[S,4]), precBits = 128)
+  x6 <- mpfr(exp(Q[S,5]), precBits = 128)
+  x7 <- mpfr(exp(Q[S,6]), precBits = 128)
+  pr_A=(x1)/((x2)+(x3)+(x4)+(x5)+(x6)+(x7))
+  # if(pr_A==1){
+  #   stop(sprintf("pr_A is 1 = %.20f, Action=%i,State=%i, H=%s",pr_A,A,S,paste(as.numeric(x1),as.numeric(x2),as.numeric(x3),as.numeric(x4),as.numeric(x5),as.numeric(x6), sep=" ")))
+  # }else if(pr_A==0){
+  #   stop(sprintf("pr_A is 1 = %.20f, Action=%i,State=%i, H=%s",pr_A,A,S,paste(as.numeric(x1),as.numeric(x2),as.numeric(x3),as.numeric(x4),as.numeric(x5),as.numeric(x6), sep=" ")))
+  # }
+  return(pr_A)
+}
+
+softmax_policy_sarsa=function(Q,state){
+  
+  x1=exp(Q[state,1])
+  x2=exp(Q[state,2])
+  x3=exp(Q[state,3])
+  x4=exp(Q[state,4])
+  x5=exp(Q[state,5])
+  x6=exp(Q[state,6])
+  
+  p1=x1/(x1+x2+x3+x4+x5+x6)
+  p2=x2/(x1+x2+x3+x4+x5+x6)
+  p3=x3/(x1+x2+x3+x4+x5+x6)
+  p4=x4/(x1+x2+x3+x4+x5+x6)
+  p5=x5/(x1+x2+x3+x4+x5+x6)
+  p6=x6/(x1+x2+x3+x4+x5+x6)
+  
+  action = sample(c(1:6),size=1,prob=c(p1,p2,p3,p4,p5,p6))
+  return(action)
+  
+}
+
+
 # 
 # ### Init Q
 # Q = matrix(0,nrow=2,ncol=6)

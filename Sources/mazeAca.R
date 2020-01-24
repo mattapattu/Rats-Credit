@@ -74,9 +74,15 @@ mazeACA=function(enreg,rat){
   # H[1,1]=0.25
   # H[2,1]=0.75
   # alpha=0.04177
-  H[1,1]=0.125
-  H[2,1]=0.375
-  alpha=0.02892765
+
+    # H[1,1]=0.125
+  # H[2,1]=0.375
+  # alpha=0.02892765
+  
+  H[1,1]=0.5
+  H[2,1]=0.5
+  alpha=0.001
+  
   #max_steps=500
   #debug(aca_rl)
   probACA=aca_rl(H,alpha,max_steps,sessions)
@@ -98,15 +104,15 @@ mazeACA=function(enreg,rat){
   rownames(E)<-c("E","I")
   
   ## Session 1
-  alpha=0.2335897
-  gamma=0.6011665
-  epsilon=0.4385508
-  lambda=0.12575
+  alpha=0.1221627
+  gamma=0.8894646
+  epsilon=0
+  lambda=1
   max_steps=1380
   #debug(epsilon_greedy)
   #debug(getNextState)
   #debug(sarsa)
-  probSARSA=sarsa(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions)
+  probSARSA=sarsa_smax(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions)
 
   plotProbs(probEmp,probACA,probSARSA,rat)
 }
@@ -258,6 +264,7 @@ aca_rl=function(H,alpha,max_steps,sessions){
       a<-actions[[episode]]
       s<-states[[episode]]
       
+      total_actions= length((actions[[episode]]))
       avg_score = avg_score + (score_episode-avg_score)/episode
       for(state in 1:2){
         for(action in c(1,2,3,49,51,5,6)){
@@ -276,7 +283,8 @@ aca_rl=function(H,alpha,max_steps,sessions){
               
             }
             
-            H[state,action]=H[state,action]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action,state,H)))
+            activity=length(which(actions[[episode]]==action))/total_actions
+            H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
             
             if(is.nan(H[state,action])){
               stop("H[state,action] is NaN")
@@ -288,7 +296,7 @@ aca_rl=function(H,alpha,max_steps,sessions){
             if(action==49|action==51){
               action=4
             }
-            H[state,action]=H[state,action]-alpha*(score_episode-avg_score)*(as.numeric(softmax(action,state,H)))
+            H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
             
           }
         }
@@ -408,9 +416,9 @@ plotProbs=function(probEmp,probACA,probSARSA,rat){
     filename = paste(rat,"Path_probabilites-",rownames(probEmp)[i],".jpg",sep="")
     jpeg(filename,width=800,height=800,quality = 100)
     plot(probEmp[i,],col='black',type='l',ylim=c(0,1),xlab="Sessions",ylab="Path Prob",main=paste(rat,"_Path probability of ",rownames(probEmp)[i],sep=""))
-    lines(probACA[i,],col='red',type='l')
-    lines(probSARSA[i,],col='blue',type='l')
-    legend("topright", legend=c("Empirical Prob from data", "Probability by ACA","Probability by SARSA"),lty=c(1,1,1),col=c("black", "red","blue"),cex=0.75,bty = "n")
+    lines(probACA[i,],col='red',type='l',lty=2)
+    lines(probSARSA[i,],col='blue',type='l',lty=3)
+    legend("topright", legend=c("Empirical Prob from data", "Probability by ACA","Probability by SARSA"),lty=c(1,2,3),col=c("black", "red","blue"),cex=0.75,bty = "n")
     dev.off()
   }
   

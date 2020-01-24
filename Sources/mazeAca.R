@@ -323,7 +323,9 @@ aca_rl=function(H,alpha,max_steps,sessions){
   # a=as.data.frame(actions)
   # colnames(a)=NULL
   # rownames(a)=NULL
-  print(actions)
+  capture.output(print(actions), file = "/home/ajames/intership2/actions_ACA.txt")
+  capture.output(print(actions), file = "/home/ajames/intership2/states_ACA.txt")
+  
   #print()
   return(probMatrix_aca)
 }

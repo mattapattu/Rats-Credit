@@ -115,6 +115,11 @@ mazeACA=function(enreg,rat){
   probSARSA=sarsa_smax(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions)
 
   plotProbs(probEmp,probACA,probSARSA,rat)
+  
+  print(getMSE(probEmp,probACA))
+  print(getMSE(probEmp,probSARSA))
+  print(getCorrMatrix(probEmp,probACA))
+  print(getCorrMatrix(probEmp,probSARSA))
 }
 
 updateACAPathNb1=function(allpaths){
@@ -220,9 +225,9 @@ aca_rl=function(H,alpha,max_steps,sessions){
     }
     
     if(R[S,A]>0){
-      reward=reward+1
+      score_episode=score_episode+1
     }else{
-      reward=reward+0
+      score_episode=score_episode+0
     }
     
     if(A == 4 & S == 1){
@@ -424,6 +429,41 @@ plotProbs=function(probEmp,probACA,probSARSA,rat){
     dev.off()
   }
   
+}
+
+getCorrMatrix=function(prob1,prob2){
+  corrMatrix=matrix(0,2,12)
+  rownames(corrMatrix)<-c("correlation","p-value")
+  colnames(corrMatrix)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
+  for(i in 1:12){
+   x<- cor.test(prob1[i,],prob2[i,])
+   corrMatrix[1,i]=x$estimate
+   corrMatrix[2,i]=x$p.value
+  }
+  return(corrMatrix)
+}
+
+getMSE=function(prob1,prob2){
+  mseMatrix=matrix(0,1,12)
+  rownames(mseMatrix)<-c("MSE")
+  colnames(mseMatrix)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
+  for(i in 1:12){
+    x<- mean((prob1[i,]-prob2[i,])^2)
+    mseMatrix[1,i]=x
+  }
+  return(mseMatrix)
+}
+
+getCovarianceMatrix=function(prob1,prob2){
+  covMatrix=matrix(0,2,12)
+  rownames(covMatrix)<-c("correlation","p-value")
+  colnames(covMatrix)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
+  for(i in 1:12){
+    x<- cov(prob1[i,],prob2[i,])
+    covMatrix[1,i]=x$estimate
+    covMatrix[2,i]=x$p.value
+  }
+  return(corrMatrix)
 }
 
 # ### Init H

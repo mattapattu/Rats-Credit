@@ -79,9 +79,17 @@ mazeACA=function(enreg,rat){
   # H[2,1]=0.375
   # alpha=0.02892765
   
-  H[1,1]=0.5
-  H[2,1]=0.5
-  alpha=0.001
+  # H[1,1]=0.75
+  # H[2,1]=0.25
+  # alpha=0.00828704774614916
+  
+  alpha=0.0168508870018846
+  H[1,1]=0.375
+  H[2,1]=0.625
+  
+  # H[1,1]=0.125
+  # H[2,1]=0.375
+  # alpha=0.00971564429353458
   
   #max_steps=500
   #debug(aca_rl)
@@ -96,16 +104,16 @@ mazeACA=function(enreg,rat){
   Q = matrix(0,nrow=2,ncol=6)
   colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(Q)<-c("E","I")
-  Q[1,1]=0.875
-  Q[2,1]=0.875
+  Q[1,1]=0.115581894626535
+  Q[2,1]=0.885489207907076
   
   E=matrix(0,nrow=2,ncol=6)
   colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(E)<-c("E","I")
   
   ## Session 1
-  alpha=0.1221627
-  gamma=0.8894646
+  alpha=0.12216275648779
+  gamma=0.889464671985183
   epsilon=0
   lambda=1
   max_steps=1380
@@ -116,9 +124,13 @@ mazeACA=function(enreg,rat){
 
   plotProbs(probEmp,probACA,probSARSA,rat)
   
+  print(sprintf("MSE Empirical vs ACA:"))
   print(getMSE(probEmp,probACA))
+  print(sprintf("MSE Empirical vs SARSA:"))
   print(getMSE(probEmp,probSARSA))
+  print(sprintf("Correlation Empirical vs ACA:"))
   print(getCorrMatrix(probEmp,probACA))
+  print(sprintf("Correlation Empirical vs SARSA:"))
   print(getCorrMatrix(probEmp,probSARSA))
 }
 
@@ -288,8 +300,10 @@ aca_rl=function(H,alpha,max_steps,sessions){
               
             }
             
-            activity=length(which(actions[[episode]]==action))/total_actions
-            H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
+            #activity=length(which(actions[[episode]]==action))/total_actions
+            activity=as.numeric(softmax(action,state,H))
+            H[state,action]=H[state,action]+alpha*(score_episode/total_actions)
+            #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
             
             if(is.nan(H[state,action])){
               stop("H[state,action] is NaN")
@@ -297,13 +311,13 @@ aca_rl=function(H,alpha,max_steps,sessions){
             
           }
           ## If S,A is not visited in the episode
-          else{
-            if(action==49|action==51){
-              action=4
-            }
-            H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
-            
-          }
+          # else{
+          #   if(action==49|action==51){
+          #     action=4
+          #   }
+          #   H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
+          #   
+          # }
         }
       }
       ## reset rewards
@@ -328,8 +342,8 @@ aca_rl=function(H,alpha,max_steps,sessions){
   # a=as.data.frame(actions)
   # colnames(a)=NULL
   # rownames(a)=NULL
-  capture.output(print(actions), file = "/home/ajames/intership2/actions_ACA.txt")
-  capture.output(print(actions), file = "/home/ajames/intership2/states_ACA.txt")
+  #capture.output(print(actions), file = "/home/ajames/intership2/actions_ACA.txt")
+  #capture.output(print(actions), file = "/home/ajames/intership2/states_ACA.txt")
   
   #print()
   return(probMatrix_aca)

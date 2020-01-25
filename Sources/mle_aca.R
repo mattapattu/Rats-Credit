@@ -64,7 +64,7 @@ mle_aca=function(enreg,rat){
   # # set the number of values for which to run optim in full
   # fullIter <- 5
   # define a set of starting values
-  starting_values<-generate_starting_values(10,c(0.001,0,0),c(0.999,1,1))
+  starting_values<-generate_starting_values(10,c(0,0,0),c(0.999,1,1))
   # call optim with startIter iterations for each starting value
   # opt <- apply(starting_values,2,function(x) optimParallel(x,rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
   # # define new starting values as the fullIter best values found thus far
@@ -75,7 +75,7 @@ mle_aca=function(enreg,rat){
   control <- list(factr=.01/.Machine$double.eps)
   for(i in 1:length(starting_values[,1])){
     print(sprintf("starting_values=%s",paste(starting_values[i,],collapse = " ")))
-      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths, control=control)
+      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0,0,0),upper=c(0.999,1,1),allpaths=allpaths, control=control)
       if(est$value<min_val && est$convergence==0){
         min_val = est$value
         optimal_vals <- est$par
@@ -277,9 +277,12 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
               action=4
             }
             
-            activity=sum(activations[[episode]][which(actions[[episode]]==action)])/sum(activations[[episode]])
+            #activity=sum(activations[[episode]][which(actions[[episode]]==action)])/sum(activations[[episode]])
             #print(sprintf("Activty=%f",score_episode*activity))
-            H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
+            #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
+            activity=as.numeric(softmax(action,state,H))
+            H[state,action]=H[state,action]+alpha*(score_episode/total_actions)
+            
             
             if(is.nan(H[state,action])){
               stop("H[state,action] is NaN")
@@ -287,14 +290,14 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
             
           }
           ## If S,A is not visited in the episode
-          else{
-            if(action==49|action==51){
-              action=4
-            }
-            print(sprintf("Activty=%f",score_episode/total_actions))
-            H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
-            
-          }
+        #   else{
+        #     if(action==49|action==51){
+        #       action=4
+        #     }
+        #     print(sprintf("Activty=%f",score_episode/total_actions))
+        #     H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
+        #     
+        #   }
         }
       }
       

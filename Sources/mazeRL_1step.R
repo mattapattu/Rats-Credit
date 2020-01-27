@@ -68,7 +68,8 @@ sarsa_smax=function(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions){
     }
     
     if(step %in% sessions){
-      print(sprintf("Start new session"))
+      #print(sprintf("Start new session"))
+      #print(sprintf("New session, step=%i",step))
       if(step>1){
         #debug(getStatsOfLastSession_sarsa)
         probMatrix_sarsa=getStatsOfLastSession_sarsa(probMatrix_sarsa,startIndex_session,session,actions,states)
@@ -97,14 +98,15 @@ sarsa_smax=function(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions){
     
   }
 
-  print(unlist(states))
+  #print(sprintf("last step=%i",step))
+  #print(unlist(states))
   # a=as.data.frame(actions)
   # colnames(a)=NULL
   # rownames(a)=NULL
-  print(actions)
+  #print(actions)
   #capture.output(print(actions), file = "/home/ajames/intership2/actions_SARSA.txt")
   #capture.output(print(actions), file = "/home/ajames/intership2/states_SARSA.txt")
-  print(probMatrix_sarsa)
+  #print(probMatrix_sarsa)
   return(probMatrix_sarsa)
 }
 
@@ -125,6 +127,7 @@ getStatsOfLastSession_sarsa=function(probMatrix_sarsa,session_start,session,acti
   mat<-matrix(0,0,2)
   probMatrix_sarsa <- cbind(probMatrix_sarsa,0)
   colIndex=length(probMatrix_sarsa[1,])
+  print(sprintf("session=%f",colIndex))
   all_actions<-unlist(actions)
   all_actions<-all_actions[session_start:(length(all_actions)-1)]
   

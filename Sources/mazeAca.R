@@ -116,7 +116,7 @@ mazeACA=function(enreg,rat){
   gamma=0.889464671985183
   epsilon=0
   lambda=1
-  max_steps=1380
+  #max_steps=1380
   #debug(epsilon_greedy)
   #debug(getNextState)
   #debug(sarsa)
@@ -176,22 +176,23 @@ getStatsAllpaths=function(allpaths){
       next
     }
     allpaths_ses1<-allpaths[allpaths_ses1,]
-    len<-length(allpaths_ses1[,1])
+    len1<-length(which(allpaths_ses1==1))
+    len2<-length(which(allpaths_ses1==2))
     probMatrix_allpaths <- cbind(probMatrix_allpaths,0)
     colIndex=length(probMatrix_allpaths[1,])
     
-    probMatrix_allpaths[1,colIndex]=length(which(allpaths_ses1[,3]==1 & allpaths_ses1[,5]==1))/len
-    probMatrix_allpaths[2,colIndex]=length(which(allpaths_ses1[,3]==2 & allpaths_ses1[,5]==1))/len
-    probMatrix_allpaths[3,colIndex]=length(which(allpaths_ses1[,3]==3 & allpaths_ses1[,5]==1))/len
-    probMatrix_allpaths[4,colIndex]=length(which(allpaths_ses1[,3]==4 & allpaths_ses1[,5]==1))/len
-    probMatrix_allpaths[5,colIndex]=length(which(allpaths_ses1[,3]==5 & allpaths_ses1[,5]==1))/len
-    probMatrix_allpaths[6,colIndex]=length(which(allpaths_ses1[,3]==6 & allpaths_ses1[,5]==1))/len
-    probMatrix_allpaths[7,colIndex]=length(which(allpaths_ses1[,3]==1 & allpaths_ses1[,5]==2))/len
-    probMatrix_allpaths[8,colIndex]=length(which(allpaths_ses1[,3]==2 & allpaths_ses1[,5]==2))/len
-    probMatrix_allpaths[9,colIndex]=length(which(allpaths_ses1[,3]==3 & allpaths_ses1[,5]==2))/len
-    probMatrix_allpaths[10,colIndex]=length(which(allpaths_ses1[,3]==4 & allpaths_ses1[,5]==2))/len
-    probMatrix_allpaths[11,colIndex]=length(which(allpaths_ses1[,3]==5 & allpaths_ses1[,5]==2))/len
-    probMatrix_allpaths[12,colIndex]=length(which(allpaths_ses1[,3]==6 & allpaths_ses1[,5]==2))/len
+    probMatrix_allpaths[1,colIndex]=length(which(allpaths_ses1[,3]==1 & allpaths_ses1[,5]==1))/len1
+    probMatrix_allpaths[2,colIndex]=length(which(allpaths_ses1[,3]==2 & allpaths_ses1[,5]==1))/len1
+    probMatrix_allpaths[3,colIndex]=length(which(allpaths_ses1[,3]==3 & allpaths_ses1[,5]==1))/len1
+    probMatrix_allpaths[4,colIndex]=length(which(allpaths_ses1[,3]==4 & allpaths_ses1[,5]==1))/len1
+    probMatrix_allpaths[5,colIndex]=length(which(allpaths_ses1[,3]==5 & allpaths_ses1[,5]==1))/len1
+    probMatrix_allpaths[6,colIndex]=length(which(allpaths_ses1[,3]==6 & allpaths_ses1[,5]==1))/len1
+    probMatrix_allpaths[7,colIndex]=length(which(allpaths_ses1[,3]==1 & allpaths_ses1[,5]==2))/len2
+    probMatrix_allpaths[8,colIndex]=length(which(allpaths_ses1[,3]==2 & allpaths_ses1[,5]==2))/len2
+    probMatrix_allpaths[9,colIndex]=length(which(allpaths_ses1[,3]==3 & allpaths_ses1[,5]==2))/len2
+    probMatrix_allpaths[10,colIndex]=length(which(allpaths_ses1[,3]==4 & allpaths_ses1[,5]==2))/len2
+    probMatrix_allpaths[11,colIndex]=length(which(allpaths_ses1[,3]==5 & allpaths_ses1[,5]==2))/len2
+    probMatrix_allpaths[12,colIndex]=length(which(allpaths_ses1[,3]==6 & allpaths_ses1[,5]==2))/len2
   }
   return(probMatrix_allpaths)
 }
@@ -338,7 +339,7 @@ aca_rl=function(H,alpha,max_steps,sessions){
 
   }
 
-  print(unlist(states))
+  #print(unlist(states))
   # a=as.data.frame(actions)
   # colnames(a)=NULL
   # rownames(a)=NULL

@@ -84,6 +84,7 @@ mle_aca=function(enreg,rat){
   }
   
   print(sprintf("%s,optimal_vals: %s, min_val :%f",rat,paste(optimal_vals,collapse = " "),min_val))
+  capture.output(print(sprintf("%s,optimal_vals: %s, min_val :%f",rat,paste(optimal_vals,collapse = " "),min_val)), file = sprintf("%s-aca",rat))
           
 }
 
@@ -214,6 +215,9 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     ses=as.numeric(allpaths[i,"Session"])
     trial=i-which(allpaths[,"Session"]==ses)[1]+1
     pos_trial_t<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
+    if(length(pos_trial_t)==0){
+      next
+    }
     R=sum(as.numeric(enreg[[ses]]$POS[pos_trial_t,"Reward"]))
     time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
     if(time_spent_in_trial==0){
@@ -317,6 +321,8 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     x<-mpfr(softmax(A,S,H),128)
     if(is.infinite(as.numeric(x))){
       stop("softmax return Inf")
+    }else if(is.nan(x)){
+      stop("softmax return Nan")
     }
     QProb<-c(QProb,x)
     
@@ -368,14 +374,20 @@ rl_aca_negLogLik <- function(par,allpaths) {
 }
 
 softmax=function(A,S,H){
-    x1 <- mpfr(exp(H[S,A]), precBits = 128)
-    x2 <- mpfr(exp(H[S,1]), precBits = 128)
-    x3 <- mpfr(exp(H[S,2]), precBits = 128)
-    x4 <- mpfr(exp(H[S,3]), precBits = 128)
-    x5 <- mpfr(exp(H[S,4]), precBits = 128)
-    x6 <- mpfr(exp(H[S,5]), precBits = 128)
-    x7 <- mpfr(exp(H[S,6]), precBits = 128)
+  m=max(H[S,])
+  x1 <- mpfr(exp(H[S,A]-m), precBits = 128)
+  x2 <- mpfr(exp(H[S,1]-m), precBits = 128)
+  x3 <- mpfr(exp(H[S,2]-m), precBits = 128)
+  x4 <- mpfr(exp(H[S,3]-m), precBits = 128)
+  x5 <- mpfr(exp(H[S,4]-m), precBits = 128)
+  x6 <- mpfr(exp(H[S,5]-m), precBits = 128)
+  x7 <- mpfr(exp(H[S,6]-m), precBits = 128)
+  if(is.infinite(x1)){
+    return(1)
+  }else{
     pr_A=(x1)/((x2)+(x3)+(x4)+(x5)+(x6)+(x7))
     return(pr_A)
+  }
 }
+    
 

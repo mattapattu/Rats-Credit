@@ -70,6 +70,7 @@ mle_rl_softmax=function(enreg,rat){
   }
   
   print(sprintf("%s,optimal_vals: %s, min_val :%f",rat,paste(optimal_vals,collapse = " "),min_val))
+  capture.output(print(sprintf("%s,optimal_vals: %s, min_val :%f",rat,paste(optimal_vals,collapse = " "),min_val)), file = sprintf("%s-sarsa",rat))
   
   
 }

@@ -53,9 +53,11 @@ mazeACA=function(enreg,rat){
     
   }
   allpaths = updateACAPathNb1(allpaths)
+  print(sprintf("rat:%s",rat))
+  print(getStatsBeforeRewards(allpaths))
   
   probEmp=getStatsAllpaths(allpaths)
-  
+
   ################Call ACA
   last_session = as.numeric(tail(allpaths[,"Session"],1))
   sessions <- numeric()
@@ -66,7 +68,7 @@ mazeACA=function(enreg,rat){
   sessions<-sessions[!is.na(sessions)]
   max_steps=length(allpaths[,1])
   sessions<-c(sessions,max_steps)
-  
+
   ### Init H
   H = matrix(0,nrow=2,ncol=6)
   colnames(H)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
@@ -78,39 +80,39 @@ mazeACA=function(enreg,rat){
     # H[1,1]=0.125
   # H[2,1]=0.375
   # alpha=0.02892765
-  
+
   # H[1,1]=0.75
   # H[2,1]=0.25
   # alpha=0.00828704774614916
-  
+
   alpha=0.0168508870018846
   H[1,1]=0.375
   H[2,1]=0.625
-  
+
   # H[1,1]=0.125
   # H[2,1]=0.375
   # alpha=0.00971564429353458
-  
+
   #max_steps=500
   #debug(aca_rl)
   probACA=aca_rl(H,alpha,max_steps,sessions)
-  
-  
-  
+
+
+
   #############Call SARSA
-  
-  
+
+
   ### Init Q
   Q = matrix(0,nrow=2,ncol=6)
   colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(Q)<-c("E","I")
   Q[1,1]=0.115581894626535
   Q[2,1]=0.885489207907076
-  
+
   E=matrix(0,nrow=2,ncol=6)
   colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(E)<-c("E","I")
-  
+
   ## Session 1
   alpha=0.12216275648779
   gamma=0.889464671985183
@@ -123,7 +125,7 @@ mazeACA=function(enreg,rat){
   probSARSA=sarsa_smax(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions)
 
   plotProbs(probEmp,probACA,probSARSA,rat)
-  
+
   print(sprintf("MSE Empirical vs ACA:"))
   print(getMSE(probEmp,probACA))
   print(sprintf("MSE Empirical vs SARSA:"))
@@ -176,8 +178,8 @@ getStatsAllpaths=function(allpaths){
       next
     }
     allpaths_ses1<-allpaths[allpaths_ses1,]
-    len1<-length(which(allpaths_ses1==1))
-    len2<-length(which(allpaths_ses1==2))
+    len1<-length(which(allpaths_ses1[,"State"]==1))
+    len2<-length(which(allpaths_ses1[,"State"]==2))
     probMatrix_allpaths <- cbind(probMatrix_allpaths,0)
     colIndex=length(probMatrix_allpaths[1,])
     
@@ -194,6 +196,38 @@ getStatsAllpaths=function(allpaths){
     probMatrix_allpaths[11,colIndex]=length(which(allpaths_ses1[,3]==5 & allpaths_ses1[,5]==2))/len2
     probMatrix_allpaths[12,colIndex]=length(which(allpaths_ses1[,3]==6 & allpaths_ses1[,5]==2))/len2
   }
+  return(probMatrix_allpaths)
+}
+
+getStatsBeforeRewards=function(allpaths){
+  probMatrix_allpaths=matrix(0,12,1)
+  rownames(probMatrix_allpaths)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
+  last_session = as.numeric(tail(allpaths[,"Session"],1))
+  sessions <- numeric()
+  reward_trial = which(allpaths[,"Reward"]>0)[1]
+  allpaths_ses2<-allpaths[1:reward_trial,]
+  len1<-length(which(allpaths_ses2[,"State"]==1))
+  len2<-length(which(allpaths_ses2[,"State"]==2))
+  if(len1==0){
+    len1=1
+  }
+  if(len2==0){
+    len2==1
+  }
+  colIndex=1
+  probMatrix_allpaths[1,colIndex]=length(which(allpaths_ses2[,3]==1 & allpaths_ses2[,5]==1))/len1
+  probMatrix_allpaths[2,colIndex]=length(which(allpaths_ses2[,3]==2 & allpaths_ses2[,5]==1))/len1
+  probMatrix_allpaths[3,colIndex]=length(which(allpaths_ses2[,3]==3 & allpaths_ses2[,5]==1))/len1
+  probMatrix_allpaths[4,colIndex]=length(which(allpaths_ses2[,3]==4 & allpaths_ses2[,5]==1))/len1
+  probMatrix_allpaths[5,colIndex]=length(which(allpaths_ses2[,3]==5 & allpaths_ses2[,5]==1))/len1
+  probMatrix_allpaths[6,colIndex]=length(which(allpaths_ses2[,3]==6 & allpaths_ses2[,5]==1))/len1
+  probMatrix_allpaths[7,colIndex]=length(which(allpaths_ses2[,3]==1 & allpaths_ses2[,5]==2))/len2
+  probMatrix_allpaths[8,colIndex]=length(which(allpaths_ses2[,3]==2 & allpaths_ses2[,5]==2))/len2
+  probMatrix_allpaths[9,colIndex]=length(which(allpaths_ses2[,3]==3 & allpaths_ses2[,5]==2))/len2
+  probMatrix_allpaths[10,colIndex]=length(which(allpaths_ses2[,3]==4 & allpaths_ses2[,5]==2))/len2
+  probMatrix_allpaths[11,colIndex]=length(which(allpaths_ses2[,3]==5 & allpaths_ses2[,5]==2))/len2
+  probMatrix_allpaths[12,colIndex]=length(which(allpaths_ses2[,3]==6 & allpaths_ses2[,5]==2))/len2
+  
   return(probMatrix_allpaths)
 }
 
@@ -347,6 +381,7 @@ aca_rl=function(H,alpha,max_steps,sessions){
   #capture.output(print(actions), file = "/home/ajames/intership2/states_ACA.txt")
   
   #print()
+  capture.output(print(actions), file = sprintf("actions-aca.txt"))
   return(probMatrix_aca)
 }
 

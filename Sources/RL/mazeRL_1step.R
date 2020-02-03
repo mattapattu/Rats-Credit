@@ -86,8 +86,8 @@ sarsa=function(Q,E,alpha,max_steps,epsilon,gamma,lambda){
   # a=as.data.frame(actions)
   # colnames(a)=NULL
   # rownames(a)=NULL
-  print(actions)
-  print(Q)
+  #print(actions)
+  capture.output(print(actions), file = sprintf("actions-sarsa.txt"))
   return(Q)
 }
 

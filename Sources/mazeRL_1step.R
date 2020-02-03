@@ -107,6 +107,7 @@ sarsa_smax=function(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions){
   #capture.output(print(actions), file = "/home/ajames/intership2/actions_SARSA.txt")
   #capture.output(print(actions), file = "/home/ajames/intership2/states_SARSA.txt")
   #print(probMatrix_sarsa)
+  capture.output(print(actions), file = sprintf("actions-sarsa.txt"))
   return(probMatrix_sarsa)
 }
 

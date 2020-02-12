@@ -1,3 +1,6 @@
+####
+###
+
 
 library(Rmpfr)
 
@@ -10,8 +13,8 @@ rownames(R)<-c("E","I")
 R[1,4]=1
 R[2,4]=1
 
-
-mazeACA=function(enreg,rat){
+### Use optimal paramters on actual data and compute Mean Squared Error.
+mazeACA2=function(enreg,rat){
   
   allpaths <- matrix("",0,2)
   colnames(allpaths) <- c("Path","Session")
@@ -57,18 +60,10 @@ mazeACA=function(enreg,rat){
   print(getStatsBeforeRewards(allpaths))
   
   probEmp=getStatsAllpaths(allpaths)
-
+  
   ################Call ACA
-  last_session = as.numeric(tail(allpaths[,"Session"],1))
-  sessions <- numeric()
-  for(ses in 1:last_session){
-    allpaths_ses1<-which(allpaths[,"Session"]==ses)
-    sessions<-c(sessions,allpaths_ses1[1])
-  }
-  sessions<-sessions[!is.na(sessions)]
-  max_steps=length(allpaths[,1])
-  sessions<-c(sessions,max_steps)
-
+  
+  
   ### Init H
   H = matrix(0,nrow=2,ncol=6)
   colnames(H)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
@@ -76,39 +71,39 @@ mazeACA=function(enreg,rat){
   # H[1,1]=0.25
   # H[2,1]=0.75
   # alpha=0.04177
-
-    # H[1,1]=0.125
+  
+  # H[1,1]=0.125
   # H[2,1]=0.375
   # alpha=0.02892765
-
+  
   # H[1,1]=0.75
   # H[2,1]=0.25
   # alpha=0.00828704774614916
-
+  
   alpha=0.299893759452973
   H[1,1]=0.8125
   H[2,1]=0.8125
-
+  
   #max_steps=500
   #debug(aca_rl)
-  probACA=aca_rl(H,alpha,max_steps,sessions)
-
-
-
+  probACA=aca_rl2(H,alpha,allpaths)
+  
+  
+  
   #############Call SARSA
-
-
+  
+  
   ### Init Q
   Q = matrix(0,nrow=2,ncol=6)
   colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(Q)<-c("E","I")
   Q[1,1]=0.115581894626535
   Q[2,1]=0.885489207907076
-
+  
   E=matrix(0,nrow=2,ncol=6)
   colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(E)<-c("E","I")
-
+  
   ## Session 1
   alpha=0.12216275648779
   gamma=0.889464671985183
@@ -118,10 +113,10 @@ mazeACA=function(enreg,rat){
   #debug(epsilon_greedy)
   #debug(getNextState)
   #debug(sarsa)
-  probSARSA=sarsa_smax(Q,E,alpha,max_steps,epsilon,gamma,lambda,sessions)
-
+  probSARSA=sarsa_smax2(Q,E,alpha,epsilon,gamma,lambda,allpaths)
+  
   plotProbs(probEmp,probACA,probSARSA,rat)
-
+  
   print(sprintf("MSE Empirical vs ACA:"))
   print(getMSE(probEmp,probACA))
   print(sprintf("MSE Empirical vs SARSA:"))
@@ -149,14 +144,21 @@ updateACAPathNb1=function(allpaths){
       allpaths[i,5]=1
     }else if(grepl("^, h",allpaths[i,1])||grepl("^, j",allpaths[i,1])){
       allpaths[i,5]=2
-    }else if(i>1){
+    }
+    ## Why ? ( incomplete paths ?)
+    else if(i>1){
       if(grepl("^.*e$",allpaths[i-1,1])){
         allpaths[i,5]=1
       }else if(grepl("^.*i$",allpaths[i-1,1])){
         allpaths[i,5]=2
       }
-    }else{
-      allpaths[i,5]=0
+    }else if(i==1){
+      if(grepl("^.*e$",allpaths[i,1])){
+        allpaths[i,5]=2
+      }else if(grepl("^.*i$",allpaths[i,1])){
+        allpaths[i,5]=1
+      }
+      
     }
     
   }
@@ -230,7 +232,7 @@ getStatsBeforeRewards=function(allpaths){
 ### Action = Path
 ## State = E or I
 
-aca_rl=function(H,alpha,max_steps,sessions){
+aca_rl2=function(H,alpha,allpaths){
   
   ## Start form state 1 = Box "E"
   
@@ -248,35 +250,43 @@ aca_rl=function(H,alpha,max_steps,sessions){
   colnames(Visits)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(Visits)<-c("E","I")
   
-  initState=1
+  initState=as.numeric(allpaths[1,5])
   changeState = F
   returnToInitState = F
   reward=0
   S=initState
-  session=0
+  curr_session=0
   startIndex_session=0
   avg_score=0
   score_episode=0
   
-  for(i in c(1:max_steps)){
+  for(i in c(1:(length(allpaths[,1])-1))){
     
     #print(sprintf("Step=%i,Episode=%i",i,episode))
     
-    A=softmax_policy(H,S)
-    
-    ## Update S based on action A
-    S_prime=getNextState_ACA_RL(S,A)  
+    print(sprintf("i=%i,episode=%i",i,episode))
     
     
     if(length(actions[[episode]])==0){
       initState=S
     }
     
-    if(R[S,A]>0){
+    ses=as.numeric(allpaths[i,"Session"])
+    trial=i-which(allpaths[,"Session"]==ses)[1]+1
+    pos_trial_t<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
+    if(length(pos_trial_t)==0){
+      next
+    }
+    R=sum(as.numeric(enreg[[ses]]$POS[pos_trial_t,"Reward"]))
+    
+    if(R>0){
       score_episode=score_episode+1
     }else{
       score_episode=score_episode+0
     }
+    
+    A=as.numeric(allpaths[i,3])
+    S_prime=getNextState(allpaths,i)
     
     if(A == 4 & S == 1){
       actions[[episode]] <- append(actions[[episode]],51)
@@ -298,18 +308,23 @@ aca_rl=function(H,alpha,max_steps,sessions){
       #print(sprintf("Setting returnToInitState to T"))
     }
     
-    if(i %in% sessions){
-      print(sprintf("Start new session"))
-      if(i>1){
-        #debug(getStatsOfLastSession)
-        probMatrix_aca=getStatsOfLastSession(probMatrix_aca,startIndex_session,session,actions,states)
+    if(episode>1){
+      x<-mpfr(softmax2(A,S,H),128)
+      if(is.infinite(as.numeric(x))){
+        stop("softmax return Inf")
+      }else if(is.nan(x)){
+        stop("softmax return Nan")
       }
-      
-      session=session+1
-      startIndex_session=i
+      if(curr_session < ses){
+        if(i >1){
+          probMatrix_aca=getStatsOfLastSession2(probMatrix_aca,curr_session,allpaths)
+          curr_session = ses
+        }
+        
+      }
     }
     
-    
+
     ## Check if episode ended
     if(returnToInitState){
       changeState = F
@@ -338,7 +353,7 @@ aca_rl=function(H,alpha,max_steps,sessions){
             }
             
             #activity=length(which(actions[[episode]]==action))/total_actions
-            activity=as.numeric(softmax(action,state,H))
+            #activity=as.numeric(softmax(action,state,H))
             H[state,action]=H[state,action]+alpha*(score_episode/Visits[state,action])
             #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
             
@@ -347,14 +362,6 @@ aca_rl=function(H,alpha,max_steps,sessions){
             }
             
           }
-          ## If S,A is not visited in the episode
-          # else{
-          #   if(action==49|action==51){
-          #     action=4
-          #   }
-          #   H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
-          #   
-          # }
         }
       }
       ## reset rewards
@@ -362,19 +369,20 @@ aca_rl=function(H,alpha,max_steps,sessions){
       episode = episode+1
       
       #print(sprintf("Updating episode to %i",episode))
-      if(i <= (max_steps-1)){
+      if(i <= (length(allpaths[,1])-1)){
         actions[[episode]] <- vector()
         states[[episode]] <- vector()
         #activations[[episode]] <- vector()
       }
-   
+      
     }
     ### End of episode checkd
+    
     S=S_prime
     
-
+    
   }
-
+  
   #print(unlist(states))
   # a=as.data.frame(actions)
   # colnames(a)=NULL
@@ -383,7 +391,7 @@ aca_rl=function(H,alpha,max_steps,sessions){
   #capture.output(print(actions), file = "/home/ajames/intership2/states_ACA.txt")
   
   #print()
-  capture.output(print(actions), file = sprintf("actions-aca.txt"))
+  #capture.output(print(actions), file = sprintf("actions-aca.txt"))
   return(probMatrix_aca)
 }
 
@@ -399,7 +407,30 @@ getNextState_ACA_RL=function(curr_state,action){
   return(new_state)
 }
 
-softmax=function(A,S,H){
+getNextState=function(allpaths,i){
+  if(grepl("^.*e$",allpaths[i,1])){
+    next_state = 1
+  }else if(grepl("^.*i$",allpaths[i,1])){
+    next_state = 2
+  }
+  ### If allpaths[i,] does not end in E/I , use the begining of next path to find the new state 
+  else{
+    if(i<length(allpaths[i,])){
+      if(grepl("^, f",allpaths[i+1,1])||grepl("^, d",allpaths[i+1,1])){
+        next_state = 1
+      }else if(grepl("^, j",allpaths[i+1,1])||grepl("^, h",allpaths[i+1,1])){
+        next_state = 2
+      }
+    }else{
+      next_state=-1
+    }
+    
+  }
+  
+  return(next_state)
+}
+
+softmax2=function(A,S,H){
   x1 <- mpfr(exp(H[S,A]), precBits = 128)
   x2 <- mpfr(exp(H[S,1]), precBits = 128)
   x3 <- mpfr(exp(H[S,2]), precBits = 128)
@@ -418,35 +449,33 @@ softmax=function(A,S,H){
 
 softmax_policy=function(H,state){
   
- x1=exp(H[state,1])
- x2=exp(H[state,2])
- x3=exp(H[state,3])
- x4=exp(H[state,4])
- x5=exp(H[state,5])
- x6=exp(H[state,6])
- 
- p1=x1/(x1+x2+x3+x4+x5+x6)
- p2=x2/(x1+x2+x3+x4+x5+x6)
- p3=x3/(x1+x2+x3+x4+x5+x6)
- p4=x4/(x1+x2+x3+x4+x5+x6)
- p5=x5/(x1+x2+x3+x4+x5+x6)
- p6=x6/(x1+x2+x3+x4+x5+x6)
- 
- action = sample(c(1:6),size=1,prob=c(p1,p2,p3,p4,p5,p6))
- return(action)
-
+  x1=exp(H[state,1])
+  x2=exp(H[state,2])
+  x3=exp(H[state,3])
+  x4=exp(H[state,4])
+  x5=exp(H[state,5])
+  x6=exp(H[state,6])
+  
+  p1=x1/(x1+x2+x3+x4+x5+x6)
+  p2=x2/(x1+x2+x3+x4+x5+x6)
+  p3=x3/(x1+x2+x3+x4+x5+x6)
+  p4=x4/(x1+x2+x3+x4+x5+x6)
+  p5=x5/(x1+x2+x3+x4+x5+x6)
+  p6=x6/(x1+x2+x3+x4+x5+x6)
+  
+  action = sample(c(1:6),size=1,prob=c(p1,p2,p3,p4,p5,p6))
+  return(action)
+  
 }
 
 
-getStatsOfLastSession=function(probMatrix_aca,session_start,session,actions,states){
-  mat<-matrix(0,0,2)
+getStatsOfLastSession2=function(probMatrix_aca,curr_session,allpaths){
   probMatrix_aca <- cbind(probMatrix_aca,0)
   colIndex=length(probMatrix_aca[1,])
-  all_actions<-unlist(actions)
-  all_actions<-all_actions[session_start:(length(all_actions)-1)]
   
-  all_states<-unlist(states)
-  all_states<-all_states[session_start:(length(all_states)-1)]
+  pos_ses<-which(as.numeric(allpaths[,2])==curr_session)
+  all_actions<-as.numeric(allpaths[pos_ses,3])
+  all_states<-as.numeric(allpaths[pos_ses,5])
   len1<-length(which(all_states==1))
   len2<-length(which(all_states==2))
   mat<-matrix(0,length(all_actions),2)
@@ -488,9 +517,9 @@ getCorrMatrix=function(prob1,prob2){
   rownames(corrMatrix)<-c("correlation","p-value")
   colnames(corrMatrix)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
   for(i in 1:12){
-   x<- cor.test(prob1[i,],prob2[i,])
-   corrMatrix[1,i]=x$estimate
-   corrMatrix[2,i]=x$p.value
+    x<- cor.test(prob1[i,],prob2[i,])
+    corrMatrix[1,i]=x$estimate
+    corrMatrix[2,i]=x$p.value
   }
   return(corrMatrix)
 }

@@ -85,13 +85,9 @@ mazeACA=function(enreg,rat){
   # H[2,1]=0.25
   # alpha=0.00828704774614916
 
-  alpha=0.0168508870018846
-  H[1,1]=0.375
-  H[2,1]=0.625
-
-  # H[1,1]=0.125
-  # H[2,1]=0.375
-  # alpha=0.00971564429353458
+  alpha=0.299893759452973
+  H[1,1]=0.8125
+  H[2,1]=0.8125
 
   #max_steps=500
   #debug(aca_rl)
@@ -247,6 +243,11 @@ aca_rl=function(H,alpha,max_steps,sessions){
   actions[[episode]] <- vector()
   states[[episode]] <- vector()
   
+  ## Counter for Actions
+  Visits = matrix(0,nrow=2,ncol=6)
+  colnames(Visits)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
+  rownames(Visits)<-c("E","I")
+  
   initState=1
   changeState = F
   returnToInitState = F
@@ -287,6 +288,7 @@ aca_rl=function(H,alpha,max_steps,sessions){
     #print("Here")
     #actions <- c(actions,sprintf("S%i-P%i",S,A))
     states[[episode]] <- append(states[[episode]],unname(S))
+    Visits[S,A]=Visits[S,A]+1
     #print(sprintf("Current state = %i, Action = %i", S,A))
     if(S_prime!=initState){
       changeState = T
@@ -337,7 +339,7 @@ aca_rl=function(H,alpha,max_steps,sessions){
             
             #activity=length(which(actions[[episode]]==action))/total_actions
             activity=as.numeric(softmax(action,state,H))
-            H[state,action]=H[state,action]+alpha*(score_episode/total_actions)
+            H[state,action]=H[state,action]+alpha*(score_episode/Visits[state,action])
             #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
             
             if(is.nan(H[state,action])){

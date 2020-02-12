@@ -185,7 +185,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
   actions[[episode]] <- vector()
   states[[episode]] <- vector()
   activations[[episode]] <- vector()
-  
+
   if(grepl("^.*e$",allpaths[1,1])){
     S = 1
   }else if(grepl("^.*i$",allpaths[1,1])){
@@ -244,6 +244,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     activations[[episode]] <- append(activations[[episode]],1000/time_spent_in_trial)
     #actions <- c(actions,sprintf("S%i-P%i",S,A))
     states[[episode]] <- append(states[[episode]],unname(S))
+    Visits[S,A] = Visits[S,A]+1
     #print(sprintf("Current state = %i, Action = %i", S,A))
     if(S_prime!=initState){
       changeState = T
@@ -285,7 +286,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
             #print(sprintf("Activty=%f",score_episode*activity))
             #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
             activity=as.numeric(softmax(action,state,H))
-            H[state,action]=H[state,action]+alpha*(score_episode/total_actions)
+            H[state,action]=H[state,action]+alpha*(score_episode/Visits[state,action])
             
             
             if(is.nan(H[state,action])){

@@ -18,9 +18,10 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
   actions <-list()
   states <-list()
   
-  probMatrix_sarsa=matrix(0,12,0)
-  rownames(probMatrix_sarsa)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
-  
+  ses_max = as.numeric(allpaths[length(allpaths[,1]),"Session"])
+  probMatrix_sarsa=matrix(0,ses_max,13)
+  colnames(probMatrix_sarsa)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6","Session")
+
   
   ## One episode = all actions to make a loop around maze, 
   ## Start at E -> visit I -> return to E
@@ -62,7 +63,7 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
     A_prime=as.numeric(allpaths[i+1,3])
     
     E[S,A]=E[S,A]+1
-    delta=r+(gamma* Q[S_prime,A_prime]) - Q[S,A]
+    delta=reward+(gamma* Q[S_prime,A_prime]) - Q[S,A]
     Q=Q+ (alpha*delta*E)
     E=E*gamma*lambda
     
@@ -85,15 +86,22 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
       #print(sprintf("Setting returnToInitState to T"))
     }
     
-    if(curr_session < ses){
-      #print(sprintf("Start new session"))
-      #print(sprintf("New session, step=%i",step))
-      if(step>1){
-        #debug(getStatsOfLastSession_sarsa)
-        probMatrix_sarsa=getStatsOfLastSession_sarsa2(probMatrix_sarsa,curr_session,allpaths)
-        curr_session=ses
+    if(step>1){
+     
+      probMatrix_sarsa[i,13]=ses
+      if(S==1){
+        probMatrix_sarsa[i,7:12]=0
+        for(act in 1:6){
+          x<-mpfr(softmax_sarsa(act,1,Q),128)
+          probMatrix_sarsa[i,(act)]=as.numeric(x)
+        }
+      }else if(S==2){
+        probMatrix_sarsa[i,1:6]=0
+        for(act in 1:6){
+          x<-mpfr(softmax_sarsa(act,2,Q),128)
+          probMatrix_sarsa[i,(6+act)]=as.numeric(x)
+        }
       }
-      
     }
     
     S=S_prime
@@ -113,8 +121,8 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
     }
     
   }
-  
-  return(probMatrix_sarsa)
+  probMat_sarsa_res=getStatsOfLastSession2_sarsa(probMatrix_sarsa)
+  return(probMat_sarsa_res)
 }
 
 getNextState_sarsa=function(curr_state,action){
@@ -130,38 +138,72 @@ getNextState_sarsa=function(curr_state,action){
 }
 
 
-getStatsOfLastSession_sarsa2=function(probMatrix_sarsa,curr_session,allpaths){
-  mat<-matrix(0,0,2)
-  probMatrix_sarsa <- cbind(probMatrix_sarsa,0)
-  colIndex=length(probMatrix_sarsa[1,])
+# getStatsOfLastSession_sarsa2=function(probMatrix_sarsa,curr_session,allpaths){
+#   mat<-matrix(0,0,2)
+#   probMatrix_sarsa <- cbind(probMatrix_sarsa,0)
+#   colIndex=length(probMatrix_sarsa[1,])
+#   
+#   print(sprintf("session=%f",colIndex))
+#   
+#   pos_ses<-which(as.numeric(allpaths[,2])==curr_session)
+#   all_actions<-as.numeric(allpaths[pos_ses,3])
+#   all_states<-as.numeric(allpaths[pos_ses,5])
+#   
+#   len1<-length(which(all_states==1))
+#   len2<-length(which(all_states==2))
+#   mat<-matrix(0,length(all_actions),2)
+#   mat[,1]<-all_actions
+#   mat[,2]<-all_states
+#   
+#   probMatrix_sarsa[1,colIndex]=length(which(mat[,1]==1 & mat[,2]==1))/len1
+#   probMatrix_sarsa[2,colIndex]=length(which(mat[,1]==2 & mat[,2]==1))/len1
+#   probMatrix_sarsa[3,colIndex]=length(which(mat[,1]==3 & mat[,2]==1))/len1
+#   probMatrix_sarsa[4,colIndex]=length(which(mat[,1]==51 & mat[,2]==1))/len1
+#   probMatrix_sarsa[5,colIndex]=length(which(mat[,1]==5 & mat[,2]==1))/len1
+#   probMatrix_sarsa[6,colIndex]=length(which(mat[,1]==6 & mat[,2]==1))/len1
+#   probMatrix_sarsa[7,colIndex]=length(which(mat[,1]==1 & mat[,2]==2))/len2
+#   probMatrix_sarsa[8,colIndex]=length(which(mat[,1]==2 & mat[,2]==2))/len2
+#   probMatrix_sarsa[9,colIndex]=length(which(mat[,1]==3 & mat[,2]==2))/len2
+#   probMatrix_sarsa[10,colIndex]=length(which(mat[,1]==49 & mat[,2]==2))/len2
+#   probMatrix_sarsa[11,colIndex]=length(which(mat[,1]==5 & mat[,2]==2))/len2
+#   probMatrix_sarsa[12,colIndex]=length(which(mat[,1]==6 & mat[,2]==2))/len2
+#   
+#   return(probMatrix_sarsa)
+# }
+
+getStatsOfLastSession2_sarsa=function(probMatrix_sarsa){
   
-  print(sprintf("session=%f",colIndex))
+  ses_max = as.numeric(probMatrix_sarsa[(length(probMatrix_sarsa[,13])-1),13])
+  probMat_res_sarsa=matrix(0,nrow=12,ncol=ses_max)
+  rownames(probMat_res_sarsa)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
   
-  pos_ses<-which(as.numeric(allpaths[,2])==curr_session)
-  all_actions<-as.numeric(allpaths[pos_ses,3])
-  all_states<-as.numeric(allpaths[pos_ses,5])
   
-  len1<-length(which(all_states==1))
-  len2<-length(which(all_states==2))
-  mat<-matrix(0,length(all_actions),2)
-  mat[,1]<-all_actions
-  mat[,2]<-all_states
-  
-  probMatrix_sarsa[1,colIndex]=length(which(mat[,1]==1 & mat[,2]==1))/len1
-  probMatrix_sarsa[2,colIndex]=length(which(mat[,1]==2 & mat[,2]==1))/len1
-  probMatrix_sarsa[3,colIndex]=length(which(mat[,1]==3 & mat[,2]==1))/len1
-  probMatrix_sarsa[4,colIndex]=length(which(mat[,1]==51 & mat[,2]==1))/len1
-  probMatrix_sarsa[5,colIndex]=length(which(mat[,1]==5 & mat[,2]==1))/len1
-  probMatrix_sarsa[6,colIndex]=length(which(mat[,1]==6 & mat[,2]==1))/len1
-  probMatrix_sarsa[7,colIndex]=length(which(mat[,1]==1 & mat[,2]==2))/len2
-  probMatrix_sarsa[8,colIndex]=length(which(mat[,1]==2 & mat[,2]==2))/len2
-  probMatrix_sarsa[9,colIndex]=length(which(mat[,1]==3 & mat[,2]==2))/len2
-  probMatrix_sarsa[10,colIndex]=length(which(mat[,1]==49 & mat[,2]==2))/len2
-  probMatrix_sarsa[11,colIndex]=length(which(mat[,1]==5 & mat[,2]==2))/len2
-  probMatrix_sarsa[12,colIndex]=length(which(mat[,1]==6 & mat[,2]==2))/len2
-  
-  return(probMatrix_sarsa)
+  for(ses in 1:ses_max){
+    pos_ses<-which(as.numeric(probMatrix_sarsa[,13])==ses)
+    if(isempty(pos_ses)){
+      probMat_sarsa[,ses]=NA
+      next
+    }else{
+      
+      probMat_res_sarsa[1,ses]=sum(probMatrix_sarsa[pos_ses,1])/length(which(probMatrix_sarsa[pos_ses,1]!=0))
+      probMat_res_sarsa[2,ses]=sum(probMatrix_sarsa[pos_ses,2])/length(which(probMatrix_sarsa[pos_ses,2]!=0))
+      probMat_res_sarsa[3,ses]=sum(probMatrix_sarsa[pos_ses,3])/length(which(probMatrix_sarsa[pos_ses,3]!=0))
+      probMat_res_sarsa[4,ses]=sum(probMatrix_sarsa[pos_ses,4])/length(which(probMatrix_sarsa[pos_ses,4]!=0))
+      probMat_res_sarsa[5,ses]=sum(probMatrix_sarsa[pos_ses,5])/length(which(probMatrix_sarsa[pos_ses,5]!=0))
+      probMat_res_sarsa[6,ses]=sum(probMatrix_sarsa[pos_ses,6])/length(which(probMatrix_sarsa[pos_ses,6]!=0))
+      probMat_res_sarsa[7,ses]=sum(probMatrix_sarsa[pos_ses,7])/length(which(probMatrix_sarsa[pos_ses,7]!=0))
+      probMat_res_sarsa[8,ses]=sum(probMatrix_sarsa[pos_ses,8])/length(which(probMatrix_sarsa[pos_ses,8]!=0))
+      probMat_res_sarsa[9,ses]=sum(probMatrix_sarsa[pos_ses,9])/length(which(probMatrix_sarsa[pos_ses,9]!=0))
+      probMat_res_sarsa[10,ses]=sum(probMatrix_sarsa[pos_ses,10])/length(which(probMatrix_sarsa[pos_ses,10]!=0))
+      probMat_res_sarsa[11,ses]=sum(probMatrix_sarsa[pos_ses,11])/length(which(probMatrix_sarsa[pos_ses,11]!=0))
+      probMat_res_sarsa[12,ses]=sum(probMatrix_sarsa[pos_ses,12])/length(which(probMatrix_sarsa[pos_ses,12]!=0))
+    }
+  }
+  probMat_res_sarsa <- probMat_res_sarsa[ , !apply(is.na(probMat_res_sarsa), 2, all)]
+  return(probMat_res_sarsa)
 }
+
+
 
 softmax_sarsa=function(A,S,Q){
   x1 <- mpfr(exp(Q[S,A]), precBits = 128)

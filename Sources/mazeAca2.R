@@ -238,8 +238,6 @@ aca_rl2=function(H,alpha,allpaths){
   
   actions <-list()
   states <-list()
-  probMatrix_aca=matrix(0,12,0)
-  rownames(probMatrix_aca)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
   
   episode=1
   actions[[episode]] <- vector()
@@ -250,6 +248,12 @@ aca_rl2=function(H,alpha,allpaths){
   colnames(Visits)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(Visits)<-c("E","I")
   
+  ses_max = as.numeric(allpaths[length(allpaths[,1]),"Session"])
+  probMatrix_aca=matrix(0,nrow=length(allpaths[,1]),ncol=13)
+  colnames(probMatrix_aca)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6","Session")
+  
+  
+  
   initState=as.numeric(allpaths[1,5])
   changeState = F
   returnToInitState = F
@@ -259,6 +263,7 @@ aca_rl2=function(H,alpha,allpaths){
   startIndex_session=0
   avg_score=0
   score_episode=0
+  allpaths <-cbind(allpaths,probability=0)
   
   for(i in c(1:(length(allpaths[,1])-1))){
     
@@ -309,18 +314,26 @@ aca_rl2=function(H,alpha,allpaths){
     }
     
     if(episode>1){
-      x<-mpfr(softmax2(A,S,H),128)
-      if(is.infinite(as.numeric(x))){
-        stop("softmax return Inf")
-      }else if(is.nan(x)){
-        stop("softmax return Nan")
-      }
-      if(curr_session < ses){
-        if(i >1){
-          probMatrix_aca=getStatsOfLastSession2(probMatrix_aca,curr_session,allpaths)
-          curr_session = ses
+      # x<-mpfr(softmax2(A,S,H),128)
+      # if(is.infinite(as.numeric(x))){
+      #   stop("softmax return Inf")
+      # }else if(is.nan(x)){
+      #   stop("softmax return Nan")
+      # }
+      # allpaths[i,"probability"]=as.numeric(x)
+      probMatrix_aca[i,13]=ses
+      if(S==1){
+        probMatrix_aca[i,7:12]=0
+        for(act in 1:6){
+          x<-mpfr(softmax2(act,1,H),128)
+          probMatrix_aca[i,(act)]=as.numeric(x)
         }
-        
+      }else if(S==2){
+        probMatrix_aca[i,1:6]=0
+        for(act in 1:6){
+          x<-mpfr(softmax2(act,2,H),128)
+          probMatrix_aca[i,(6+act)]=as.numeric(x)
+        }
       }
     }
     
@@ -392,7 +405,8 @@ aca_rl2=function(H,alpha,allpaths){
   
   #print()
   #capture.output(print(actions), file = sprintf("actions-aca.txt"))
-  return(probMatrix_aca)
+  probMat_res=getStatsOfLastSession2(probMatrix_aca)
+  return(probMat_res)
 }
 
 getNextState_ACA_RL=function(curr_state,action){
@@ -469,33 +483,39 @@ softmax_policy=function(H,state){
 }
 
 
-getStatsOfLastSession2=function(probMatrix_aca,curr_session,allpaths){
-  probMatrix_aca <- cbind(probMatrix_aca,0)
-  colIndex=length(probMatrix_aca[1,])
+getStatsOfLastSession2=function(probMatrix_aca){
   
-  pos_ses<-which(as.numeric(allpaths[,2])==curr_session)
-  all_actions<-as.numeric(allpaths[pos_ses,3])
-  all_states<-as.numeric(allpaths[pos_ses,5])
-  len1<-length(which(all_states==1))
-  len2<-length(which(all_states==2))
-  mat<-matrix(0,length(all_actions),2)
-  mat[,1]<-all_actions
-  mat[,2]<-all_states
+  ses_max = as.numeric(probMatrix_aca[(length(probMatrix_aca[,13])-1),13])
+  probMat_res=matrix(0,nrow=12,ncol=ses_max)
+  rownames(probMat_res)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
   
-  probMatrix_aca[1,colIndex]=length(which(mat[,1]==1 & mat[,2]==1))/len1
-  probMatrix_aca[2,colIndex]=length(which(mat[,1]==2 & mat[,2]==1))/len1
-  probMatrix_aca[3,colIndex]=length(which(mat[,1]==3 & mat[,2]==1))/len1
-  probMatrix_aca[4,colIndex]=length(which(mat[,1]==51 & mat[,2]==1))/len1
-  probMatrix_aca[5,colIndex]=length(which(mat[,1]==5 & mat[,2]==1))/len1
-  probMatrix_aca[6,colIndex]=length(which(mat[,1]==6 & mat[,2]==1))/len1
-  probMatrix_aca[7,colIndex]=length(which(mat[,1]==1 & mat[,2]==2))/len2
-  probMatrix_aca[8,colIndex]=length(which(mat[,1]==2 & mat[,2]==2))/len2
-  probMatrix_aca[9,colIndex]=length(which(mat[,1]==3 & mat[,2]==2))/len2
-  probMatrix_aca[10,colIndex]=length(which(mat[,1]==49 & mat[,2]==2))/len2
-  probMatrix_aca[11,colIndex]=length(which(mat[,1]==5 & mat[,2]==2))/len2
-  probMatrix_aca[12,colIndex]=length(which(mat[,1]==6 & mat[,2]==2))/len2
+
+  for(ses in 1:ses_max){
+    pos_ses<-which(as.numeric(probMatrix_aca[,13])==ses)
+    if(isempty(pos_ses)){
+      probMat_res[,ses]=NA
+      next
+    }else{
+      
+      probMat_res[1,ses]=sum(probMatrix_aca[pos_ses,1])/length(which(probMatrix_aca[pos_ses,1]!=0))
+      probMat_res[2,ses]=sum(probMatrix_aca[pos_ses,2])/length(which(probMatrix_aca[pos_ses,2]!=0))
+      probMat_res[3,ses]=sum(probMatrix_aca[pos_ses,3])/length(which(probMatrix_aca[pos_ses,3]!=0))
+      probMat_res[4,ses]=sum(probMatrix_aca[pos_ses,4])/length(which(probMatrix_aca[pos_ses,4]!=0))
+      probMat_res[5,ses]=sum(probMatrix_aca[pos_ses,5])/length(which(probMatrix_aca[pos_ses,5]!=0))
+      probMat_res[6,ses]=sum(probMatrix_aca[pos_ses,6])/length(which(probMatrix_aca[pos_ses,6]!=0))
+      probMat_res[7,ses]=sum(probMatrix_aca[pos_ses,7])/length(which(probMatrix_aca[pos_ses,7]!=0))
+      probMat_res[8,ses]=sum(probMatrix_aca[pos_ses,8])/length(which(probMatrix_aca[pos_ses,8]!=0))
+      probMat_res[9,ses]=sum(probMatrix_aca[pos_ses,9])/length(which(probMatrix_aca[pos_ses,9]!=0))
+      probMat_res[10,ses]=sum(probMatrix_aca[pos_ses,10])/length(which(probMatrix_aca[pos_ses,10]!=0))
+      probMat_res[11,ses]=sum(probMatrix_aca[pos_ses,11])/length(which(probMatrix_aca[pos_ses,11]!=0))
+      probMat_res[12,ses]=sum(probMatrix_aca[pos_ses,12])/length(which(probMatrix_aca[pos_ses,12]!=0))
+    }
+  }
   
-  return(probMatrix_aca)
+
+  
+  probMat_res <- probMat_res[ , !apply(is.na(probMat_res), 2, all)]
+  return(probMat_res)
 }
 
 plotProbs=function(probEmp,probACA,probSARSA,rat){

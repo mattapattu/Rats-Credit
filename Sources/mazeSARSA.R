@@ -18,8 +18,7 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
   actions <-list()
   states <-list()
   
-  ses_max = as.numeric(allpaths[length(allpaths[,1]),"Session"])
-  probMatrix_sarsa=matrix(0,ses_max,13)
+  probMatrix_sarsa=matrix(0,nrow=length(allpaths[,1]),ncol=13)
   colnames(probMatrix_sarsa)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6","Session")
 
   

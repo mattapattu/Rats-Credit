@@ -46,8 +46,8 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
   for(step in 2:(length(allpaths[,1])-1)){
     
     #print(sprintf("episode=%i",episode))
-    ses=as.numeric(allpaths[i,"Session"])
-    trial=i-which(allpaths[,"Session"]==ses)[1]+1
+    ses=as.numeric(allpaths[step,"Session"])
+    trial=step-which(allpaths[,"Session"]==ses)[1]+1
     pos_trial_t<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
     R=sum(as.numeric(enreg[[ses]]$POS[pos_trial_t,"Reward"]))
     reward=0
@@ -58,8 +58,8 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
     }
     
     ## Next state is the box where current action ends
-    S_prime=getNextState(allpaths,i)
-    A_prime=as.numeric(allpaths[i+1,3])
+    S_prime=getNextState(allpaths,step)
+    A_prime=as.numeric(allpaths[step+1,3])
     
     E[S,A]=E[S,A]+1
     delta=reward+(gamma* Q[S_prime,A_prime]) - Q[S,A]
@@ -87,18 +87,18 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
     
     if(step>1){
      
-      probMatrix_sarsa[i,13]=ses
+      probMatrix_sarsa[step,13]=ses
       if(S==1){
-        probMatrix_sarsa[i,7:12]=0
+        probMatrix_sarsa[step,7:12]=0
         for(act in 1:6){
           x<-mpfr(softmax_sarsa(act,1,Q),128)
-          probMatrix_sarsa[i,(act)]=as.numeric(x)
+          probMatrix_sarsa[step,(act)]=as.numeric(x)
         }
       }else if(S==2){
-        probMatrix_sarsa[i,1:6]=0
+        probMatrix_sarsa[step,1:6]=0
         for(act in 1:6){
           x<-mpfr(softmax_sarsa(act,2,Q),128)
-          probMatrix_sarsa[i,(6+act)]=as.numeric(x)
+          probMatrix_sarsa[step,(6+act)]=as.numeric(x)
         }
       }
     }
@@ -120,6 +120,8 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
     }
     
   }
+  print(sprintf("MSE Empirical vs ACA:"))
+  print(getMSE(probMatrix_aca,allpaths))
   probMat_sarsa_res=getStatsOfLastSession2_sarsa(probMatrix_sarsa)
   return(probMat_sarsa_res)
 }
@@ -180,7 +182,7 @@ getStatsOfLastSession2_sarsa=function(probMatrix_sarsa){
   for(ses in 1:ses_max){
     pos_ses<-which(as.numeric(probMatrix_sarsa[,13])==ses)
     if(isempty(pos_ses)){
-      probMat_sarsa[,ses]=NA
+      probMat_res_sarsa[,ses]=NA
       next
     }else{
       

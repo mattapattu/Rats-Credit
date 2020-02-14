@@ -264,7 +264,7 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
       s<-states[[episode]]
       
       total_actions= length((actions[[episode]]))
-      avg_score = avg_score + ((score_episode/total_actions)-avg_score)/episode
+      avg_score = avg_score + (score_episode/total_actions-avg_score)/episode
       #activations[[episode]]<-activations[[episode]]/sum(activations[[episode]])
       for(state in 1:2){
         for(action in c(1,2,3,49,51,5,6)){
@@ -278,31 +278,30 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
           ## If S,A is visited in the episode
           if(any(s[which(a %in% action)]==state)){
             
+              activity=length(which(actions[[episode]]==action))/total_actions
+            
             if(action==49|action==51){
               action=4
             }
             
             #activity=sum(activations[[episode]][which(actions[[episode]]==action)])/sum(activations[[episode]])
             #print(sprintf("Activty=%f",score_episode*activity))
-            #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
-            activity=as.numeric(softmax(action,state,H))
-            H[state,action]=H[state,action]+alpha*(score_episode/Visits[state,action])
+            H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
+            # activity=as.numeric(softmax(action,state,H))
+            # H[state,action]=H[state,action]+alpha*(score_episode/Visits[state,action])
             
             
             if(is.nan(H[state,action])){
               stop("H[state,action] is NaN")
             }
             
+          }else{
+            if(action==49|action==51){
+              action=4
+              
+            }
+            H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
           }
-          ## If S,A is not visited in the episode
-        #   else{
-        #     if(action==49|action==51){
-        #       action=4
-        #     }
-        #     print(sprintf("Activty=%f",score_episode/total_actions))
-        #     H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
-        #     
-        #   }
         }
       }
       

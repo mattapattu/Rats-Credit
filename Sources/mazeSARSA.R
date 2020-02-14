@@ -121,7 +121,7 @@ sarsa_smax2=function(Q,E,alpha,epsilon,gamma,lambda,allpaths){
     
   }
   print(sprintf("MSE Empirical vs ACA:"))
-  print(getMSE(probMatrix_aca,allpaths))
+  print(getMSE(probMatrix_sarsa,allpaths))
   probMat_sarsa_res=getStatsOfLastSession2_sarsa(probMatrix_sarsa)
   return(probMat_sarsa_res)
 }

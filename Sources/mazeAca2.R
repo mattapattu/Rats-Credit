@@ -59,7 +59,8 @@ mazeACA2=function(enreg,rat){
   print(sprintf("rat:%s",rat))
   print(getStatsBeforeRewards(allpaths))
   
-  probEmp=getStatsAllpaths(allpaths)
+  probEmp=getStatsAllpaths2(allpaths)
+  print(probEmp)
   
   ################Call ACA
   
@@ -68,9 +69,13 @@ mazeACA2=function(enreg,rat){
   H = matrix(0,nrow=2,ncol=6)
   colnames(H)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(H)<-c("E","I")
-  H[1,1]=0.375
-  H[2,1]=0.625
-  alpha=0.0530721750363374
+  H[1,1]=0.0
+  H[2,1]=0.0
+  alpha=0.005
+  
+  # H[1,1]=0.1875
+  # H[2,1]=0.3125
+  # alpha=0.604535749547033
   
   # H[1,1]=0.375
   # H[2,1]=0.625
@@ -87,7 +92,7 @@ mazeACA2=function(enreg,rat){
   #max_steps=500
   #debug(aca_rl)
   probACA=aca_rl2(H,alpha,allpaths)
-  
+  print(probACA)
   
   
   #############Call SARSA
@@ -97,8 +102,8 @@ mazeACA2=function(enreg,rat){
   Q = matrix(0,nrow=2,ncol=6)
   colnames(Q)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(Q)<-c("E","I")
-  Q[1,1]=0.115581894626535
-  Q[2,1]=0.885489207907076
+  # Q[1,1]=0.115581894626535
+  # Q[2,1]=0.885489207907076
   
   E=matrix(0,nrow=2,ncol=6)
   colnames(E)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
@@ -114,6 +119,7 @@ mazeACA2=function(enreg,rat){
   #debug(getNextState)
   #debug(sarsa)
   probSARSA=sarsa_smax2(Q,E,alpha,epsilon,gamma,lambda,allpaths)
+  print(probSARSA)
   
   plotProbs(probEmp,probACA,probSARSA,rat)
   
@@ -165,34 +171,49 @@ updateACAPathNb1=function(allpaths){
   return(allpaths)
 }
 
-getStatsAllpaths=function(allpaths){
+getStatsAllpaths2=function(allpaths){
   probMatrix_allpaths=matrix(0,12,0)
   rownames(probMatrix_allpaths)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
   last_session = as.numeric(tail(allpaths[,"Session"],1))
   sessions <- numeric()
+  count1=0
+  count2=0
   for(ses in 1:last_session){
-    allpaths_ses1<-which(allpaths[,"Session"]==ses)
-    if(length(allpaths_ses1)==0){
+    allpaths_idx<-which(allpaths[,"Session"]==ses)
+    if(length(allpaths_idx)==0){
       next
     }
-    allpaths_ses1<-allpaths[allpaths_ses1,]
+    allpaths_ses1<-allpaths[allpaths_idx,]
     len1<-length(which(allpaths_ses1[,"State"]==1))
     len2<-length(which(allpaths_ses1[,"State"]==2))
     probMatrix_allpaths <- cbind(probMatrix_allpaths,0)
     colIndex=length(probMatrix_allpaths[1,])
+    max_trial_ses=length(allpaths_ses1[,1])
+    for(idx in allpaths_idx){
+      action=as.numeric(allpaths[idx,3])
+      if(allpaths[idx,5]==1){
+        count1=count1+1
+        probMatrix_allpaths[1,colIndex]=probMatrix_allpaths[1,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==1) & (as.numeric(allpaths[1:idx,5])==1)))/count1)
+        probMatrix_allpaths[2,colIndex]=probMatrix_allpaths[2,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==2) & (as.numeric(allpaths[1:idx,5])==1)))/count1)
+        probMatrix_allpaths[3,colIndex]=probMatrix_allpaths[3,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==3) & (as.numeric(allpaths[1:idx,5])==1)))/count1)
+        probMatrix_allpaths[4,colIndex]=probMatrix_allpaths[4,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==4) & (as.numeric(allpaths[1:idx,5])==1)))/count1)
+        probMatrix_allpaths[5,colIndex]=probMatrix_allpaths[5,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==5) & (as.numeric(allpaths[1:idx,5])==1)))/count1)
+        probMatrix_allpaths[6,colIndex]=probMatrix_allpaths[6,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==6) & (as.numeric(allpaths[1:idx,5])==1)))/count1)
+      }else if(allpaths[idx,5]==2){
+        count2=count2+1
+        probMatrix_allpaths[7,colIndex]=probMatrix_allpaths[7,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==1) & (as.numeric(allpaths[1:idx,5])==2)))/count2)
+        probMatrix_allpaths[8,colIndex]=probMatrix_allpaths[8,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==2) & (as.numeric(allpaths[1:idx,5])==2)))/count2)
+        probMatrix_allpaths[9,colIndex]=probMatrix_allpaths[9,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==3) & (as.numeric(allpaths[1:idx,5])==2)))/count2)
+        probMatrix_allpaths[10,colIndex]=probMatrix_allpaths[10,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==4) & (as.numeric(allpaths[1:idx,5])==2)))/count2)
+        probMatrix_allpaths[11,colIndex]=probMatrix_allpaths[11,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==5) & (as.numeric(allpaths[1:idx,5])==2)))/count2)
+        probMatrix_allpaths[12,colIndex]=probMatrix_allpaths[12,colIndex]+(length(which((as.numeric(allpaths[1:idx,3])==6) & (as.numeric(allpaths[1:idx,5])==2)))/count2)
+      }
+      #print(probMatrix_allpaths[1:6,colIndex])
+      #print(probMatrix_allpaths[7:12,colIndex])
+    }
+    probMatrix_allpaths[1:6,colIndex]=probMatrix_allpaths[1:6,colIndex]/len1
+    probMatrix_allpaths[7:12,colIndex]=probMatrix_allpaths[7:12,colIndex]/len2
     
-    probMatrix_allpaths[1,colIndex]=length(which(allpaths_ses1[,3]==1 & allpaths_ses1[,5]==1))/len1
-    probMatrix_allpaths[2,colIndex]=length(which(allpaths_ses1[,3]==2 & allpaths_ses1[,5]==1))/len1
-    probMatrix_allpaths[3,colIndex]=length(which(allpaths_ses1[,3]==3 & allpaths_ses1[,5]==1))/len1
-    probMatrix_allpaths[4,colIndex]=length(which(allpaths_ses1[,3]==4 & allpaths_ses1[,5]==1))/len1
-    probMatrix_allpaths[5,colIndex]=length(which(allpaths_ses1[,3]==5 & allpaths_ses1[,5]==1))/len1
-    probMatrix_allpaths[6,colIndex]=length(which(allpaths_ses1[,3]==6 & allpaths_ses1[,5]==1))/len1
-    probMatrix_allpaths[7,colIndex]=length(which(allpaths_ses1[,3]==1 & allpaths_ses1[,5]==2))/len2
-    probMatrix_allpaths[8,colIndex]=length(which(allpaths_ses1[,3]==2 & allpaths_ses1[,5]==2))/len2
-    probMatrix_allpaths[9,colIndex]=length(which(allpaths_ses1[,3]==3 & allpaths_ses1[,5]==2))/len2
-    probMatrix_allpaths[10,colIndex]=length(which(allpaths_ses1[,3]==4 & allpaths_ses1[,5]==2))/len2
-    probMatrix_allpaths[11,colIndex]=length(which(allpaths_ses1[,3]==5 & allpaths_ses1[,5]==2))/len2
-    probMatrix_allpaths[12,colIndex]=length(which(allpaths_ses1[,3]==6 & allpaths_ses1[,5]==2))/len2
   }
   return(probMatrix_allpaths)
 }
@@ -263,13 +284,14 @@ aca_rl2=function(H,alpha,allpaths){
   startIndex_session=0
   avg_score=0
   score_episode=0
+  episodeFin=0
   allpaths <-cbind(allpaths,probability=0)
   
   for(i in c(1:(length(allpaths[,1])-1))){
     
     #print(sprintf("Step=%i,Episode=%i",i,episode))
     
-    print(sprintf("i=%i,episode=%i",i,episode))
+    #print(sprintf("i=%i,episode=%i",i,episode))
     
     
     if(length(actions[[episode]])==0){
@@ -342,58 +364,65 @@ aca_rl2=function(H,alpha,allpaths){
     if(returnToInitState){
       changeState = F
       returnToInitState = F
+      episodeFin=episodeFin+1
       
-      a<-actions[[episode]]
-      s<-states[[episode]]
-      
-      total_actions= length((actions[[episode]]))
-      avg_score = avg_score + (score_episode/total_actions-avg_score)/episode
-      for(state in 1:2){
-        for(action in c(1,2,3,49,51,5,6)){
-          
-          if(state==1 && action ==49){
-            next
-          }else if(state==2 && action ==51){
-            next
-          }
-          
-          ## If S,A is visited in the episode
-          if(any(s[which(a %in% action)]==state)){
+      if(episodeFin==3||i<=(length(allpaths[,1])-2)){
+        a<-actions[[episode]]
+        s<-states[[episode]]
+        
+        total_actions= length((actions[[episode]]))
+        avg_score = avg_score + (score_episode/total_actions-avg_score)/episode
+        for(state in 1:2){
+          for(action in c(1,2,3,49,51,5,6)){
             
-            activity=length(which(actions[[episode]]==action))/total_actions
+            if(state==1 && action ==49){
+              next
+            }else if(state==2 && action ==51){
+              next
+            }
             
-            if(action==49|action==51){
-              action=4
+            ## If S,A is visited in the episode
+            if(any(s[which(a %in% action)]==state)){
+              
+              activity=length(which(actions[[episode]]==action))/total_actions
+              
+              if(action==49|action==51){
+                action=4
+                
+              }
+              
+              #activity=as.numeric(softmax(action,state,H))
+              H[state,action]=H[state,action]+alpha*(score_episode*activity/Visits[state,action])
+              #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax2(action,state,H)))
+              
+              if(is.nan(H[state,action])){
+                stop("H[state,action] is NaN")
+              }
               
             }
-
-            #activity=as.numeric(softmax(action,state,H))
-            #H[state,action]=H[state,action]+alpha*(score_episode/total_actions)
-            H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax2(action,state,H)))
-            
-            if(is.nan(H[state,action])){
-              stop("H[state,action] is NaN")
-            }
-            
-          }else{
-            if(action==49|action==51){
-              action=4
-              
-            }
-            H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax2(action,state,H)))
+            # else{
+            #   if(action==49|action==51){
+            #     action=4
+            #     
+            #   }
+            #   H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax2(action,state,H)))
+            # }
           }
         }
+        ## reset rewards
+        score_episode=0
+        episodeFin=0
+        episode = episode+1
+        
+        #print(sprintf("Updating episode to %i",episode))
+        if(i <= (length(allpaths[,1])-1)){
+          actions[[episode]] <- vector()
+          states[[episode]] <- vector()
+          #activations[[episode]] <- vector()
+        }
       }
-      ## reset rewards
-      score_episode=0
-      episode = episode+1
       
-      #print(sprintf("Updating episode to %i",episode))
-      if(i <= (length(allpaths[,1])-1)){
-        actions[[episode]] <- vector()
-        states[[episode]] <- vector()
-        #activations[[episode]] <- vector()
-      }
+     
       
     }
     ### End of episode checkd
@@ -572,18 +601,18 @@ getMSE=function(probMatrix_aca,allpaths){
         action=as.numeric(allpaths[i,3])
         if(allpaths[i,5]==1){
           mseMatrix[1,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(1==action))^2
-          mseMatrix[2,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(2==action))^2
-          mseMatrix[3,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(3==action))^2
-          mseMatrix[4,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(4==action))^2
-          mseMatrix[5,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(5==action))^2
-          mseMatrix[6,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(6==action))^2
+          mseMatrix[2,ses]=mseMatrix[2,ses]+(probMatrix_aca[i,1]-(2==action))^2
+          mseMatrix[3,ses]=mseMatrix[3,ses]+(probMatrix_aca[i,1]-(3==action))^2
+          mseMatrix[4,ses]=mseMatrix[4,ses]+(probMatrix_aca[i,1]-(4==action))^2
+          mseMatrix[5,ses]=mseMatrix[5,ses]+(probMatrix_aca[i,1]-(5==action))^2
+          mseMatrix[6,ses]=mseMatrix[6,ses]+(probMatrix_aca[i,1]-(6==action))^2
         }else if(allpaths[i,5]==2){
-          mseMatrix[7,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(7==action))^2
-          mseMatrix[8,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(8==action))^2
-          mseMatrix[9,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(9==action))^2
-          mseMatrix[10,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(10==action))^2
-          mseMatrix[11,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(11==action))^2
-          mseMatrix[12,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(12==action))^2
+          mseMatrix[7,ses]=mseMatrix[7,ses]+(probMatrix_aca[i,1]-(7==action))^2
+          mseMatrix[8,ses]=mseMatrix[8,ses]+(probMatrix_aca[i,1]-(8==action))^2
+          mseMatrix[9,ses]=mseMatrix[9,ses]+(probMatrix_aca[i,1]-(9==action))^2
+          mseMatrix[10,ses]=mseMatrix[10,ses]+(probMatrix_aca[i,1]-(10==action))^2
+          mseMatrix[11,ses]=mseMatrix[11,ses]+(probMatrix_aca[i,1]-(11==action))^2
+          mseMatrix[12,ses]=mseMatrix[12,ses]+(probMatrix_aca[i,1]-(12==action))^2
         }
         
       }

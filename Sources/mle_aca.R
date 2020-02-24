@@ -3,6 +3,7 @@ library(GenSA)
 library(Rmpfr)
 library(parallel)
 library(optimParallel)
+library(Rcpp)
 
 #### Function to call for plotting heatmap
 mle_aca=function(enreg,rat){
@@ -47,6 +48,7 @@ mle_aca=function(enreg,rat){
     
   }
   allpaths = updateACAPathNb(allpaths)
+  sourceCpp('C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/aca_mle.cpp')
   
 
   
@@ -64,7 +66,7 @@ mle_aca=function(enreg,rat){
   # # set the number of values for which to run optim in full
   # fullIter <- 5
   # define a set of starting values
-  starting_values<-generate_starting_values(10,c(0,0,0),c(0.999,1,1))
+  starting_values<-generate_starting_values(20,c(0),c(0.1))
   # call optim with startIter iterations for each starting value
   # opt <- apply(starting_values,2,function(x) optimParallel(x,rl_aca_negLogLik,lower=c(0.001,0,0),upper=c(0.999,1,1),allpaths=allpaths,method="L-BFGS-B",control=list(maxit=startIter)))
   # # define new starting values as the fullIter best values found thus far
@@ -75,7 +77,7 @@ mle_aca=function(enreg,rat){
   control <- list(factr=.01/.Machine$double.eps)
   for(i in 1:length(starting_values[,1])){
     print(sprintf("starting_values=%s",paste(starting_values[i,],collapse = " ")))
-      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0,0,0),upper=c(0.999,1,1),allpaths=allpaths, control=control)
+      est <- optimParallel(starting_values[i,],rl_aca_negLogLik,lower=c(0),upper=c(0.1),allpaths=allpaths, control=control)
       if(est$value<min_val && est$convergence==0){
         min_val = est$value
         optimal_vals <- est$par
@@ -202,10 +204,11 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
   changeState = F
   returnToInitState = F
   score_episode=0
+  episodeFin=0
   
   for(i in 2:(length(allpaths[,1]))-1){
     
-    print(sprintf("i=%i,episode=%i",i,episode))
+    #print(sprintf("i=%i,episode=%i",i,episode))
     
     
     if(length(actions[[episode]])==0){
@@ -256,66 +259,74 @@ aca_mle=function(alpha,path1_prob1,path1_prob2,allpaths){
     
    
     ## Check if episode ended
-    if(returnToInitState){
+    if(returnToInitState ){
       changeState = F
       returnToInitState = F
+      episodeFin=episodeFin+1
       
-      a<-actions[[episode]]
-      s<-states[[episode]]
-      
-      total_actions= length((actions[[episode]]))
-      avg_score = avg_score + (score_episode/total_actions-avg_score)/episode
-      #activations[[episode]]<-activations[[episode]]/sum(activations[[episode]])
-      for(state in 1:2){
-        for(action in c(1,2,3,49,51,5,6)){
-          
-          if(state==1 && action ==49){
-            next
-          }else if(state==2 && action ==51){
-            next
-          }
-
-          ## If S,A is visited in the episode
-          if(any(s[which(a %in% action)]==state)){
+      if(episodeFin==3||i<=(length(allpaths[,1])-2)){
+        
+        a<-actions[[episode]]
+        s<-states[[episode]]
+        
+        total_actions= length((actions[[episode]]))
+        #avg_score = avg_score + (score_episode/total_actions-avg_score)/episode
+        #activations[[episode]]<-activations[[episode]]/sum(activations[[episode]])
+        for(state in 1:2){
+          for(action in c(1,2,3,49,51,5,6)){
             
+            if(state==1 && action ==49){
+              next
+            }else if(state==2 && action ==51){
+              next
+            }
+            
+            ## If S,A is visited in the episode
+            if(any(s[which(a %in% action)]==state)){
+              
               activity=length(which(actions[[episode]]==action))/total_actions
-            
-            if(action==49|action==51){
-              action=4
-            }
-            
-            #activity=sum(activations[[episode]][which(actions[[episode]]==action)])/sum(activations[[episode]])
-            #print(sprintf("Activty=%f",score_episode*activity))
-            H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
-            # activity=as.numeric(softmax(action,state,H))
-            # H[state,action]=H[state,action]+alpha*(score_episode/Visits[state,action])
-            
-            
-            if(is.nan(H[state,action])){
-              stop("H[state,action] is NaN")
-            }
-            
-          }else{
-            if(action==49|action==51){
-              action=4
+              
+              if(action==49|action==51){
+                action=4
+              }
+              
+              #activity=sum(activations[[episode]][which(actions[[episode]]==action)])/sum(activations[[episode]])
+              ####Ousamma's rule:
+              #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax(action,state,H)))
+              # activity=as.numeric(softmax(action,state,H))
+              H[state,action]=H[state,action]+alpha*(score_episode*activity/Visits[state,action])
+              
+              
+              if(is.nan(H[state,action])){
+                stop("H[state,action] is NaN")
+              }
               
             }
-            H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
+            ### Uncomment to chnage to Oussama's rule
+            # else{
+            #   if(action==49|action==51){
+            #     action=4
+            #     
+            #   }
+            #   H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax(action,state,H)))
+            # }
           }
+        }
+        
+        #print(H)
+        ## reset rewards
+        score_episode=0
+        episodeFin=0
+        episode = episode+1
+        
+        #print(sprintf("Updating episode to %i",episode))
+        if(i < length(allpaths[,1])-1){
+          actions[[episode]] <- vector()
+          states[[episode]] <- vector()
+          activations[[episode]] <- vector()
         }
       }
       
-      #print(H)
-      ## reset rewards
-      score_episode=0
-      episode = episode+1
-      
-      #print(sprintf("Updating episode to %i",episode))
-      if(i < length(allpaths[,1])-1){
-        actions[[episode]] <- vector()
-        states[[episode]] <- vector()
-        activations[[episode]] <- vector()
-      }
     }
     ### End episode check
     x<-mpfr(softmax(A,S,H),128)
@@ -361,8 +372,8 @@ getNextState=function(allpaths,i){
 
 rl_aca_negLogLik <- function(par,allpaths) {
   alpha <- par[1]
-  path1_prob1 <- par[2]
-  path1_prob2 <- par[3]
+  path1_prob1 <- 0
+  path1_prob2 <- 0
   lik <- aca_mle(alpha,path1_prob1,path1_prob2,allpaths)
   negLogLik <- -sum(log(lik))
   if(is.infinite(negLogLik)){

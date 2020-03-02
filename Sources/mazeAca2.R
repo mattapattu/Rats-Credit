@@ -71,7 +71,7 @@ mazeACA2=function(enreg,rat){
   rownames(H)<-c("E","I")
   H[1,1]=0.0
   H[2,1]=0.0
-  alpha=0.005
+  alpha=1
   
   # H[1,1]=0.1875
   # H[2,1]=0.3125

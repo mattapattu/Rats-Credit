@@ -36,6 +36,7 @@ convert.node.to.enreg=function(rat){
 add.box.to.pos=function(ses,enreg,spolygons){
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,boxname="")
   enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,trial="")
+  enreg[[ses]]$POS = cbind(enreg[[ses]]$POS,Session=ses)
  
   #pts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49"),2]),as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"] == "49"),3])))
   # plot(spolygons)
@@ -139,6 +140,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
   
   # enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric((g[seq_along(g)-1]=="i"| g[seq_along(g)-1]=="e") & g[-1] != g[-length(g)])))
   enreg=add.trial.to.pos(enreg,ses)
+  
   
   print("Returning enreg from add.boxes.to.pos")
   return(enreg)
@@ -296,6 +298,8 @@ add.boxes.to.spikes=function(ses,enreg){
   enreg[[ses]]$SPIKES[x,"boxName"] = enreg[[ses]]$POS[i[x],"boxname"]
   enreg[[ses]]$SPIKES[x,"trial"] =  enreg[[ses]]$POS[i[x],"trial"]
   #enreg[[ses]]$SPIKES[x,"distance"] =  enreg[[ses]]$POS[i[x],"distance"]
+  
+  
   
   print("Returning enreg from add.boxes.to.spikes")
   return(enreg)

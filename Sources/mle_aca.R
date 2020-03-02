@@ -50,17 +50,47 @@ mle_aca=function(enreg,rat){
   allpaths = updateACAPathNb(allpaths)
   sourceCpp('C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/aca_mle.cpp')
   
+  enreg_comb<-matrix(, nrow = 0, ncol = 7)
+  for(i in 1:length(enreg)){
+    
+    if(is.null(enreg[[ses]])){
+      print(sprintf("skipping %s ses %i as enreg is empty",rat,ses))
+      next
+    }else if(isempty(enreg[[ses]]$EVENTS)){
+      print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
+      next
+    }else if(rat=="rat_106" && ses==3){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }else if(rat=="rat_112" && ses==1){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }else if(rat=="rat_113" && ses==13){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }
+    enreg_comb<-rbind(enreg_comb,enreg[[ses]]$POS)
+  }
+  save(allpaths,enreg_comb,file=file.path(paste(rat,'.Rdata',sep="")))
+  min_val=Inf
+  
 
   
   #out <- GenSA(lower = c(0.0,0.0,0.0,0.0), upper = c(1,1,1,1), fn = rl_eg_negLogLik,allpaths=allpaths, Q=Q, E=E,control = list(max.time=600, verbose=TRUE))
   
   #est <- optim(c(0.1,0.8,0.1,0.8,0.5,0.5),rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E, method="L-BFGS-B")
   #print(sprintf("Estimated parameters for rat %s = %s",rat,est$par ))
+  out <- GenSA(lower = 0.0001, upper = 1.0, fn = rl_aca_negLogLik,allpaths=allpaths,control = list(verbose=TRUE))
 
-
+  out <- DEoptim(rl_aca_negLogLik,lower = 0.001, upper = 1,allpaths=allpaths, enreg=enreg_comb,DEoptim.control(NP=10,F=0.8, CR = 0.9,trace=TRUE,parallelType=1,packages=c("Rcpp"),parVar=c("aca_mle_cpp","rl_aca_negLogLik")))
+  
+  
   cl <- makeCluster(detectCores()-1)
   setDefaultCluster(cl=cl)
-  clusterExport(cl, varlist=c("aca_mle","rl_aca_negLogLik","getNextState","getPathNumber","updateACAPathNb","enreg","softmax"))
+  clusterExport(cl, varlist=c("aca_mle_cpp","rl_aca_negLogLik","getNextState","getPathNumber","updateACAPathNb","enreg","softmax"))
   clusterEvalQ(cl, library("Rmpfr"))
   # startIter <- 3
   # # set the number of values for which to run optim in full
@@ -370,16 +400,16 @@ getNextState=function(allpaths,i){
 }
 
 
-rl_aca_negLogLik <- function(par,allpaths) {
+rl_aca_negLogLik <- function(par,allpaths,enreg) {
   alpha <- par[1]
-  path1_prob1 <- 0
-  path1_prob2 <- 0
-  lik <- aca_mle(alpha,path1_prob1,path1_prob2,allpaths)
-  negLogLik <- -sum(log(lik))
-  if(is.infinite(negLogLik)){
+  epsLim <- 3
+  lik <- aca_mle_cpp(allpaths,enreg,alpha,epsLim)
+  #negLogLik <- -sum(log(lik))
+  gc()
+  if(is.infinite(lik)){
     return(1000000)
   }else{
-    return(as.numeric(negLogLik))
+    return(as.numeric(lik))
   }
   
 }

@@ -51,7 +51,7 @@ mle_aca=function(enreg,rat){
   sourceCpp('C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/aca_mle.cpp')
   
   enreg_comb<-matrix(, nrow = 0, ncol = 7)
-  for(i in 1:length(enreg)){
+  for(ses in 1:length(enreg)){
     
     if(is.null(enreg[[ses]])){
       print(sprintf("skipping %s ses %i as enreg is empty",rat,ses))
@@ -74,18 +74,22 @@ mle_aca=function(enreg,rat){
     }
     enreg_comb<-rbind(enreg_comb,enreg[[ses]]$POS)
   }
+  l<-cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
+  
+  y<-updateAllpaths(as.numeric(allpaths[,2]),l)
+  allpaths<-cbind(allpaths,y)
   save(allpaths,enreg_comb,file=file.path(paste(rat,'.Rdata',sep="")))
   min_val=Inf
   
-
+  
   
   #out <- GenSA(lower = c(0.0,0.0,0.0,0.0), upper = c(1,1,1,1), fn = rl_eg_negLogLik,allpaths=allpaths, Q=Q, E=E,control = list(max.time=600, verbose=TRUE))
   
   #est <- optim(c(0.1,0.8,0.1,0.8,0.5,0.5),rl_eg_negLogLik,lower=c(0,0,0,0,0,0),upper=c(1,1,1,1,1,1),allpaths=allpaths, Q=Q, E=E, method="L-BFGS-B")
   #print(sprintf("Estimated parameters for rat %s = %s",rat,est$par ))
-  out <- GenSA(lower = 0.0001, upper = 1.0, fn = rl_aca_negLogLik,allpaths=allpaths,control = list(verbose=TRUE))
+  out <- GenSA(lower = c(0.001,1), upper = c(1,30), fn = rl_aca_negLogLik,allpaths=allpaths,control = list(verbose=TRUE))
 
-  out <- DEoptim(rl_aca_negLogLik,lower = 0.001, upper = 1,allpaths=allpaths, enreg=enreg_comb,DEoptim.control(NP=10,F=0.8, CR = 0.9,trace=TRUE,parallelType=1,packages=c("Rcpp"),parVar=c("aca_mle_cpp","rl_aca_negLogLik")))
+  out <- DEoptim(rl_aca_negLogLik,lower = c(0.001,1), upper = c(1,30),allpaths=allpaths, enreg=enreg_comb,DEoptim.control(NP=20,F=0.8, CR = 0.9,trace=TRUE))
   
   
   cl <- makeCluster(detectCores()-1)
@@ -385,9 +389,10 @@ getNextState=function(allpaths,i){
   ### If allpaths[i,] does not end in E/I , use the begining of next path to find the new state 
   else{
     if(i<length(allpaths[i,])){
-      if(grepl("^, f",allpaths[i+1,1])||grepl("^, d",allpaths[i+1,1])){
+      s=gsub("^, ","",allpaths[i+1,1])
+      if(grepl("^f",s)||grepl("^, d",s)){
         next_state = 1
-      }else if(grepl("^, j",allpaths[i+1,1])||grepl("^, h",allpaths[i+1,1])){
+      }else if(grepl("^, j",s)||grepl("^, h",s)){
         next_state = 2
       }
     }else{
@@ -400,9 +405,11 @@ getNextState=function(allpaths,i){
 }
 
 
+
+
 rl_aca_negLogLik <- function(par,allpaths,enreg) {
   alpha <- par[1]
-  epsLim <- 3
+  epsLim <- par[2]
   lik <- aca_mle_cpp(allpaths,enreg,alpha,epsLim)
   #negLogLik <- -sum(log(lik))
   gc()

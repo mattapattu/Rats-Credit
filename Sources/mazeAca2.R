@@ -57,7 +57,39 @@ mazeACA2=function(enreg,rat){
   }
   allpaths = updateACAPathNb1(allpaths)
   print(sprintf("rat:%s",rat))
-  print(getStatsBeforeRewards(allpaths))
+  #print(getStatsBeforeRewards(allpaths))
+  
+  # allpaths = updateACAPathNb(allpaths)
+  sourceCpp('C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/aca_mle.cpp')
+  
+  enreg_comb<-matrix(, nrow = 0, ncol = 7)
+  for(ses in 1:length(enreg)){
+    
+    if(is.null(enreg[[ses]])){
+      print(sprintf("skipping %s ses %i as enreg is empty",rat,ses))
+      next
+    }else if(isempty(enreg[[ses]]$EVENTS)){
+      print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
+      next
+    }else if(rat=="rat_106" && ses==3){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }else if(rat=="rat_112" && ses==1){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }else if(rat=="rat_113" && ses==13){
+      print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
+      next
+      
+    }
+    enreg_comb<-rbind(enreg_comb,enreg[[ses]]$POS)
+  }
+  l<-cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
+  
+  y<-updateAllpaths(as.numeric(allpaths[,2]),l)
+  allpaths<-cbind(allpaths,y)
   
   probEmp=getStatsAllpaths2(allpaths)
   print(probEmp)
@@ -71,7 +103,7 @@ mazeACA2=function(enreg,rat){
   rownames(H)<-c("E","I")
   H[1,1]=0.0
   H[2,1]=0.0
-  alpha=1
+  alpha=0.699
   
   # H[1,1]=0.1875
   # H[2,1]=0.3125
@@ -250,6 +282,32 @@ getStatsBeforeRewards=function(allpaths){
   return(probMatrix_allpaths)
 }
 
+getNextState_aca2=function(allpaths,i){
+  next_state=0
+  if(grepl("^.*e$",allpaths[i,1])){
+    next_state = 1
+  }else if(grepl("^.*i$",allpaths[i,1])){
+    next_state = 2
+  }
+  ### If allpaths[i,] does not end in E/I , use the begining of next path to find the new state 
+  else{
+    if(i<length(allpaths[,1])){
+      # print("Here")
+      s=gsub("^, ","",allpaths[i+1,1])
+      if(grepl("^f",s)||grepl("^, d",s)){
+        next_state = 1
+      }else if(grepl("^, j",s)||grepl("^, h",s)){
+        next_state = 2
+      }
+    }else{
+      next_state=-1
+    }
+    
+  }
+  
+  return(next_state)
+}
+
 ### Action = Path
 ## State = E or I
 
@@ -259,10 +317,12 @@ aca_rl2=function(H,alpha,allpaths){
   
   actions <-list()
   states <-list()
+  time_in_trial <-list()
   
   episode=1
   actions[[episode]] <- vector()
   states[[episode]] <- vector()
+  time_in_trial[[episode]] <-vector()
   
   ## Counter for Actions
   Visits = matrix(0,nrow=2,ncol=6)
@@ -313,18 +373,14 @@ aca_rl2=function(H,alpha,allpaths){
     }
     
     A=as.numeric(allpaths[i,3])
-    S_prime=getNextState(allpaths,i)
+    S_prime=getNextState_aca2(allpaths,i)
     
-    if(A == 4 & S == 1){
-      actions[[episode]] <- append(actions[[episode]],51)
-    }else if(A == 4 & S == 2){
-      actions[[episode]] <- append(actions[[episode]],49)
-    }else{
-      actions[[episode]] <- append(actions[[episode]],unname(A))
-    }
+    actions[[episode]] <- append(actions[[episode]],unname(A))
+    
     #print("Here")
     #actions <- c(actions,sprintf("S%i-P%i",S,A))
     states[[episode]] <- append(states[[episode]],unname(S))
+    time_in_trial[[episode]] <- append(time_in_trial[[episode]],as.numeric(allpaths[i,6]))
     Visits[S,A]=Visits[S,A]+1
     #print(sprintf("Current state = %i, Action = %i", S,A))
     if(S_prime!=initState){
@@ -347,13 +403,13 @@ aca_rl2=function(H,alpha,allpaths){
       if(S==1){
         probMatrix_aca[i,7:12]=0
         for(act in 1:6){
-          x<-mpfr(softmax2(act,1,H),128)
+          x<-mpfr(softmax(act,1,H),128)
           probMatrix_aca[i,(act)]=as.numeric(x)
         }
       }else if(S==2){
         probMatrix_aca[i,1:6]=0
         for(act in 1:6){
-          x<-mpfr(softmax2(act,2,H),128)
+          x<-mpfr(softmax(act,2,H),128)
           probMatrix_aca[i,(6+act)]=as.numeric(x)
         }
       }
@@ -366,63 +422,70 @@ aca_rl2=function(H,alpha,allpaths){
       returnToInitState = F
       episodeFin=episodeFin+1
       
-      if(episodeFin==3||i<=(length(allpaths[,1])-2)){
+      
+      
+      if(episodeFin==1 && i<=(length(allpaths[,1])-1)){
+        
         a<-actions[[episode]]
         s<-states[[episode]]
+        t<-time_in_trial[[episode]]
         
-        total_actions= length((actions[[episode]]))
-        avg_score = avg_score + (score_episode/total_actions-avg_score)/episode
-        for(state in 1:2){
-          for(action in c(1,2,3,49,51,5,6)){
-            
-            if(state==1 && action ==49){
-              next
-            }else if(state==2 && action ==51){
-              next
-            }
-            
-            ## If S,A is visited in the episode
-            if(any(s[which(a %in% action)]==state)){
-              
-              activity=length(which(actions[[episode]]==action))/total_actions
-              
-              if(action==49|action==51){
-                action=4
-                
-              }
-              
-              #activity=as.numeric(softmax(action,state,H))
-              H[state,action]=H[state,action]+alpha*(score_episode*activity/Visits[state,action])
-              #H[state,action]=H[state,action]+alpha*((score_episode*activity)-avg_score)*(1-as.numeric(softmax2(action,state,H)))
-              
-              if(is.nan(H[state,action])){
-                stop("H[state,action] is NaN")
-              }
-              
-            }
-            # else{
-            #   if(action==49|action==51){
-            #     action=4
-            #     
-            #   }
-            #   H[state,action]=H[state,action]-alpha*((score_episode/total_actions)-avg_score)*(as.numeric(softmax2(action,state,H)))
-            # }
+        state1_idx=which(s==1)
+        state2_idx=which(s==2)
+        
+        uniq_actions_s1 = unique(a[state1_idx])
+        for(action_s1 in uniq_actions_s1){
+          activity=length(which(a[state1_idx]==action_s1))*1000/sum(t[state1_idx])
+          #H[1,uniq_actions_s1[ids]]=H[1,uniq_actions_s1[ids]]+alpha*(score_episode*activity/Visits[1,uniq_actions_s1[ids]])
+          H[1,action_s1]=H[1,action_s1]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action_s1,1,H)))*activity
+          #H[1,uniq_actions_s1[ids]]=H[1,uniq_actions_s1[ids]]+alpha*(score_episode*activity)
+        }
+        
+        setdiff_state1 = setdiff(c(1:6),uniq_actions_s1)
+        for(action_s1 in setdiff_state1){
+          H[1,action_s1]=H[1,action_s1]-alpha*(score_episode-avg_score)*(as.numeric(softmax(action_s1,1,H)))/(length(state1_idx))
+        }
+        
+        
+        uniq_actions_s2 = unique(a[state2_idx])
+        for(action_s2 in uniq_actions_s2){
+          activity=length(which(a[state2_idx]==action_s2))*1000/sum(t[state2_idx])
+          #H[2,uniq_actions_s2[ids]]=H[2,uniq_actions_s2[ids]]+alpha*(score_episode*activity/Visits[2,uniq_actions_s2[ids]])
+          H[2,action_s2]=H[2,action_s2]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action_s2,2,H)))*activity
+          #H[2,uniq_actions_s2[ids]]=H[2,uniq_actions_s2[ids]]+alpha*(score_episode*activity)
+          if(is.nan(H[2,action_s2])){
+            print(sprintf("Action=%i, activity=%f",action_s2,activity))
+            stop("softmax return Nan")
+          }
+         
+        }
+        
+        setdiff_state2 = setdiff(c(1:6),uniq_actions_s2)
+        for(action_s2 in setdiff_state2){
+          H[2,action_s2]=H[2,action_s2]-(alpha*(score_episode-avg_score)*(as.numeric(softmax(action_s2,2,H)))/(length(state2_idx)))
+          if(is.nan(H[2,action_s2])){
+            print(sprintf("Action=%i, activity=%f",action_s2,activity))
+            stop("softmax return Nan")
           }
         }
+        
         ## reset rewards
         score_episode=0
         episodeFin=0
         episode = episode+1
         
+        
         #print(sprintf("Updating episode to %i",episode))
         if(i <= (length(allpaths[,1])-1)){
           actions[[episode]] <- vector()
           states[[episode]] <- vector()
+          time_in_trial[[episode]] <-vector()
           #activations[[episode]] <- vector()
         }
+        
       }
       
-     
+      
       
     }
     ### End of episode checkd
@@ -459,28 +522,7 @@ getNextState_ACA_RL=function(curr_state,action){
   return(new_state)
 }
 
-getNextState=function(allpaths,i){
-  if(grepl("^.*e$",allpaths[i,1])){
-    next_state = 1
-  }else if(grepl("^.*i$",allpaths[i,1])){
-    next_state = 2
-  }
-  ### If allpaths[i,] does not end in E/I , use the begining of next path to find the new state 
-  else{
-    if(i<length(allpaths[i,])){
-      if(grepl("^, f",allpaths[i+1,1])||grepl("^, d",allpaths[i+1,1])){
-        next_state = 1
-      }else if(grepl("^, j",allpaths[i+1,1])||grepl("^, h",allpaths[i+1,1])){
-        next_state = 2
-      }
-    }else{
-      next_state=-1
-    }
-    
-  }
-  
-  return(next_state)
-}
+
 
 softmax2=function(A,S,H){
   x1 <- mpfr(exp(H[S,A]), precBits = 128)

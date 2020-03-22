@@ -98,12 +98,14 @@ mazeACA2=function(enreg,rat){
   
   
   ### Init H
-  H = matrix(0,nrow=2,ncol=6)
+  #H = matrix(0,nrow=2,ncol=6)
+  H = matrix(c(-15.826769703,-19.590451568,-18.769041306,-14.974060309,-17.180505943,-6.825588735,2.936037932,-2.532011115,-0.286840528,2.511919180,1.897545027,10.564730887),nrow=2,ncol=6)
   colnames(H)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(H)<-c("E","I")
-  H[1,1]=0.0
-  H[2,1]=0.0
-  alpha=0.699
+  #alpha=0.699
+  #alpha=0.671411
+  alpha=0.002361247
+
   
   # H[1,1]=0.1875
   # H[2,1]=0.3125
@@ -155,14 +157,6 @@ mazeACA2=function(enreg,rat){
   
   plotProbs(probEmp,probACA,probSARSA,rat)
   
-  # print(sprintf("MSE Empirical vs ACA:"))
-  # print(getMSE(probEmp,probACA))
-  # print(sprintf("MSE Empirical vs SARSA:"))
-  # print(getMSE(probEmp,probSARSA))
-  # print(sprintf("Correlation Empirical vs ACA:"))
-  # print(getCorrMatrix(probEmp,probACA))
-  # print(sprintf("Correlation Empirical vs SARSA:"))
-  # print(getCorrMatrix(probEmp,probSARSA))
 }
 
 updateACAPathNb1=function(allpaths){
@@ -250,37 +244,7 @@ getStatsAllpaths2=function(allpaths){
   return(probMatrix_allpaths)
 }
 
-getStatsBeforeRewards=function(allpaths){
-  probMatrix_allpaths=matrix(0,12,1)
-  rownames(probMatrix_allpaths)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
-  last_session = as.numeric(tail(allpaths[,"Session"],1))
-  sessions <- numeric()
-  reward_trial = which(allpaths[,"Reward"]>0)[1]
-  allpaths_ses2<-allpaths[1:reward_trial,]
-  len1<-length(which(allpaths_ses2[,"State"]==1))
-  len2<-length(which(allpaths_ses2[,"State"]==2))
-  if(len1==0){
-    len1=1
-  }
-  if(len2==0){
-    len2==1
-  }
-  colIndex=1
-  probMatrix_allpaths[1,colIndex]=length(which(allpaths_ses2[,3]==1 & allpaths_ses2[,5]==1))/len1
-  probMatrix_allpaths[2,colIndex]=length(which(allpaths_ses2[,3]==2 & allpaths_ses2[,5]==1))/len1
-  probMatrix_allpaths[3,colIndex]=length(which(allpaths_ses2[,3]==3 & allpaths_ses2[,5]==1))/len1
-  probMatrix_allpaths[4,colIndex]=length(which(allpaths_ses2[,3]==4 & allpaths_ses2[,5]==1))/len1
-  probMatrix_allpaths[5,colIndex]=length(which(allpaths_ses2[,3]==5 & allpaths_ses2[,5]==1))/len1
-  probMatrix_allpaths[6,colIndex]=length(which(allpaths_ses2[,3]==6 & allpaths_ses2[,5]==1))/len1
-  probMatrix_allpaths[7,colIndex]=length(which(allpaths_ses2[,3]==1 & allpaths_ses2[,5]==2))/len2
-  probMatrix_allpaths[8,colIndex]=length(which(allpaths_ses2[,3]==2 & allpaths_ses2[,5]==2))/len2
-  probMatrix_allpaths[9,colIndex]=length(which(allpaths_ses2[,3]==3 & allpaths_ses2[,5]==2))/len2
-  probMatrix_allpaths[10,colIndex]=length(which(allpaths_ses2[,3]==4 & allpaths_ses2[,5]==2))/len2
-  probMatrix_allpaths[11,colIndex]=length(which(allpaths_ses2[,3]==5 & allpaths_ses2[,5]==2))/len2
-  probMatrix_allpaths[12,colIndex]=length(which(allpaths_ses2[,3]==6 & allpaths_ses2[,5]==2))/len2
-  
-  return(probMatrix_allpaths)
-}
+
 
 getNextState_aca2=function(allpaths,i){
   next_state=0
@@ -294,9 +258,9 @@ getNextState_aca2=function(allpaths,i){
     if(i<length(allpaths[,1])){
       # print("Here")
       s=gsub("^, ","",allpaths[i+1,1])
-      if(grepl("^f",s)||grepl("^, d",s)){
+      if(grepl("^f",s)||grepl("^d",s)){
         next_state = 1
-      }else if(grepl("^, j",s)||grepl("^, h",s)){
+      }else if(grepl("^j",s)||grepl("^h",s)){
         next_state = 2
       }
     }else{
@@ -346,7 +310,7 @@ aca_rl2=function(H,alpha,allpaths){
   score_episode=0
   episodeFin=0
   allpaths <-cbind(allpaths,probability=0)
-  
+  tau=0
   for(i in c(1:(length(allpaths[,1])-1))){
     
     #print(sprintf("Step=%i,Episode=%i",i,episode))
@@ -390,6 +354,11 @@ aca_rl2=function(H,alpha,allpaths){
       returnToInitState = T
       #print(sprintf("Setting returnToInitState to T"))
     }
+    # if(i<exploration_end_trial){
+    #   tau=tau1
+    # }else{
+    #   tau=tau2
+    # }
     
     if(episode>1){
       # x<-mpfr(softmax2(A,S,H),128)
@@ -403,13 +372,13 @@ aca_rl2=function(H,alpha,allpaths){
       if(S==1){
         probMatrix_aca[i,7:12]=0
         for(act in 1:6){
-          x<-mpfr(softmax(act,1,H),128)
+          x<-mpfr(softmax_aca2(act,1,H),128)
           probMatrix_aca[i,(act)]=as.numeric(x)
         }
       }else if(S==2){
         probMatrix_aca[i,1:6]=0
         for(act in 1:6){
-          x<-mpfr(softmax(act,2,H),128)
+          x<-mpfr(softmax_aca2(act,2,H),128)
           probMatrix_aca[i,(6+act)]=as.numeric(x)
         }
       }
@@ -424,7 +393,7 @@ aca_rl2=function(H,alpha,allpaths){
       
       
       
-      if(episodeFin==1 && i<=(length(allpaths[,1])-1)){
+      if(episodeFin==14 || i==length(allpaths[,1])){
         
         a<-actions[[episode]]
         s<-states[[episode]]
@@ -437,13 +406,13 @@ aca_rl2=function(H,alpha,allpaths){
         for(action_s1 in uniq_actions_s1){
           activity=length(which(a[state1_idx]==action_s1))*1000/sum(t[state1_idx])
           #H[1,uniq_actions_s1[ids]]=H[1,uniq_actions_s1[ids]]+alpha*(score_episode*activity/Visits[1,uniq_actions_s1[ids]])
-          H[1,action_s1]=H[1,action_s1]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action_s1,1,H)))*activity
+          H[1,action_s1]=H[1,action_s1]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax_aca2(action_s1,1,H)))*activity
           #H[1,uniq_actions_s1[ids]]=H[1,uniq_actions_s1[ids]]+alpha*(score_episode*activity)
         }
         
         setdiff_state1 = setdiff(c(1:6),uniq_actions_s1)
         for(action_s1 in setdiff_state1){
-          H[1,action_s1]=H[1,action_s1]-alpha*(score_episode-avg_score)*(as.numeric(softmax(action_s1,1,H)))/(length(state1_idx))
+          H[1,action_s1]=H[1,action_s1]-alpha*(score_episode-avg_score)*(as.numeric(softmax_aca2(action_s1,1,H)))/(length(state1_idx))
         }
         
         
@@ -451,7 +420,7 @@ aca_rl2=function(H,alpha,allpaths){
         for(action_s2 in uniq_actions_s2){
           activity=length(which(a[state2_idx]==action_s2))*1000/sum(t[state2_idx])
           #H[2,uniq_actions_s2[ids]]=H[2,uniq_actions_s2[ids]]+alpha*(score_episode*activity/Visits[2,uniq_actions_s2[ids]])
-          H[2,action_s2]=H[2,action_s2]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax(action_s2,2,H)))*activity
+          H[2,action_s2]=H[2,action_s2]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax_aca2(action_s2,2,H)))*activity
           #H[2,uniq_actions_s2[ids]]=H[2,uniq_actions_s2[ids]]+alpha*(score_episode*activity)
           if(is.nan(H[2,action_s2])){
             print(sprintf("Action=%i, activity=%f",action_s2,activity))
@@ -462,7 +431,7 @@ aca_rl2=function(H,alpha,allpaths){
         
         setdiff_state2 = setdiff(c(1:6),uniq_actions_s2)
         for(action_s2 in setdiff_state2){
-          H[2,action_s2]=H[2,action_s2]-(alpha*(score_episode-avg_score)*(as.numeric(softmax(action_s2,2,H)))/(length(state2_idx)))
+          H[2,action_s2]=H[2,action_s2]-(alpha*(score_episode-avg_score)*(as.numeric(softmax_aca2(action_s2,2,H)))/(length(state2_idx)))
           if(is.nan(H[2,action_s2])){
             print(sprintf("Action=%i, activity=%f",action_s2,activity))
             stop("softmax return Nan")
@@ -473,8 +442,7 @@ aca_rl2=function(H,alpha,allpaths){
         score_episode=0
         episodeFin=0
         episode = episode+1
-        
-        
+
         #print(sprintf("Updating episode to %i",episode))
         if(i <= (length(allpaths[,1])-1)){
           actions[[episode]] <- vector()
@@ -482,84 +450,38 @@ aca_rl2=function(H,alpha,allpaths){
           time_in_trial[[episode]] <-vector()
           #activations[[episode]] <- vector()
         }
-        
       }
-      
-      
-      
     }
     ### End of episode checkd
-    
     S=S_prime
-    
-    
   }
   
-  #print(unlist(states))
-  # a=as.data.frame(actions)
-  # colnames(a)=NULL
-  # rownames(a)=NULL
   #capture.output(print(actions), file = "/home/ajames/intership2/actions_ACA.txt")
   #capture.output(print(actions), file = "/home/ajames/intership2/states_ACA.txt")
   
   #print()
   #capture.output(print(actions), file = sprintf("actions-aca.txt"))
-  print(sprintf("MSE Empirical vs ACA:"))
+  print(sprintf("MSE ACA:"))
   print(getMSE(probMatrix_aca,allpaths))
   probMat_res=getStatsOfLastSession2(probMatrix_aca)
   return(probMat_res)
 }
 
-getNextState_ACA_RL=function(curr_state,action){
-  if(action == 5){
-    new_state=curr_state
-  }else if(curr_state==1){
-    new_state=2
-  }else if(curr_state==2){
-    new_state=1
+softmax_aca2=function(A,S,H){
+  m=max(H[S,])
+  x1 <- mpfr(exp((H[S,A]-m)), precBits = 128)
+  x2 <- mpfr(exp((H[S,1]-m)), precBits = 128)
+  x3 <- mpfr(exp((H[S,2]-m)), precBits = 128)
+  x4 <- mpfr(exp((H[S,3]-m)), precBits = 128)
+  x5 <- mpfr(exp((H[S,4]-m)), precBits = 128)
+  x6 <- mpfr(exp((H[S,5]-m)), precBits = 128)
+  x7 <- mpfr(exp((H[S,6]-m)), precBits = 128)
+  if(is.infinite(x1)){
+    return(1)
+  }else{
+    pr_A=(x1)/((x2)+(x3)+(x4)+(x5)+(x6)+(x7))
+    return(pr_A)
   }
-  
-  return(new_state)
-}
-
-
-
-softmax2=function(A,S,H){
-  x1 <- mpfr(exp(H[S,A]), precBits = 128)
-  x2 <- mpfr(exp(H[S,1]), precBits = 128)
-  x3 <- mpfr(exp(H[S,2]), precBits = 128)
-  x4 <- mpfr(exp(H[S,3]), precBits = 128)
-  x5 <- mpfr(exp(H[S,4]), precBits = 128)
-  x6 <- mpfr(exp(H[S,5]), precBits = 128)
-  x7 <- mpfr(exp(H[S,6]), precBits = 128)
-  pr_A=(x1)/((x2)+(x3)+(x4)+(x5)+(x6)+(x7))
-  # if(pr_A==1){
-  #   stop(sprintf("pr_A is 1 = %.20f, Action=%i,State=%i, H=%s",pr_A,A,S,paste(as.numeric(x1),as.numeric(x2),as.numeric(x3),as.numeric(x4),as.numeric(x5),as.numeric(x6), sep=" ")))
-  # }else if(pr_A==0){
-  #   stop(sprintf("pr_A is 1 = %.20f, Action=%i,State=%i, H=%s",pr_A,A,S,paste(as.numeric(x1),as.numeric(x2),as.numeric(x3),as.numeric(x4),as.numeric(x5),as.numeric(x6), sep=" ")))
-  # }
-  return(pr_A)
-}
-
-softmax_policy=function(H,state){
-  
-  x1=exp(H[state,1])
-  x2=exp(H[state,2])
-  x3=exp(H[state,3])
-  x4=exp(H[state,4])
-  x5=exp(H[state,5])
-  x6=exp(H[state,6])
-  
-  p1=x1/(x1+x2+x3+x4+x5+x6)
-  p2=x2/(x1+x2+x3+x4+x5+x6)
-  p3=x3/(x1+x2+x3+x4+x5+x6)
-  p4=x4/(x1+x2+x3+x4+x5+x6)
-  p5=x5/(x1+x2+x3+x4+x5+x6)
-  p6=x6/(x1+x2+x3+x4+x5+x6)
-  
-  action = sample(c(1:6),size=1,prob=c(p1,p2,p3,p4,p5,p6))
-  return(action)
-  
 }
 
 
@@ -612,86 +534,41 @@ plotProbs=function(probEmp,probACA,probSARSA,rat){
   
 }
 
-getCorrMatrix=function(prob1,prob2){
-  corrMatrix=matrix(0,2,12)
-  rownames(corrMatrix)<-c("correlation","p-value")
-  colnames(corrMatrix)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
-  for(i in 1:12){
-    x<- cor.test(prob1[i,],prob2[i,])
-    corrMatrix[1,i]=x$estimate
-    corrMatrix[2,i]=x$p.value
-  }
-  return(corrMatrix)
-}
 
 getMSE=function(probMatrix_aca,allpaths){
   
-  ses_max = as.numeric(probMatrix_aca[(length(probMatrix_aca[,13])-1),13])
-  mseMatrix=matrix(0,nrow=12,ncol=ses_max)
+  start_index = length(allpaths[,1])
+  start_index = round(start_index/2)+1
+  max_index=length(allpaths[,1])-start_index
+  mseMatrix=matrix(0,nrow=12,ncol=max_index)
   rownames(mseMatrix)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
   
   
-  for(ses in 1:ses_max){
-    pos_ses<-which(as.numeric(probMatrix_aca[,13])==ses)
-    len1<-length(which(allpaths[pos_ses,5]==1))
-    len2<-length(which(allpaths[pos_ses,5]==2))
-    if(isempty(pos_ses)){
-      mseMatrix[,ses]=NA
-      next
-    }else{
-      for(i in pos_ses){
-        action=as.numeric(allpaths[i,3])
-        if(allpaths[i,5]==1){
-          mseMatrix[1,ses]=mseMatrix[1,ses]+(probMatrix_aca[i,1]-(1==action))^2
-          mseMatrix[2,ses]=mseMatrix[2,ses]+(probMatrix_aca[i,1]-(2==action))^2
-          mseMatrix[3,ses]=mseMatrix[3,ses]+(probMatrix_aca[i,1]-(3==action))^2
-          mseMatrix[4,ses]=mseMatrix[4,ses]+(probMatrix_aca[i,1]-(4==action))^2
-          mseMatrix[5,ses]=mseMatrix[5,ses]+(probMatrix_aca[i,1]-(5==action))^2
-          mseMatrix[6,ses]=mseMatrix[6,ses]+(probMatrix_aca[i,1]-(6==action))^2
-        }else if(allpaths[i,5]==2){
-          mseMatrix[7,ses]=mseMatrix[7,ses]+(probMatrix_aca[i,1]-(7==action))^2
-          mseMatrix[8,ses]=mseMatrix[8,ses]+(probMatrix_aca[i,1]-(8==action))^2
-          mseMatrix[9,ses]=mseMatrix[9,ses]+(probMatrix_aca[i,1]-(9==action))^2
-          mseMatrix[10,ses]=mseMatrix[10,ses]+(probMatrix_aca[i,1]-(10==action))^2
-          mseMatrix[11,ses]=mseMatrix[11,ses]+(probMatrix_aca[i,1]-(11==action))^2
-          mseMatrix[12,ses]=mseMatrix[12,ses]+(probMatrix_aca[i,1]-(12==action))^2
-        }
-        
-      }
-      mseMatrix[1:6,ses]=mseMatrix[1:6,ses]/len1
-      mseMatrix[7:12,ses]=mseMatrix[7:12,ses]/len2
-      
+  len1<-length(which(as.numeric(allpaths[start_index:length(allpaths[,1]),5])==1))
+  len2<-length(which(as.numeric(allpaths[start_index:length(allpaths[,1]),5])==2))
+  
+  for(i in start_index:length(allpaths[,1])){
+    action=as.numeric(allpaths[i,3])
+    if(allpaths[i,5]==1){
+      mseMatrix[1,i]=mseMatrix[1,i]+(probMatrix_aca[i,1]-(1==action))^2
+      mseMatrix[2,i]=mseMatrix[2,i]+(probMatrix_aca[i,1]-(2==action))^2
+      mseMatrix[3,i]=mseMatrix[3,i]+(probMatrix_aca[i,1]-(3==action))^2
+      mseMatrix[4,i]=mseMatrix[4,i]+(probMatrix_aca[i,1]-(4==action))^2
+      mseMatrix[5,i]=mseMatrix[5,i]+(probMatrix_aca[i,1]-(5==action))^2
+      mseMatrix[6,i]=mseMatrix[6,i]+(probMatrix_aca[i,1]-(6==action))^2
+    }else if(allpaths[i,5]==2){
+      mseMatrix[7,i]=mseMatrix[7,i]+(probMatrix_aca[i,1]-(7==action))^2
+      mseMatrix[8,i]=mseMatrix[8,i]+(probMatrix_aca[i,1]-(8==action))^2
+      mseMatrix[9,i]=mseMatrix[9,i]+(probMatrix_aca[i,1]-(9==action))^2
+      mseMatrix[10,i]=mseMatrix[10,i]+(probMatrix_aca[i,1]-(10==action))^2
+      mseMatrix[11,i]=mseMatrix[11,i]+(probMatrix_aca[i,1]-(11==action))^2
+      mseMatrix[12,i]=mseMatrix[12,i]+(probMatrix_aca[i,1]-(12==action))^2
     }
+    
   }
+  # mseMatrix[1:6,]=mseMatrix[1:6,]/len1
+  # mseMatrix[7:12,]=mseMatrix[7:12,]/len2
   
-  
-  
-  mseMatrix <- mseMatrix[ , !apply(is.na(mseMatrix), 2, all)]
-  return(mseMatrix)
+  total_mse=sum(rowSums(mseMatrix))
+  return(total_mse)
 }
-
-getCovarianceMatrix=function(prob1,prob2){
-  covMatrix=matrix(0,2,12)
-  rownames(covMatrix)<-c("correlation","p-value")
-  colnames(covMatrix)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
-  for(i in 1:12){
-    x<- cov(prob1[i,],prob2[i,])
-    covMatrix[1,i]=x$estimate
-    covMatrix[2,i]=x$p.value
-  }
-  return(corrMatrix)
-}
-
-# ### Init H
-# H = matrix(0,nrow=2,ncol=6)
-# colnames(H)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
-# rownames(H)<-c("E","I")
-# H[1,1]=0.5
-# H[2,1]=0.5
-# 
-# 
-# sessions <-c(1,100,200,300,400)
-# alpha=0.04
-# max_steps=500
-# #debug(aca_rl)
-# probM=aca_rl(H,alpha,max_steps,sessions)

@@ -408,11 +408,22 @@ getNextState=function(allpaths,i){
 
 
 rl_aca_negLogLik <- function(par,allpaths,enreg) {
+  
+  # pathRtools <- paste(c("C:\\RBuildTools\\3.5\\bin",
+  #                       "C:\\RBuildTools\\3.5\\mingw_64\\bin",
+  #                       "C:\\Program Files\\R\\R-3.6.1\\bin\\x64",
+  #                       "C:\\Windows",
+  #                       "C:\\Windows\\System32"), collapse=";")
+  # Sys.setenv(PATH=pathRtools)
+  # Rcpp::sourceCpp('C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/aca_mle.cpp')
+  # 
   alpha <- par[1]
   epsLim <- par[2]
-  lik <- aca_mle_cpp(allpaths,enreg,alpha,epsLim)
+  H <- matrix(0,2,6)
+  H[1,1:6]<-par[3:8]
+  H[2,1:6] <- par[9:14]
+  lik <- aca_mle_cpp(allpaths,enreg,alpha,epsLim,H)
   #negLogLik <- -sum(log(lik))
-  gc()
   if(is.infinite(lik)){
     return(1000000)
   }else{

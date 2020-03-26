@@ -422,7 +422,7 @@ rl_aca_negLogLik <- function(par,allpaths,enreg) {
   H <- matrix(0,2,6)
   H[1,1:6]<-par[3:8]
   H[2,1:6] <- par[9:14]
-  lik <- aca_mle_cpp(allpaths,enreg,alpha,epsLim,H)
+  lik <- aca_mle_cpp2(allpaths,enreg,alpha,epsLim,H)
   #negLogLik <- -sum(log(lik))
   if(is.infinite(lik)){
     return(1000000)

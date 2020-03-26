@@ -23,7 +23,7 @@ int getNextState_cpp(Rcpp::StringMatrix allpaths,int i){
   std::regex h("^h.*");
   std::cmatch base_match;
   
- 
+  
   
   std::string s = Rcpp::as<std::string>(allpaths(i,0));
   //Rcpp::Rcout <<  "i="<<i<<", allpaths(i)="<< s << std::endl;
@@ -51,12 +51,14 @@ int getNextState_cpp(Rcpp::StringMatrix allpaths,int i){
 double softmax_cpp(int A,int S,arma::mat &H){
   //Rcpp::Rcout <<  "S="<< S<<std::endl;
   arma::rowvec v = H.row(S);
+  arma::vec y = arma::zeros<arma::vec>(6);
   //Rcpp::Rcout <<  v<< std::endl;
   float m=arma::max(v);
   double exp_sum  = 0;
   for(int j=0;j<5;j++){
     double denom_a = (H(S,j)-m);
     double exp_action= std::exp(denom_a); 
+    y[j]=exp_action;
     //Rcpp::Rcout << "tau="<<tau << ", denom_a="<<denom_a<<", exp_action=" << exp_action<< std::endl;
     exp_sum = exp_sum+exp_action;
   }
@@ -66,19 +68,32 @@ double softmax_cpp(int A,int S,arma::mat &H){
     Rcpp::Rcout << H(0,0)  << std::endl;
     Rcpp::Rcout << "Numerator=" << std::exp(H(S,A)-m)  << std::endl;
     Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (H(S,0))-m  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,1))-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,2))-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,3))-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,4))-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,5))-m)  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,1)-m))  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,2)-m))  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,3)-m))  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,4)-m))  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,5)-m))  << std::endl;
     
+  }else if(pr_A>1){
+    // Rcpp::Rcout << "S=" <<S << std::endl;
+    // Rcpp::Rcout << H << std::endl;
+    // Rcpp::Rcout << "m=" <<m << std::endl;
+    // Rcpp::Rcout << "Numerator=" << std::exp(H(S,A)-m)  << std::endl;
+    // Rcpp::Rcout << "exp_sum=" << exp_sum  << std::endl;
+    // Rcpp::Rcout << "y=" << y  << std::endl;
+    // Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,0))-m)  << std::endl;
+    // Rcpp::Rcout << "(std::exp(H(S,1))-m)=" << (std::exp(H(S,1))-m)  << std::endl;
+    // Rcpp::Rcout << "(std::exp(H(S,2))-m)=" << (std::exp(H(S,2))-m)  << std::endl;
+    // Rcpp::Rcout << "(std::exp(H(S,3))-m)=" << (std::exp(H(S,3))-m)  << std::endl;
+    // Rcpp::Rcout << "(std::exp(H(S,4))-m)=" << (std::exp(H(S,4))-m)  << std::endl;
+    // Rcpp::Rcout << "(std::exp(H(S,5))-m)=" << (std::exp(H(S,5))-m)  << std::endl;
   }
   if(R_IsNaN((pr_A))){
     
     Rcpp::Rcout << "exp_sum=" << exp_sum  << std::endl;
     Rcpp::Rcout << "numerator=" << (std::exp(H(S,A)-m))  << std::endl;
     Rcpp::Rcout <<  "pr_A="<< pr_A << std::endl;
- 
+    
     Rcpp::Rcout <<  H<< std::endl;
     //stop("logProb is NAN");
   }
@@ -128,8 +143,8 @@ arma::vec updateAllpaths(NumericVector allpaths,Rcpp::NumericMatrix enreg_pos){
 }
 
 
-// [[Rcpp::export("aca_mle_cpp")]]
-double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,float alpha,int epsLim, arma::mat &H){
+// [[Rcpp::export("aca_mle_cpp2")]]
+double aca_mle_cpp2(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,float alpha,int epsLim, arma::mat &H){
   //NumericMatrix likelihood(10,1298);
   //int d;
   //for(d =0;d<9;d++){
@@ -196,7 +211,7 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
       trial=1;
     }
     
-  //  trial=std::atoi(enreg_pos(trial_pos,5));
+    //  trial=std::atoi(enreg_pos(trial_pos,5));
     //Rcpp::Rcout <<"i="<<i<<  ", trial="<<trial<<std::endl;
     int R=0;
     //Rcpp::Rcout <<  "trial_pos="<<trial_pos << ", enreg_trial="<< std::atoi(enreg_pos(trial_pos,5)) <<std::endl;
@@ -205,7 +220,7 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
       R=R+std::atoi(enreg_pos(trial_pos,3));
       trial_pos=trial_pos+1;
     }
-
+    
     if(R>0){
       score_episode=score_episode+1;
       //Rcpp::Rcout << "trial=" <<trial <<", ses=" <<ses << ", Reward="<<R<<std::endl;
@@ -245,6 +260,8 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
     //Rcpp::Rcout << "prob_a=" << prob_a  << std::endl;
     
     double logProb = log(prob_a);
+    //Rcpp::Rcout << "i=" << i  << std::endl;
+    //Rcpp::Rcout << "prob_a=" << prob_a  <<", i=" << i  << std::endl;
     if(R_IsNaN((logProb))){
       
       Rcpp::Rcout <<"epsLim=" <<epsLim<<", alpha=" << alpha  << std::endl;
@@ -257,10 +274,12 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
       //Rcpp::Rcout <<  Visits<< std::endl;
       //stop("logProb is NAN");
       return(100000);
+    }else if( prob_a >1){
+      return(100000);
     }
     
     log_lik=log_lik+ logProb;
-    
+    //Rcpp::Rcout << "log_lik=" <<log_lik<<", prob_a=" << prob_a  <<", i=" << i  << std::endl;
     //Check if episode ended
     if(returnToInitState ){
       //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
@@ -272,6 +291,7 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
       IntegerVector all_actions =  seq(0, 5);
       if(episodeFin == epsLim || i==(nrow-1)){
         episode = episode+1;
+        
         //Rcpp::Rcout <<  "Inside update H"<<std::endl;
         //int total_actions= actions.n_elem;
         //Rcpp::Rcout <<  "total_actions="<< total_actions<<std::endl;
@@ -297,9 +317,9 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
           double activity = a.n_elem*1000/total_time_spent_in_state1;
           
           
-          //H(0,curr_action)= H(0,curr_action)+alpha*(score_episode*activity/Visits(0,curr_action));
-          double delta_H = alpha*(score_episode-avg_score)*(1-softmax_cpp(curr_action,0,H))*activity;
-          H(0,curr_action)= H(0,curr_action)+delta_H;
+          H(0,curr_action)= H(0,curr_action)+alpha*(score_episode*activity);
+          //double delta_H = alpha*(score_episode-avg_score)*(1-softmax_cpp(curr_action,0,H))*activity;
+          //H(0,curr_action)= H(0,curr_action)+delta_H;
           //Rcpp::Rcout << "H(0,curr_action)="<<H(0,curr_action) <<", reward=" <<score_episode-avg_score<< ", delta_H="<< delta_H<<std::endl;
           // if(H(0,curr_action) <0){
           //   Rcpp::Rcout <<  "H(0,curr_action)="<<H(0,curr_action)<<", curr_action="<<Visits(0,curr_action)<< std::endl;
@@ -312,29 +332,15 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
           }else if(H(0,curr_action) == R_PosInf){
             Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<", Visits(0,curr_action)="<< Visits(0,curr_action) <<std::endl;
             stop("H is Inf");
+          }else if(H(0,curr_action) < 0){
+            // Rcpp::Rcout <<  "episode="<<episode<<", state="<<1<<", curr_action="<<curr_action<<", score_episode="<<score_episode<<", activity="<<activity<<std::endl;
+            // Rcpp::Rcout <<  H<< std::endl;
+            
           }
           
         }
         
-        IntegerVector setdiff_state1 = Rcpp::setdiff(all_actions,IntegerVector(uniq_state1.begin(),uniq_state1.end()));
-        //Rcpp::Rcout <<  "setdiff_state1="<<setdiff_state1 << std::endl;
-        
-        for(unsigned int l=0;l< setdiff_state1.size();l++){
-          double  curr_action = setdiff_state1(l);
-          H(0,curr_action)= H(0,curr_action)-(alpha*(score_episode-avg_score)*(softmax_cpp(curr_action,0,H))/state1_idx.n_elem);
-          // if(H(0,curr_action) < 0){
-          //   Rcpp::Rcout <<  "H(0,curr_action)="<<H(0,curr_action)<<", Visits(0,curr_action)="<<Visits(0,curr_action)<< std::endl;
-          // }
-          if(R_IsNaN((H(0,curr_action)))){
-            Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
-            stop("H is NAN");
-          }else if(H(0,curr_action) == R_PosInf){
-            Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<", Visits(0,curr_action)="<< Visits(0,curr_action) <<std::endl;
-            stop("H is Inf");
-          }
-        }
-          
-          
+
         
         arma::uvec state2_idx = find(states==1);
         arma::vec uniq_state2 = arma::unique(actions.elem(state2_idx));
@@ -351,8 +357,8 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
           double total_time_in_state_2 = arma::accu(time_s2);
           double activity = a.n_elem*1000/total_time_in_state_2;
           
-          //H(1,curr_action)= H(1,curr_action)+alpha*(score_episode*activity);
-          H(1,curr_action)= H(1,curr_action)+(alpha*(score_episode-avg_score)*(1-softmax_cpp(curr_action,1,H))*activity);
+          H(1,curr_action)= H(1,curr_action)+alpha*(score_episode*activity);
+          //H(1,curr_action)= H(1,curr_action)+(alpha*(score_episode-avg_score)*(1-softmax_cpp(curr_action,1,H))*activity);
           // if(H(1,curr_action) <0){
           //   Rcpp::Rcout <<  "H(1,curr_action)="<<H(1,curr_action)<<", Visits(1,curr_action)="<<Visits(1,curr_action)<< std::endl;
           // }
@@ -364,26 +370,10 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
             Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<<", Visits(1,curr_action)="<< Visits(1,curr_action) <<std::endl;
             //Rcpp::Rcout <<"epsLim=" <<epsLim<< ", activity="<< activity<<", score_episode="<<score_episode<<std::endl;
             stop("H is Inf");
-          }
-        }
-
-        IntegerVector setdiff_state2 = Rcpp::setdiff(all_actions,IntegerVector(uniq_state2.begin(),uniq_state2.end()));
-        //Rcpp::Rcout <<  "setdiff_state2="<<setdiff_state2 << std::endl;
-        
-        for(unsigned int l=0;l< setdiff_state2.size();l++){
-          double  curr_action = setdiff_state2(l);
-          
-          H(1,curr_action)= H(1,curr_action)-(alpha*(score_episode-avg_score)*(softmax_cpp(curr_action,1,H))/state2_idx.n_elem);
-                                                      
-          // if(H(1,curr_action) < 0){
-          //   Rcpp::Rcout <<  "H(1,curr_action)="<<H(1,curr_action)<<", Visits(1,curr_action)="<<Visits(1,curr_action)<< std::endl;
-          //  }
-           if(R_IsNaN((H(1,curr_action)))){
-            Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
-            stop("H is NAN");
-           }else if(H(1,curr_action) == R_PosInf){
-            Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<<", Visits(1,curr_action)="<< Visits(1,curr_action) <<std::endl;
-            stop("H is Inf");
+          }else if(H(1,curr_action) < 0){
+            // Rcpp::Rcout <<  "episode="<<episode<<", state="<<2<<", curr_action="<<curr_action<<", score_episode="<<score_episode<<", activity="<<activity<<std::endl;
+            // Rcpp::Rcout <<  H<< std::endl;
+            
           }
         }
         
@@ -403,7 +393,7 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
       
     }
     
-
+    
     S=S_prime; 
     trial=trial+1;
     
@@ -412,7 +402,4 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,Rcpp::StringMatrix enreg_pos,floa
   
   
 }  
-
-
-
 

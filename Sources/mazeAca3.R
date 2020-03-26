@@ -14,7 +14,7 @@ R[1,4]=1
 R[2,4]=1
 
 ### Use optimal paramters on actual data and compute Mean Squared Error.
-mazeACA2=function(enreg,rat){
+mazeACA3=function(enreg,rat){
   
   allpaths <- matrix("",0,2)
   colnames(allpaths) <- c("Path","Session")
@@ -99,13 +99,13 @@ mazeACA2=function(enreg,rat){
   
   ### Init H
   #H = matrix(0,nrow=2,ncol=6)
-  H = matrix(c(1.658344,-2.745196, 0.258136,  3.164091, 0.406903, 12.128787,  10.250864,  5.200889, 7.097433, 9.664057, 8.383585, 18.536622),nrow=2,ncol=6)
+  H = matrix(c(16.583346, 13.126585,15.289182,  18.078203,  15.909556,  17.916440,  -0.434677,  -6.625556,  -2.363038,  -0.421860,  -2.103401, -0.223341),nrow=2,ncol=6)
   colnames(H)<-c("Path1","Path2","Path3","CorrPath","WM-Path","Unknown-Paths")
   rownames(H)<-c("E","I")
   #alpha=0.699
   #alpha=0.671411
-  alpha=0.001163
-
+  alpha=0.030982
+  
   
   # H[1,1]=0.1875
   # H[2,1]=0.3125
@@ -125,7 +125,7 @@ mazeACA2=function(enreg,rat){
   
   #max_steps=500
   #debug(aca_rl)
-  probACA=aca_rl2(H,alpha,allpaths)
+  probACA=aca_rl3(H,alpha,allpaths)
   print(probACA)
   
   
@@ -275,7 +275,7 @@ getNextState_aca2=function(allpaths,i){
 ### Action = Path
 ## State = E or I
 
-aca_rl2=function(H,alpha,allpaths){
+aca_rl3=function(H,alpha,allpaths){
   
   ## Start form state 1 = Box "E"
   
@@ -384,7 +384,7 @@ aca_rl2=function(H,alpha,allpaths){
       }
     }
     
-
+    
     ## Check if episode ended
     if(returnToInitState){
       changeState = F
@@ -393,8 +393,8 @@ aca_rl2=function(H,alpha,allpaths){
       
       
       
-      if(episodeFin==28 || i==length(allpaths[,1])){
-        avg_score = avg_score + (score_episode-avg_score)/episode;
+      if(episodeFin==16 || i==length(allpaths[,1])){
+        
         a<-actions[[episode]]
         s<-states[[episode]]
         t<-time_in_trial[[episode]]
@@ -403,46 +403,30 @@ aca_rl2=function(H,alpha,allpaths){
         state2_idx=which(s==2)
         
         uniq_actions_s1 = unique(a[state1_idx])
+        
         for(action_s1 in uniq_actions_s1){
           activity=length(which(a[state1_idx]==action_s1))*1000/sum(t[state1_idx])
-          #H[1,uniq_actions_s1[ids]]=H[1,uniq_actions_s1[ids]]+alpha*(score_episode*activity/Visits[1,uniq_actions_s1[ids]])
-          H[1,action_s1]=H[1,action_s1]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax_aca2(action_s1,1,H)))*activity
+          H[1,action_s1]=H[1,action_s1]+alpha*(score_episode*activity)
+          #H[1,action_s1]=H[1,action_s1]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax_aca2(action_s1,1,H)))*activity
           #H[1,uniq_actions_s1[ids]]=H[1,uniq_actions_s1[ids]]+alpha*(score_episode*activity)
         }
         
-        setdiff_state1 = setdiff(c(1:6),uniq_actions_s1)
-        for(action_s1 in setdiff_state1){
-          H[1,action_s1]=H[1,action_s1]-alpha*(score_episode-avg_score)*(as.numeric(softmax_aca2(action_s1,1,H)))/(length(state1_idx))
-        }
-        
-        
+
         uniq_actions_s2 = unique(a[state2_idx])
         for(action_s2 in uniq_actions_s2){
           activity=length(which(a[state2_idx]==action_s2))*1000/sum(t[state2_idx])
-          #H[2,uniq_actions_s2[ids]]=H[2,uniq_actions_s2[ids]]+alpha*(score_episode*activity/Visits[2,uniq_actions_s2[ids]])
-          H[2,action_s2]=H[2,action_s2]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax_aca2(action_s2,2,H)))*activity
+          H[2,action_s2]=H[2,action_s2]+alpha*(score_episode*activity)
+          #H[2,action_s2]=H[2,action_s2]+alpha*(score_episode-avg_score)*(1-as.numeric(softmax_aca2(action_s2,2,H)))*activity
           #H[2,uniq_actions_s2[ids]]=H[2,uniq_actions_s2[ids]]+alpha*(score_episode*activity)
-          if(is.nan(H[2,action_s2])){
-            print(sprintf("Action=%i, activity=%f",action_s2,activity))
-            stop("softmax return Nan")
-          }
-         
+
         }
         
-        setdiff_state2 = setdiff(c(1:6),uniq_actions_s2)
-        for(action_s2 in setdiff_state2){
-          H[2,action_s2]=H[2,action_s2]-(alpha*(score_episode-avg_score)*(as.numeric(softmax_aca2(action_s2,2,H)))/(length(state2_idx)))
-          if(is.nan(H[2,action_s2])){
-            print(sprintf("Action=%i, activity=%f",action_s2,activity))
-            stop("softmax return Nan")
-          }
-        }
-        
+
         ## reset rewards
         score_episode=0
         episodeFin=0
         episode = episode+1
-
+        
         #print(sprintf("Updating episode to %i",episode))
         if(i <= (length(allpaths[,1])-1)){
           actions[[episode]] <- vector()
@@ -491,7 +475,7 @@ getStatsOfLastSession2=function(probMatrix_aca){
   probMat_res=matrix(0,nrow=12,ncol=ses_max)
   rownames(probMat_res)<-c("State1-Path1","State1-Path2","State1-Path3","State1-Path4","State1-Path5","State1-Path6","State2-Path1","State2-Path2","State2-Path3","State2-Path4","State2-Path5","State2-Path6")
   
-
+  
   for(ses in 1:ses_max){
     pos_ses<-which(as.numeric(probMatrix_aca[,13])==ses)
     if(isempty(pos_ses)){
@@ -514,7 +498,7 @@ getStatsOfLastSession2=function(probMatrix_aca){
     }
   }
   
-
+  
   
   probMat_res <- probMat_res[ , !apply(is.na(probMat_res), 2, all)]
   return(probMat_res)
@@ -570,6 +554,6 @@ getMSE=function(probMatrix_aca,allpaths){
   # mseMatrix[1:6,]=mseMatrix[1:6,]/len1
   # mseMatrix[7:12,]=mseMatrix[7:12,]/len2
   
-  total_mse=sum(rowSums(mseMatrix))
+  total_mse=sum(rowSums(mseMatrix))/max_index
   return(total_mse)
 }

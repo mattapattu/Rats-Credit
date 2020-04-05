@@ -311,7 +311,7 @@ aca_rl3=function(H,alpha,allpaths){
   episodeFin=0
   allpaths <-cbind(allpaths,probability=0)
   tau=0
-  for(i in c(1:(length(allpaths[,1])-1))){
+  for(i in c(1:length(allpaths[,1]))){
     
     #print(sprintf("Step=%i,Episode=%i",i,episode))
     
@@ -361,13 +361,6 @@ aca_rl3=function(H,alpha,allpaths){
     # }
     
     if(episode>1){
-      # x<-mpfr(softmax2(A,S,H),128)
-      # if(is.infinite(as.numeric(x))){
-      #   stop("softmax return Inf")
-      # }else if(is.nan(x)){
-      #   stop("softmax return Nan")
-      # }
-      # allpaths[i,"probability"]=as.numeric(x)
       probMatrix_aca[i,13]=ses
       if(S==1){
         probMatrix_aca[i,7:12]=0
@@ -446,7 +439,7 @@ aca_rl3=function(H,alpha,allpaths){
   #print()
   #capture.output(print(actions), file = sprintf("actions-aca.txt"))
   print(sprintf("MSE ACA:"))
-  print(getMSE(probMatrix_aca,allpaths))
+  print(getMSE3(probMatrix_aca,allpaths))
   probMat_res=getStatsOfLastSession2(probMatrix_aca)
   return(probMat_res)
 }
@@ -519,7 +512,7 @@ plotProbs=function(probEmp,probACA,probSARSA,rat){
 }
 
 
-getMSE=function(probMatrix_aca,allpaths){
+getMSE3=function(probMatrix_aca,allpaths){
   
   start_index = length(allpaths[,1])
   start_index = round(start_index/2)
@@ -553,7 +546,9 @@ getMSE=function(probMatrix_aca,allpaths){
   }
   # mseMatrix[1:6,]=mseMatrix[1:6,]/len1
   # mseMatrix[7:12,]=mseMatrix[7:12,]/len2
-  
-  total_mse=sum(rowSums(mseMatrix))/max_index
+  total_mse=sum(rowSums(mseMatrix))
+  print(sprintf("total_mse=%f",total_mse))
+  total_mse=total_mse/max_index
+  print(sprintf("total_mse=%f",total_mse))
   return(total_mse)
 }

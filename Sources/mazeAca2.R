@@ -462,7 +462,7 @@ aca_rl2=function(H,alpha,allpaths){
   #print()
   #capture.output(print(actions), file = sprintf("actions-aca.txt"))
   print(sprintf("MSE ACA:"))
-  print(getMSE(probMatrix_aca,allpaths))
+  print(getMSE2(probMatrix_aca,allpaths))
   probMat_res=getStatsOfLastSession2(probMatrix_aca)
   return(probMat_res)
 }
@@ -535,7 +535,7 @@ plotProbs=function(probEmp,probACA,probSARSA,rat){
 }
 
 
-getMSE=function(probMatrix_aca,allpaths){
+getMSE2=function(probMatrix_aca,allpaths){
   
   start_index = length(allpaths[,1])
   start_index = round(start_index/2)
@@ -552,18 +552,18 @@ getMSE=function(probMatrix_aca,allpaths){
     action=as.numeric(allpaths[i,3])
     if(allpaths[i,5]==1){
       mseMatrix[1,trial]=mseMatrix[1,trial]+(probMatrix_aca[i,1]-(1==action))^2
-      mseMatrix[2,trial]=mseMatrix[2,trial]+(probMatrix_aca[i,1]-(2==action))^2
-      mseMatrix[3,trial]=mseMatrix[3,trial]+(probMatrix_aca[i,1]-(3==action))^2
-      mseMatrix[4,trial]=mseMatrix[4,trial]+(probMatrix_aca[i,1]-(4==action))^2
-      mseMatrix[5,trial]=mseMatrix[5,trial]+(probMatrix_aca[i,1]-(5==action))^2
-      mseMatrix[6,trial]=mseMatrix[6,trial]+(probMatrix_aca[i,1]-(6==action))^2
+      mseMatrix[2,trial]=mseMatrix[2,trial]+(probMatrix_aca[i,2]-(2==action))^2
+      mseMatrix[3,trial]=mseMatrix[3,trial]+(probMatrix_aca[i,3]-(3==action))^2
+      mseMatrix[4,trial]=mseMatrix[4,trial]+(probMatrix_aca[i,4]-(4==action))^2
+      mseMatrix[5,trial]=mseMatrix[5,trial]+(probMatrix_aca[i,5]-(5==action))^2
+      mseMatrix[6,trial]=mseMatrix[6,trial]+(probMatrix_aca[i,6]-(6==action))^2
     }else if(allpaths[i,5]==2){
-      mseMatrix[7,trial]=mseMatrix[7,trial]+(probMatrix_aca[i,1]-(7==action))^2
-      mseMatrix[8,trial]=mseMatrix[8,trial]+(probMatrix_aca[i,1]-(8==action))^2
-      mseMatrix[9,trial]=mseMatrix[9,trial]+(probMatrix_aca[i,1]-(9==action))^2
-      mseMatrix[10,trial]=mseMatrix[10,trial]+(probMatrix_aca[i,1]-(10==action))^2
-      mseMatrix[11,trial]=mseMatrix[11,trial]+(probMatrix_aca[i,1]-(11==action))^2
-      mseMatrix[12,trial]=mseMatrix[12,trial]+(probMatrix_aca[i,1]-(12==action))^2
+      mseMatrix[7,trial]=mseMatrix[7,trial]+(probMatrix_aca[i,7]-(7==action))^2
+      mseMatrix[8,trial]=mseMatrix[8,trial]+(probMatrix_aca[i,8]-(8==action))^2
+      mseMatrix[9,trial]=mseMatrix[9,trial]+(probMatrix_aca[i,9]-(9==action))^2
+      mseMatrix[10,trial]=mseMatrix[10,trial]+(probMatrix_aca[i,10]-(10==action))^2
+      mseMatrix[11,trial]=mseMatrix[11,trial]+(probMatrix_aca[i,11]-(11==action))^2
+      mseMatrix[12,trial]=mseMatrix[12,trial]+(probMatrix_aca[i,12]-(12==action))^2
     }
     trial=trial+1
   }

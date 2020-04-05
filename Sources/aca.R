@@ -151,7 +151,7 @@ add.trial.to.pos=function(enreg,ses){
   
   r <- rle(enreg[[ses]]$POS[,"boxname"])
   allpaths <- toString(r$values)
-  allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k,)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+  allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
   start_rle_index=1
   stop_rle_index = 0
   start_pos_index=1

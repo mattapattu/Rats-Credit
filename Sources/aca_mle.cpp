@@ -176,7 +176,7 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,float alpha,int epsLim, arma::mat
     Rcpp::Rcout <<  "Unknown intial state. Check"<< std::endl;
   }
   
-  int initState=allpaths(0,1);
+  int initState=0;
   bool changeState = false;
   bool returnToInitState = false;
   int score_episode=0;
@@ -207,7 +207,7 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,float alpha,int epsLim, arma::mat
     A=std::atoi(allpaths(i,2))-1;
     
     //int S_prime=getNextState_cpp(allpaths,i)-1;
-    int S_prime=std::atoi(allpaths((i+1),4))-1;
+    int S_prime=std::atoi(allpaths((i+1),4))-1);
     if(S_prime<0){
       continue;
     }

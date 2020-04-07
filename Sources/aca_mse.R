@@ -669,7 +669,7 @@ softmax_aca2=function(A,S,H){
     return(pr_A)
   }
 }
-aca_negLogLik1 <- function(par,allpaths,model) {
+aca_negLogLik1 <- function(par,allpaths,model,sim) {
   
   alpha <- par[1]
   epsLim <- 2+(par[2]*28)
@@ -678,7 +678,27 @@ aca_negLogLik1 <- function(par,allpaths,model) {
   # H[1,1:6]<-par[3:8]
   # H[2,1:6] <- par[9:14]
   #lik <- aca_mle_cpp2(allpaths,enreg,alpha,epsLim,H)
-  lik <- aca_mle_lik(allpaths,alpha,epsLim,H,model)
+  lik <- aca_mle_lik(allpaths,alpha,epsLim,H,model,sim)
+  #negLogLik <- -sum(log(lik))
+  if(is.infinite(lik)){
+    return(1000000)
+  }else{
+    return(as.numeric(lik))
+  }
+  
+}
+
+sarsa_negLogLik <- function(par,allpaths,sim) {
+  
+  alpha <- par[1]
+  gamma <- par[2]
+  lambda <- par[3]
+  #print(sprintf("epsLim=%f",epsLim))
+  Q_vals <- matrix(0,2,6)
+  # H[1,1:6]<-par[3:8]
+  # H[2,1:6] <- par[9:14]
+  #lik <- aca_mle_cpp2(allpaths,enreg,alpha,epsLim,H)
+  lik <- sarsa_mle(allpaths,alpha,gamma,lambda,Q_vals,sim)
   #negLogLik <- -sum(log(lik))
   if(is.infinite(lik)){
     return(1000000)

@@ -16,24 +16,33 @@ using namespace Rcpp;
 double softmax_cpp3(int A,int S,arma::mat &H){
   //Rcpp::Rcout <<  "S="<< S<<std::endl;
   arma::rowvec v = H.row(S);
-  arma::vec y = arma::zeros<arma::vec>(6);
-  arma::vec x = arma::zeros<arma::vec>(6);
   //Rcpp::Rcout <<  v<< std::endl;
-  float m=arma::max(v);
-  //Rcpp::Rcout << "m=" << m<< std::endl;
-  double exp_sum  = std::exp(H(S,0)-m)+std::exp(H(S,1)-m)+std::exp(H(S,2)-m)+std::exp(H(S,3)-m)+std::exp(H(S,4)-m)+std::exp(H(S,5)-m) ;
+  // float m=arma::max(v);
+  // double exp_sum  = std::exp(H(S,0)-m)+std::exp(H(S,1)-m)+std::exp(H(S,2)-m)+std::exp(H(S,3)-m)+std::exp(H(S,4)-m)+std::exp(H(S,5)-m) ;
+  // double pr_A = (std::exp(H(S,A)-m))/exp_sum;
   
-  double pr_A = (std::exp((H(S,A)-m)))/exp_sum;
-  if(pr_A<0){
-    Rcpp::Rcout <<"pr_A="<<pr_A<< " is < 0" << std::endl;
+  float m=arma::max(v);
+  v=exp(v-m);
+  //Rcpp::Rcout << "m=" << m<< std::endl;
+  double exp_sum  = arma::accu(v) ;
+  v=v/exp_sum;
+  double pr_A=v[A];
+  
+  if(pr_A<=0){
     Rcpp::Rcout <<"A="<<A<< ", S=" <<S << std::endl;
+    Rcpp::Rcout << H << std::endl;
+    Rcpp::Rcout << "m=" <<m << std::endl;
     Rcpp::Rcout << "Numerator=" << std::exp(H(S,A)-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << std::exp(H(S,0)-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,1))-m)=" << std::exp(H(S,1)-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,2))-m)=" << std::exp(H(S,2)-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,3))-m)=" << std::exp(H(S,3)-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,4))-m)=" << std::exp(H(S,4)-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,5))-m)=" << std::exp(H(S,5)-m)  << std::endl;
+    Rcpp::Rcout << "exp_sum=" << exp_sum  << std::endl;
+    // Rcpp::Rcout << "std::exp(H(S,0))-m)=" << std::exp(H(S,0)-m)  << std::endl;
+    // Rcpp::Rcout << "std::exp(H(S,1))-m)=" << std::exp(H(S,1)-m)  << std::endl;
+    // Rcpp::Rcout << "std::exp(H(S,2))-m)=" << std::exp(H(S,2)-m)  << std::endl;
+    // Rcpp::Rcout << "std::exp(H(S,3))-m)=" << std::exp(H(S,3)-m)  << std::endl;
+    // Rcpp::Rcout << "std::exp(H(S,4))-m)=" << std::exp(H(S,4)-m)  << std::endl;
+    // Rcpp::Rcout << "std::exp(H(S,5))-m)=" << std::exp(H(S,5)-m)  << std::endl;
+    Rcpp::Rcout << v  << std::endl;
+    
+    //stop("logProb is NAN");
     
   }else if(pr_A>1){
     Rcpp::Rcout <<"pr_A="<<pr_A<< " is > 1" << std::endl;
@@ -42,8 +51,6 @@ double softmax_cpp3(int A,int S,arma::mat &H){
     Rcpp::Rcout << "m=" <<m << std::endl;
     Rcpp::Rcout << "Numerator=" << std::exp(H(S,A)-m)  << std::endl;
     Rcpp::Rcout << "exp_sum=" << exp_sum  << std::endl;
-    Rcpp::Rcout << "x=" << x  << std::endl;
-    Rcpp::Rcout << "y=" << y  << std::endl;
     Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << std::exp(H(S,0)-m)  << std::endl;
     Rcpp::Rcout << "(std::exp(H(S,1))-m)=" << std::exp(H(S,1)-m)  << std::endl;
     Rcpp::Rcout << "(std::exp(H(S,2))-m)=" << std::exp(H(S,2)-m)  << std::endl;
@@ -98,10 +105,10 @@ int softmax_action_sel(arma::mat &H,int S){
   double exp_sum  = arma::accu(v) ;
   v=v/exp_sum;
   IntegerVector actions = seq(0, 5);
-  Rcpp::Rcout << "v=" << v<< std::endl;
+  //Rcpp::Rcout << "v=" << v<< std::endl;
   //Rcpp::Rcout << "actions=" << actions<< std::endl;
   int action_selected = Rcpp::RcppArmadillo::sample(actions, 1, false, v.as_col())[0] ;
-  Rcpp::Rcout << "action_selected=" << action_selected<< std::endl;
+  //Rcpp::Rcout << "action_selected=" << action_selected<< std::endl;
   return(action_selected);
   
 }
@@ -122,7 +129,7 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
   
   //Rcpp::Rcout <<  H<< std::endl;
   //Rcpp::Rcout <<  Visits<< std::endl;
-  arma::mat allpaths_aca_model2 = arma::zeros(total_trials,3);
+  arma::mat allpaths_aca_model2 = arma::zeros(total_trials,4);
   
   //double log_lik=0;
   
@@ -170,6 +177,7 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
     allpaths_aca_model2(i,0)=A;
     allpaths_aca_model2(i,1)=S;
     allpaths_aca_model2(i,2)=R(S,A);
+    allpaths_aca_model2(i,3)=-1;
     
     int S_prime=aca_getNextState(S,A);
     
@@ -285,7 +293,7 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
           arma::uvec state1_idx = find(states==0);
           arma::vec uniq_state1 = arma::unique(actions.elem(state1_idx));
           
-          //Rcpp::Rcout <<  "state1_idx="<< state1_idx<<std::endl;
+          //Rcpp::Rcout <<  "states="<< states<<std::endl;
           avg_score = avg_score + (score_episode-avg_score)/episode;
           
           for(unsigned int l=0;l< uniq_state1.n_elem;l++){
@@ -313,8 +321,8 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
               //Rcpp::Rcout <<  "H="<< H(0,curr_action)<<std::endl;
               //Rcpp::Rcout <<  "Visits="<< Visits(0,curr_action)<<std::endl;
               stop("H is NAN");
-            }else if(H(0,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<std::endl;
+            }else if(H(0,curr_action) == R_PosInf||H(0,curr_action) == R_NegInf){
+              Rcpp::Rcout << "H(0,curr_action)="<<H(0,curr_action) <<", reward=" <<score_episode-avg_score<< ", delta_H="<< delta_H<<", activity="<<activity<<std::endl;
               stop("H is Inf");
             }
             
@@ -334,8 +342,8 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
             if(R_IsNaN((H(0,curr_action)))){
               Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
               stop("H is NAN");
-            }else if(H(0,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action <<std::endl;
+            }else if(H(0,curr_action) == R_PosInf||H(0,curr_action) == R_NegInf){
+              Rcpp::Rcout << "H(0,curr_action)="<<H(0,curr_action) <<", reward=" <<score_episode-avg_score<<", state1_idx.n_elem="<<state1_idx.n_elem<<std::endl;
               stop("H is Inf");
             }
           }
@@ -353,10 +361,11 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
             //Rcpp::Rcout << "state2 actions="<<actions.elem(state2_idx)<<std::endl;
             //Rcpp::Rcout <<  "episode="<<episode<<", state="<<2<<", curr_action="<<curr_action<<std::endl;
             arma::uvec a=arma::find(actions.elem(state2_idx)==curr_action);
-            double activity = a.n_elem/(1.0*state1_idx.n_elem);
+            double activity = a.n_elem/(1.0*state2_idx.n_elem);
             
             //H(1,curr_action)= H(1,curr_action)+alpha*(score_episode*activity);
-            H(1,curr_action)= H(1,curr_action)+(alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,1,H))*activity);
+            double delta_H = alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,1,H))*activity;
+            H(1,curr_action)= H(1,curr_action)+delta_H;
             // if(H(1,curr_action) <0){
             //   Rcpp::Rcout <<  "H(1,curr_action)="<<H(1,curr_action)<<", Visits(1,curr_action)="<<Visits(1,curr_action)<< std::endl;
             // }
@@ -364,8 +373,8 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
               Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<< std::endl;
               //Rcpp::Rcout <<"epsLim=" <<epsLim<< "activity="<< activity<<std::endl;
               stop("H is NAN");
-            }else if(H(1,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
+            }else if(H(1,curr_action) == R_PosInf||H(1,curr_action) == R_NegInf){
+              Rcpp::Rcout << "H(1,curr_action)="<<H(1,curr_action) <<", reward=" <<score_episode-avg_score<< ", delta_H="<< delta_H<<", activity="<<activity<<std::endl;
               //Rcpp::Rcout <<"epsLim=" <<epsLim<< ", activity="<< activity<<", score_episode="<<score_episode<<std::endl;
               stop("H is Inf");
             }
@@ -386,7 +395,7 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
               Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
               stop("H is NAN");
             }else if(H(1,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<<std::endl;
+              Rcpp::Rcout << "H(0,curr_action)="<<H(0,curr_action) <<", reward=" <<score_episode-avg_score<<", state2_idx.n_elem="<<state2_idx.n_elem<<std::endl;
               stop("H is Inf");
             }
           }
@@ -405,7 +414,7 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
         
       }
     }
-    
+    S=S_prime; 
   }
   return(allpaths_aca_model2);
   
@@ -413,14 +422,13 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
 }
 
 // [[Rcpp::export("aca_mle_lik")]]
-double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::mat &H,int model){
+double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::mat &H,int model,int sim){
   //NumericMatrix likelihood(10,1298);
   //int d;
   //for(d =0;d<9;d++){
   
   //float alpha=alphas[d];
   //arma::mat H = arma::zeros(2,6);
-  arma::mat Visits = arma::zeros(2,6);
   //Rcpp::NumericMatrix H(2,6);
   //Rcpp::NumericMatrix Visits(2,6);
   
@@ -430,7 +438,12 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
   double log_lik=0;
   
   int episode=1;
-  int S=((allpaths(0,1))-1);
+  int S=0;
+  if(sim==1){
+    S=allpaths(0,1);
+  }else{
+    S=allpaths(0,1)-1;
+  }
   int A=0;
   arma::vec actions(1);
   actions.fill(-1);
@@ -467,14 +480,24 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
     }         
     
     //Rcpp::Rcout <<  "trial_pos="<<trial_pos << ", enreg_trial="<< std::atoi(enreg_pos(trial_pos,5)) <<std::endl;
+    if(sim==1){
+      A=allpaths(i,0);
+    }else{
+      A=allpaths(i,0)-1;
+    }
     
-    A=((allpaths(i,0))-1);
     
-    int S_prime=((allpaths((i+1),1))-1);
+    int S_prime=0;
+    if(sim==1){
+      S_prime=allpaths((i+1),1);
+    }else{
+      S_prime=allpaths((i+1),1)-1;
+    }
+    
     if(S_prime<0){
       continue;
     }
-    //Rcpp::Rcout << "trial="<<trial <<  ", A="<< A << ", S=" << S << ", S_prime="<< S_prime << std::endl;
+    //Rcpp::Rcout << "A="<< A << ", S=" << S << ", S_prime="<< S_prime << std::endl;
     int sz = actions.n_elem;
     actions.resize(sz+1);
     actions(sz) = A;
@@ -501,7 +524,7 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
     double logProb = log(prob_a);
     //Rcpp::Rcout << "i=" << i  << std::endl;
     //Rcpp::Rcout << "prob_a=" << prob_a  <<", i=" << i  << std::endl;
-    if(R_IsNaN((logProb))){
+    if(logProb==R_PosInf){
       
       Rcpp::Rcout <<"epsLim=" <<epsLim<<", alpha=" << alpha  << std::endl;
       Rcpp::Rcout << "i=" << i  << std::endl;
@@ -512,12 +535,29 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
       Rcpp::Rcout <<  H<< std::endl;
       //Rcpp::Rcout <<  Visits<< std::endl;
       //stop("logProb is NAN");
-      return(100000);
+      //return(100000);
     }else if( prob_a >1){
-      return(100000);
+      Rcpp::Rcout <<"epsLim=" <<epsLim<<", alpha=" << alpha  << std::endl;
+      Rcpp::Rcout << "i=" << i  << std::endl;
+      Rcpp::Rcout <<  "A="<< A << ", S=" << S << ", S_prime="<< S_prime << std::endl;
+      Rcpp::Rcout << "prob_a=" << prob_a << std::endl;
+      Rcpp::Rcout << "logProb=" << logProb << std::endl;
+      
+      Rcpp::Rcout <<  H<< std::endl;
+      //return(100000);
     }
     
     log_lik=log_lik+ logProb;
+    //Rcpp::Rcout << "log_lik=" << log_lik << std::endl;
+    if(log_lik == R_NegInf){
+      Rcpp::Rcout <<"epsLim=" <<epsLim<<", alpha=" << alpha  << std::endl;
+      Rcpp::Rcout << "i=" << i  << std::endl;
+      Rcpp::Rcout <<  "A="<< A << ", S=" << S << ", S_prime="<< S_prime << std::endl;
+      Rcpp::Rcout << "prob_a=" << prob_a << std::endl;
+      Rcpp::Rcout << "logProb=" << logProb << std::endl;
+      
+      Rcpp::Rcout <<  H<< std::endl;
+    }
     //Rcpp::Rcout << "log_lik=" <<log_lik<<", prob_a=" << prob_a  <<", i=" << i  << std::endl;
     //Check if episode ended
     if(returnToInitState ){
@@ -544,7 +584,15 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
             //Rcpp::Rcout << "state1 actions="<<actions.elem(state1_idx)<<std::endl;
             //Rcpp::Rcout <<  "episode="<<episode<<", state="<<1<<", curr_action="<<curr_action<<std::endl;
             arma::uvec a=arma::find(actions.elem(state1_idx)==curr_action);
-            double activity = a.n_elem/(1.0*state1_idx.n_elem);
+            arma::vec time_s1 =  time_taken_for_trial.elem(state1_idx);
+            double total_time_spent_in_state1 = arma::accu(time_s1);
+            double activity=0;
+            if(total_time_spent_in_state1>0){
+              activity = a.n_elem*1000/total_time_spent_in_state1;
+            }else{
+              activity = a.n_elem/(1.0*state1_idx.n_elem);
+            }
+            
             
             
             H(0,curr_action)= H(0,curr_action)+alpha*(score_episode*activity);
@@ -560,7 +608,7 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
               //Rcpp::Rcout <<  "Visits="<< Visits(0,curr_action)<<std::endl;
               stop("H is NAN");
             }else if(H(0,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<", Visits(0,curr_action)="<< Visits(0,curr_action) <<std::endl;
+              Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<std::endl;
               stop("H is Inf");
             }else if(H(0,curr_action) < 0){
               // Rcpp::Rcout <<  "episode="<<episode<<", state="<<1<<", curr_action="<<curr_action<<", score_episode="<<score_episode<<", activity="<<activity<<std::endl;
@@ -583,7 +631,14 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
             //Rcpp::Rcout << "state2 actions="<<actions.elem(state2_idx)<<std::endl;
             //Rcpp::Rcout <<  "episode="<<episode<<", state="<<2<<", curr_action="<<curr_action<<std::endl;
             arma::uvec a=arma::find(actions.elem(state2_idx)==curr_action);
-            double activity = a.n_elem/(1.0*state2_idx.n_elem);
+            arma::vec time_s2 =  time_taken_for_trial.elem(state2_idx);
+            double total_time_spent_in_state2 = arma::accu(time_s2);
+            double activity=0;
+            if(total_time_spent_in_state2>0){
+              activity = a.n_elem*1000/total_time_spent_in_state2;
+            }else{
+              activity = a.n_elem/(1.0*state2_idx.n_elem);
+            }
             
             H(1,curr_action)= H(1,curr_action)+alpha*(score_episode*activity);
             //H(1,curr_action)= H(1,curr_action)+(alpha*(score_episode-avg_score)*(1-softmax_cpp(curr_action,1,H))*activity);
@@ -595,7 +650,7 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
               //Rcpp::Rcout <<"epsLim=" <<epsLim<< "activity="<< activity<<std::endl;
               stop("H is NAN");
             }else if(H(1,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<<", Visits(1,curr_action)="<< Visits(1,curr_action) <<std::endl;
+              Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<<std::endl;
               //Rcpp::Rcout <<"epsLim=" <<epsLim<< ", activity="<< activity<<", score_episode="<<score_episode<<std::endl;
               stop("H is Inf");
             }else if(H(1,curr_action) < 0){
@@ -605,12 +660,16 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
             }
           }
         }else if(model==2){
+          
+          // UPDATE CREDIT OF STATE 1 ACTIONS
+          
           arma::uvec state1_idx = find(states==0);
           arma::vec uniq_state1 = arma::unique(actions.elem(state1_idx));
           
           //Rcpp::Rcout <<  "state1_idx="<< state1_idx<<std::endl;
           avg_score = avg_score + (score_episode-avg_score)/episode;
           
+          // UPDATE CREDIT OF STATE 1 ACTIONS SECLECTED DURING LAST N EPISODS
           for(unsigned int l=0;l< uniq_state1.n_elem;l++){
             if(uniq_state1(l)==-1){
               continue;
@@ -622,7 +681,12 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
             //Rcpp::Rcout << "a.n_elem="<<a.n_elem<<std::endl;
             arma::vec time_s1 =  time_taken_for_trial.elem(state1_idx);
             double total_time_spent_in_state1 = arma::accu(time_s1);
-            double activity = a.n_elem*10000/total_time_spent_in_state1;
+            double activity=0;
+            if(total_time_spent_in_state1>0){
+              activity = a.n_elem*1000/total_time_spent_in_state1;
+            }else{
+              activity = a.n_elem/(1.0*state1_idx.n_elem);
+            }
             
             //Rcpp::Rcout << "H(0,5)="<<H(0,5) <<", reward=" <<score_episode-avg_score<<", activity="<<activity<<std::endl;
             
@@ -639,14 +703,17 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
               //Rcpp::Rcout <<  "Visits="<< Visits(0,curr_action)<<std::endl;
               stop("H is NAN");
             }else if(H(0,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<", Visits(0,curr_action)="<< Visits(0,curr_action) <<std::endl;
+              Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<std::endl;
               stop("H is Inf");
             }
             
           }
           
+          // UPDATE CREDIT OF STATE 1 ACTIONS NOT SELECTED DURING LAST N EPISODS
+          
           IntegerVector setdiff_state1 = Rcpp::setdiff(all_actions,IntegerVector(uniq_state1.begin(),uniq_state1.end()));
           //Rcpp::Rcout <<  "setdiff_state1="<<setdiff_state1 << std::endl;
+          
           
           for(unsigned int l=0;l< setdiff_state1.size();l++){
             double  curr_action = setdiff_state1(l);
@@ -660,15 +727,17 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
               Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
               stop("H is NAN");
             }else if(H(0,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<", Visits(0,curr_action)="<< Visits(0,curr_action) <<std::endl;
+              Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action <<std::endl;
               stop("H is Inf");
             }
           }
           
-          
+          // UPDATE CREDIT OF STATE 2 ACTIONS
           
           arma::uvec state2_idx = find(states==1);
           arma::vec uniq_state2 = arma::unique(actions.elem(state2_idx));
+          
+          // UPDATE CREDIT OF STATE 2 ACTIONS SECLECTED DURING LAST N EPISODS
           
           for(unsigned int l=0;l< uniq_state2.n_elem;l++){
             if(uniq_state2(l)==-1){
@@ -680,7 +749,12 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
             arma::uvec a=arma::find(actions.elem(state2_idx)==curr_action);
             arma::vec time_s2 =  time_taken_for_trial.elem(state2_idx);
             double total_time_in_state_2 = arma::accu(time_s2);
-            double activity = a.n_elem*10000/total_time_in_state_2;
+            double activity=0;
+            if(total_time_in_state_2>0){
+              activity = a.n_elem*1000/total_time_in_state_2;
+            }else{
+              activity = a.n_elem/(1.0*state2_idx.n_elem);
+            }
             
             //H(1,curr_action)= H(1,curr_action)+alpha*(score_episode*activity);
             H(1,curr_action)= H(1,curr_action)+(alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,1,H))*activity);
@@ -692,11 +766,14 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
               //Rcpp::Rcout <<"epsLim=" <<epsLim<< "activity="<< activity<<std::endl;
               stop("H is NAN");
             }else if(H(1,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<<", Visits(1,curr_action)="<< Visits(1,curr_action) <<std::endl;
+              Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
               //Rcpp::Rcout <<"epsLim=" <<epsLim<< ", activity="<< activity<<", score_episode="<<score_episode<<std::endl;
               stop("H is Inf");
             }
           }
+          
+          // UPDATE CREDIT OF STATE 2 NOT  ACTIONS SECLECTED DURING LAST N EPISODS
+          
           
           IntegerVector setdiff_state2 = Rcpp::setdiff(all_actions,IntegerVector(uniq_state2.begin(),uniq_state2.end()));
           //Rcpp::Rcout <<  "setdiff_state2="<<setdiff_state2 << std::endl;
@@ -713,7 +790,7 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
               Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
               stop("H is NAN");
             }else if(H(1,curr_action) == R_PosInf){
-              Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<<", Visits(1,curr_action)="<< Visits(1,curr_action) <<std::endl;
+              Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
               stop("H is Inf");
             }
           }

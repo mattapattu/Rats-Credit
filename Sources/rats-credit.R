@@ -9,7 +9,7 @@ library(pracma)
 library(sp) #for spatial polygons
 
 
-setwd("~/intership2/ProgR/Sources")
+setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
 
 options(error = recover)
 
@@ -21,7 +21,7 @@ for (f in list.files(pattern="*.R$")) {
 }
 
 #Load SDM and SDL folders (SDM113,SDL101, etc.)
-setwd("~/intership2/Data")
+setwd("C:/Rats-Credits/Data")
 
 DATA=buildDataTree()
 resalex=leo.boxes()
@@ -37,7 +37,7 @@ dirpath1 = file.path(path,"Results","Plots",time1)
 dir.create(dirpath1)
 
 ### Loop through the enreg of all 6 rats
-for (i in c(1:6)) {
+for (i in c(2)) {
   n=FindNode(DATA,rat[[i]])
   
   ## Get the enreg of rat[[i]]  
@@ -78,6 +78,18 @@ for (i in c(1:6)) {
   #plot.average.frequency.by.boxes2(enreg,rat[i],dirpath1)
   
   #debug(plot.heatmap.paths)
-  plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
+  #plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
   
+  #debug(mle_rl)
+  #mle_rl(enreg,rat[i])
+  
+  #debug(mle_aca)
+  #mle_aca(enreg,rat[i])
+  
+  #debug(mazeACA2)
+  #mazeACA2(enreg,rat[i])
+  debug(mse_compare)
+  res_mat<-mse_compare(enreg,rat[i])
+  
+  #mle_rl_softmax(enreg,rat[i])
 }

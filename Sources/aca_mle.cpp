@@ -207,7 +207,7 @@ double aca_mle_cpp(Rcpp::StringMatrix allpaths,float alpha,int epsLim, arma::mat
     A=std::atoi(allpaths(i,2))-1;
     
     //int S_prime=getNextState_cpp(allpaths,i)-1;
-    int S_prime=std::atoi(allpaths((i+1),4))-1);
+    int S_prime=std::atoi(allpaths((i+1),4))-1;
     if(S_prime<0){
       continue;
     }

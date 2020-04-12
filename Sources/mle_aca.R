@@ -39,7 +39,7 @@ mle_aca=function(enreg,rat){
     
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths_ses <- toString(r$values)
-    allpaths_ses<-strsplit(allpaths_ses,"(?<=[ei])(?=(, j, k)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    allpaths_ses<-strsplit(s1,"(?<=[ei])(?=(, j, k)|(, j, a)|(, j, b)|(, f, g)|(, f, b)|(, f, a)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
     allpaths_ses <-cbind(allpaths_ses,ses)
     colnames(allpaths_ses) <- c("Path","Session")
     l<-list(allpaths,allpaths_ses)

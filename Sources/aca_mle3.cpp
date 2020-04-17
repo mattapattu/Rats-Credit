@@ -17,16 +17,16 @@ double softmax_cpp3(int A,int S,arma::mat &H){
   //Rcpp::Rcout <<  "S="<< S<<std::endl;
   arma::rowvec v = H.row(S);
   //Rcpp::Rcout <<  v<< std::endl;
-  float m=arma::max(v);
-  double exp_sum  = std::exp(H(S,0)-m)+std::exp(H(S,1)-m)+std::exp(H(S,2)-m)+std::exp(H(S,3)-m)+std::exp(H(S,4)-m)+std::exp(H(S,5)-m) ;
-  double pr_A = (std::exp(H(S,A)-m))/exp_sum;
+  // double m=arma::max(v);
+  // double exp_sum  = std::exp(H(S,0)-m)+std::exp(H(S,1)-m)+std::exp(H(S,2)-m)+std::exp(H(S,3)-m)+std::exp(H(S,4)-m)+std::exp(H(S,5)-m) ;
+  // double pr_A = (std::exp(H(S,A)-m))/exp_sum;
   
-  // float m=arma::max(v);
-  // v=exp(v-m);
+   float m=arma::max(v);
+   v=exp(v-m);
   // //Rcpp::Rcout << "m=" << m<< std::endl;
-  // double exp_sum  = arma::accu(v) ;
-  // v=v/exp_sum;
-  // double pr_A=v[A];
+   double exp_sum  = arma::accu(v) ;
+   v=v/exp_sum;
+   double pr_A=v[A];
   
   if(pr_A<0){
     Rcpp::Rcout <<"A="<<A<< ", S=" <<S << std::endl;
@@ -66,13 +66,13 @@ double softmax_cpp3(int A,int S,arma::mat &H){
     Rcpp::Rcout <<  H<< std::endl;
     Rcpp::Rcout <<"A=" <<A<< ", S=" <<S <<", m="<<m<< std::endl;
     Rcpp::Rcout << "Numerator=" << std::exp(H(S,A)-m)  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (H(S,0))-m  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,1)-m))  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,2)-m))  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,3)-m))  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,4)-m))  << std::endl;
-    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << (std::exp(H(S,5)-m))  << std::endl;
-    //stop("logProb is NAN");
+    Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << std::exp(H(S,0)-m)  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,1))-m)=" << std::exp(H(S,1)-m)  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,2))-m)=" << std::exp(H(S,2)-m)  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,3))-m)=" << std::exp(H(S,3)-m)  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,4))-m)=" << std::exp(H(S,4)-m)  << std::endl;
+    Rcpp::Rcout << "(std::exp(H(S,5))-m)=" << std::exp(H(S,5)-m)  << std::endl;
+    stop("logProb is NAN");
   }
   
   // if(Rcpp::traits::is_infinite<REALSXP>(prob_a)){
@@ -107,7 +107,7 @@ int softmax_action_sel(arma::mat &H,int S){
   IntegerVector actions = seq(0, 5);
   //Rcpp::Rcout << "v=" << v<< std::endl;
   //Rcpp::Rcout << "actions=" << actions<< std::endl;
-  int action_selected = Rcpp::RcppArmadillo::sample(actions, 1, false, v.as_col())[0] ;
+  int action_selected = Rcpp::RcppArmadillo::sample(actions, 1, true, v.as_col())[0] ;
   //Rcpp::Rcout << "action_selected=" << action_selected<< std::endl;
   return(action_selected);
   
@@ -422,7 +422,7 @@ arma::mat aca_gen_sim(arma::mat &H,float alpha,int epsLim,int total_trials,int i
 }
 
 // [[Rcpp::export("aca_mle_lik")]]
-double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::mat &H,int model,int sim){
+arma::vec aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::mat &H,int model,int sim){
   //NumericMatrix likelihood(10,1298);
   //int d;
   //for(d =0;d<9;d++){
@@ -434,6 +434,8 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
   
   //Rcpp::Rcout <<  H<< std::endl;
   //Rcpp::Rcout <<  Visits<< std::endl;
+  int nrow = allpaths.nrow();
+  arma::vec mseMatrix=arma::zeros(nrow);
   
   double log_lik=0;
   
@@ -458,12 +460,12 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
   int score_episode=0;
   int episodeFin=0;
   //int prev_ses=-1;
-  int nrow = allpaths.nrow();
+  
   //int trial=0;
   int i;
   int avg_score = 0;
   bool resetVector = true;
-  for ( i = 1; i < (nrow-1); i++) {
+  for ( i = 0; i < (nrow-1); i++) {
     
     if(resetVector){
       initState=S;
@@ -548,7 +550,7 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
       // stop("prob_a >1");
       //return(100000);
     }
-    
+    mseMatrix(i)=logProb;
     log_lik=log_lik+ logProb;
     //Rcpp::Rcout << "log_lik=" << log_lik << std::endl;
     if(log_lik == R_NegInf){
@@ -823,7 +825,7 @@ double aca_mle_lik(Rcpp::NumericMatrix allpaths,float alpha,int epsLim, arma::ma
     //trial=trial+1;
     
   }
-  return(log_lik*(-1));
+  return(mseMatrix);
   
   
 }  
@@ -1227,19 +1229,20 @@ arma::mat computeMSE(arma::mat allpaths,arma::mat probMatrix_aca,int sim){
   
   for(unsigned int i=0;i<(allpaths.n_rows);i++){
     int action=allpaths(i,0);
+    //int state=allpaths(i,1);
     //int sub=(1==action);
      //Rcpp::Rcout<<"i="<<i<<", action=" <<action<< " ,state=" << allpaths(i,1)<<std::endl;
     //Rcpp::Rcout<<"i="<< i<< ", action=" <<action <<std::endl;
     if(sim==1){
       if(allpaths(i,1)==0){
-        
+
         mseMatrix(0,trial)=pow(probMatrix_aca(i,0)-(0==action),2);
         mseMatrix(1,trial)=pow(probMatrix_aca(i,1)-(1==action),2);
         mseMatrix(2,trial)=pow(probMatrix_aca(i,2)-(2==action),2);
         mseMatrix(3,trial)=pow(probMatrix_aca(i,3)-(3==action),2);
         mseMatrix(4,trial)=pow(probMatrix_aca(i,4)-(4==action),2);
         mseMatrix(5,trial)=pow(probMatrix_aca(i,5)-(5==action),2);
-        
+
       }else if(allpaths(i,1)==1){
         mseMatrix(6,trial)=pow(probMatrix_aca(i,6)-(0==action),2);
         mseMatrix(7,trial)=pow(probMatrix_aca(i,7)-(1==action),2);
@@ -1249,16 +1252,17 @@ arma::mat computeMSE(arma::mat allpaths,arma::mat probMatrix_aca,int sim){
         mseMatrix(11,trial)=pow(probMatrix_aca(i,11)-(5==action),2);
         //Rcpp::Rcout << "S=2, mseMatrix(3,trial)="<<  mseMatrix(3,trial)<< std::endl;
       }
+      
     }else{
       if(allpaths(i,1)==1){
-        
+
         mseMatrix(0,trial)=pow(probMatrix_aca(i,0)-(1==action),2);
         mseMatrix(1,trial)=pow(probMatrix_aca(i,1)-(2==action),2);
         mseMatrix(2,trial)=pow(probMatrix_aca(i,2)-(3==action),2);
         mseMatrix(3,trial)=pow(probMatrix_aca(i,3)-(4==action),2);
         mseMatrix(4,trial)=pow(probMatrix_aca(i,4)-(5==action),2);
         mseMatrix(5,trial)=pow(probMatrix_aca(i,5)-(6==action),2);
-        
+
       }else if(allpaths(i,1)==2){
         mseMatrix(6,trial)=pow(probMatrix_aca(i,6)-(1==action),2);
         mseMatrix(7,trial)=pow(probMatrix_aca(i,7)-(2==action),2);
@@ -1268,10 +1272,15 @@ arma::mat computeMSE(arma::mat allpaths,arma::mat probMatrix_aca,int sim){
         mseMatrix(11,trial)=pow(probMatrix_aca(i,11)-(6==action),2);
         //Rcpp::Rcout << "S=2, mseMatrix(3,trial)="<<  mseMatrix(3,trial)<< std::endl;
       }
+      // state=state-1;
+      // action=action-1;
     }
     
+    // mseMatrix(i)=pow(1-probMatrix_aca(i,((6*state)+action)),2);
+    //Rcpp::Rcout <<"i="<<i<<", action="<< ((6*state)+action)<< ", probMatrix_aca(i,act)="<<probMatrix_aca(i,((6*state)+action))<< ", mseMatrix(i)="<<mseMatrix(i)<< std::endl;
+    
      // arma::colvec v = mseMatrix.col(trial);
-     // Rcpp::Rcout <<  v.as_row()<< std::endl;
+      
 
     // if(action==4 && allpaths(i,1)==2){
     //   Rcpp::Rcout <<"i="<<i<<", mseMatrix(9,trial)=" <<mseMatrix(9,trial)<< ", probMatrix_aca(i,9)=" <<probMatrix_aca(i,9)<< ", (4==action)="<<(4==action)<< std::endl;
@@ -1282,6 +1291,52 @@ arma::mat computeMSE(arma::mat allpaths,arma::mat probMatrix_aca,int sim){
   //double total_mse=accu(mseMatrix)/(1.0*max_index);
   return(mseMatrix);
 }
+
+
+// [[Rcpp::export("computeMSE2")]]
+arma::mat computeMSE2(arma::mat allpaths,arma::mat probMatrix_aca,int sim){
+  
+  //int start_index = allpaths.n_rows/2;
+  //int max_index=allpaths.n_rows-start_index;
+  arma::mat mseMatrix=arma::zeros(allpaths.n_rows);
+  //start_index= start_index+1;
+  int trial=0;
+  //Rcpp::Rcout<< "pow(2,3)=" <<pow(2,3)<< ", pow(3,2)=" << pow(3,2) <<std::endl;
+  //Rcpp::Rcout <<"start_index="<<start_index<<", allpaths.n_rows=" <<allpaths.n_rows<< ", action=" <<allpaths(start_index,0)<< " ,state=" << allpaths(start_index,1)<<std::endl;
+  //arma::rowvec v = probMatrix_aca.row(trial);
+  //Rcpp::Rcout <<  v<< std::endl;
+  
+  for(unsigned int i=0;i<(allpaths.n_rows);i++){
+    int action=allpaths(i,0);
+    int state=allpaths(i,1);
+    //int sub=(1==action);
+    //Rcpp::Rcout<<"i="<<i<<", action=" <<action<< " ,state=" << allpaths(i,1)<<std::endl;
+    //Rcpp::Rcout<<"i="<< i<< ", action=" <<action <<std::endl;
+    if(sim==1){
+      
+      
+    }else{
+     
+      state=state-1;
+      action=action-1;
+    }
+    
+    mseMatrix(i)=pow(1-probMatrix_aca(i,((6*state)+action)),2);
+    //Rcpp::Rcout <<"i="<<i<<", action="<< ((6*state)+action)<< ", probMatrix_aca(i,act)="<<probMatrix_aca(i,((6*state)+action))<< ", mseMatrix(i)="<<mseMatrix(i)<< std::endl;
+    
+    // arma::colvec v = mseMatrix.col(trial);
+    
+    
+    // if(action==4 && allpaths(i,1)==2){
+    //   Rcpp::Rcout <<"i="<<i<<", mseMatrix(9,trial)=" <<mseMatrix(9,trial)<< ", probMatrix_aca(i,9)=" <<probMatrix_aca(i,9)<< ", (4==action)="<<(4==action)<< std::endl;
+    // }
+    trial=trial+1;
+  }
+  //Rcpp::Rcout<< accu(mseMatrix)<<std::endl;
+  //double total_mse=accu(mseMatrix)/(1.0*max_index);
+  return(mseMatrix);
+}
+
 
 // [[Rcpp::export("updateAllpaths1")]]
 arma::vec updateAllpaths1(NumericVector allpaths,Rcpp::NumericMatrix enreg_pos){

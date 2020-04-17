@@ -17,7 +17,7 @@ double softmax_cpp4(int A,int S,arma::mat &H){
   // double exp_sum  = std::exp(H(S,0)-m)+std::exp(H(S,1)-m)+std::exp(H(S,2)-m)+std::exp(H(S,3)-m)+std::exp(H(S,4)-m)+std::exp(H(S,5)-m) ;
   // double pr_A = (std::exp(H(S,A)-m))/exp_sum;
   
-  float m=arma::max(v);
+  double m=arma::max(v);
   v=exp(v-m);
   //Rcpp::Rcout << "m=" << m<< std::endl;
   double exp_sum  = arma::accu(v) ;
@@ -70,7 +70,7 @@ int softmax_action_sel(arma::mat &H,int S){
   
   arma::rowvec v = H.row(S);
   //Rcpp::Rcout <<  H<< std::endl;
-  float m=arma::max(v);
+  double m=arma::max(v);
   v=exp(v-m);
   //Rcpp::Rcout << "m=" << m<< std::endl;
   double exp_sum  = arma::accu(v) ;
@@ -105,7 +105,7 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
   
   //double log_lik=0;
   
-  //int episode=1;
+  int episode=1;
   int S=init_state;
   int A=softmax_action_sel(Q_vals,S);;
   arma::vec actions(1);
@@ -117,14 +117,12 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
   int initState=0;
   bool changeState = false;
   bool returnToInitState = false;
-  int score_episode=0;
-  int episodeFin=0;
   //int prev_ses=-1;
   //int trial=0;
   int i;
   //int avg_score = 0;
   bool resetVector = true;
-  for ( i = 1; i < (total_trials-1); i++) {
+  for ( i = 0; i < (total_trials-1); i++) {
     
     if(resetVector){
       initState=S;
@@ -139,9 +137,9 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
     //Rcpp::Rcout <<  "trial_pos="<<trial_pos << ", enreg_trial="<< std::atoi(enreg_pos(trial_pos,5)) <<std::endl;
     //Rcpp::Rcout <<"H="<<H<<std::endl;
 
-    if(R(S,A)>0){
-      score_episode = score_episode+1;
-    }
+    // if(R(S,A)>0){
+    //   score_episode = score_episode+1;
+    // }
     //Rcpp::Rcout <<"i="<<i<<  ", A="<<A<<", S="<<S<<std::endl;
     
     allpaths_sarsa(i,0)=A;
@@ -152,8 +150,8 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
     int A_prime=softmax_action_sel(Q_vals,S);
     
     Elig_trace(S,A)=Elig_trace(S,A)+1;
-    float delta=R(S,A)+(gamma* Q_vals(S_prime,A_prime)) - Q_vals(S,A);
-    Q_vals=Q_vals+ (alpha*delta*Elig_trace);
+    double delta=R(S,A)+(gamma* Q_vals(S_prime,A_prime)) - Q_vals(S,A);
+    Q_vals=Q_vals + (alpha*delta*Elig_trace);
     Elig_trace=Elig_trace*gamma*lambda;
     
     //Rcpp::Rcout << "A="<< A << ", S=" << S << ", S_prime="<< S_prime << std::endl;
@@ -176,11 +174,12 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
       //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
       changeState = false;
       returnToInitState = false;
-      episodeFin=episodeFin+1;
-      
-      score_episode=0;
-      episodeFin=0;
-      
+      //Elig_trace=Elig_trace*0;
+      if(episode==2){
+        Elig_trace=Elig_trace*0;
+        episode=0;
+      }
+      episode  = episode+1;
       actions=arma::vec(1);
       actions.fill(-1);
       states=arma::vec(1);
@@ -198,9 +197,11 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
 }
 
 // [[Rcpp::export("sarsa_mle")]]
-double sarsa_mle(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lambda, arma::mat &Q_vals,int sim){
+arma::vec sarsa_mle(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lambda, arma::mat &Q_vals,int sim){
   
   double log_lik=0;
+  int nrow = allpaths.nrow();
+  arma::vec mseMatrix=arma::zeros(nrow);
   arma::mat Elig_trace = arma::zeros(2,6);
   //arma::mat Q_vals = arma::zeros(2,6);
   int episode=1;
@@ -223,7 +224,7 @@ double sarsa_mle(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lamb
   int initState=0;
   bool changeState = false;
   bool returnToInitState = false;
-  int nrow = allpaths.nrow();
+  
   int i;
   bool resetVector = true;
   for ( i = 0; i < (nrow-1); i++) {
@@ -237,8 +238,8 @@ double sarsa_mle(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lamb
       R=1;
     }
     //Rcpp::Rcout << "S=" << S <<", A=" <<A  << std::endl;
-    int S_prime=allpaths((i+1),1)-1;
-    int A_prime=allpaths((i+1),0)-1;
+    int S_prime=0;
+    int A_prime=0;
     
     if(sim==1){
       S_prime=allpaths((i+1),1);
@@ -250,7 +251,7 @@ double sarsa_mle(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lamb
     
     //Rcpp::Rcout << "HERE1"<< std::endl;
     Elig_trace(S,A)=Elig_trace(S,A)+1;
-    float delta=R+(gamma* Q_vals(S_prime,A_prime))-Q_vals(S,A);
+    double delta=R+(gamma* Q_vals(S_prime,A_prime))-Q_vals(S,A);
     Q_vals=Q_vals+ (alpha*delta*Elig_trace);
     Elig_trace=Elig_trace*gamma*lambda;
     
@@ -283,9 +284,10 @@ double sarsa_mle(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lamb
       Rcpp::Rcout <<  Q_vals<< std::endl;
       ////Rcpp::Rcout <<  Visits<< std::endl;
       stop("logProb is NAN");
-      return(100000);
+      //return(100000);
     }
     
+    mseMatrix(i)=logProb;
     log_lik=log_lik+ logProb;
     
     S=S_prime;
@@ -295,7 +297,11 @@ double sarsa_mle(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lamb
       //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
       changeState = false;
       returnToInitState = false;
-      Elig_trace=Elig_trace*0;
+      //Elig_trace=Elig_trace*0;
+      if(episode==2){
+        Elig_trace=Elig_trace*0;
+        episode=0;
+      }
       episode  = episode+1;
       actions=arma::vec(1);
       actions.fill(-1);
@@ -304,15 +310,14 @@ double sarsa_mle(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lamb
       
     }
   }
-  return(log_lik*(-1));
+  return(mseMatrix);
   
   
 }  
 
 
 // [[Rcpp::export("sarsaGetProbMatrix")]]
-arma::mat sarsaGetProbMatrix(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lambda, arma::mat &Q_vals){
-  int sim=1;
+arma::mat sarsaGetProbMatrix(Rcpp::NumericMatrix allpaths,float alpha,float gamma,float lambda, arma::mat &Q_vals,int sim){
   arma::mat Elig_trace = arma::zeros(2,6);
   //arma::mat Q_vals = arma::zeros(2,6);
   int episode=1;
@@ -351,8 +356,8 @@ arma::mat sarsaGetProbMatrix(Rcpp::NumericMatrix allpaths,float alpha,float gamm
       R=1;
     }
     //Rcpp::Rcout << "S=" << S <<", A=" <<A  << std::endl;
-    int S_prime=allpaths((i+1),1)-1;
-    int A_prime=allpaths((i+1),0)-1;
+    int S_prime=0;
+    int A_prime=0;
     
     if(sim==1){
       S_prime=allpaths((i+1),1);
@@ -364,7 +369,7 @@ arma::mat sarsaGetProbMatrix(Rcpp::NumericMatrix allpaths,float alpha,float gamm
     
     //Rcpp::Rcout << "HERE1"<< std::endl;
     Elig_trace(S,A)=Elig_trace(S,A)+1;
-    float delta=R+(gamma* Q_vals(S_prime,A_prime))-Q_vals(S,A);
+    double delta=R+(gamma* Q_vals(S_prime,A_prime))-Q_vals(S,A);
     Q_vals=Q_vals+ (alpha*delta*Elig_trace);
     Elig_trace=Elig_trace*gamma*lambda;
     
@@ -406,7 +411,11 @@ arma::mat sarsaGetProbMatrix(Rcpp::NumericMatrix allpaths,float alpha,float gamm
       //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
       changeState = false;
       returnToInitState = false;
-      Elig_trace=Elig_trace*0;
+      //Elig_trace=Elig_trace*0;
+      if(episode==2){
+        Elig_trace=Elig_trace*0;
+        episode=0;
+      }
       episode  = episode+1;
       actions=arma::vec(1);
       actions.fill(-1);

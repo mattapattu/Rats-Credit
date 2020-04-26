@@ -131,17 +131,6 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
     }
     
     
-    //  trial=std::atoi(enreg_pos(trial_pos,5));
-    //Rcpp::Rcout <<"i="<<i<<  ", trial="<<trial<<std::endl;
-    
-    //Rcpp::Rcout <<  "trial_pos="<<trial_pos << ", enreg_trial="<< std::atoi(enreg_pos(trial_pos,5)) <<std::endl;
-    //Rcpp::Rcout <<"H="<<H<<std::endl;
-
-    // if(R(S,A)>0){
-    //   score_episode = score_episode+1;
-    // }
-    //Rcpp::Rcout <<"i="<<i<<  ", A="<<A<<", S="<<S<<std::endl;
-    
     allpaths_sarsa(i,0)=A;
     allpaths_sarsa(i,1)=S;
     allpaths_sarsa(i,2)=R(S,A);
@@ -149,10 +138,6 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
     int S_prime=sarsa_getNextState(S,A);
     int A_prime=softmax_action_sel(Q_vals,S);
     
-    Elig_trace(S,A)=Elig_trace(S,A)+1;
-    double delta=R(S,A)+(gamma* Q_vals(S_prime,A_prime)) - Q_vals(S,A);
-    Q_vals=Q_vals + (alpha*delta*Elig_trace);
-    Elig_trace=Elig_trace*gamma*lambda;
     
     //Rcpp::Rcout << "A="<< A << ", S=" << S << ", S_prime="<< S_prime << std::endl;
     int sz = actions.n_elem;
@@ -175,10 +160,12 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
       changeState = false;
       returnToInitState = false;
       //Elig_trace=Elig_trace*0;
-      if(episode==2){
-        Elig_trace=Elig_trace*0;
-        episode=0;
-      }
+      
+      Elig_trace(S,A)=Elig_trace(S,A)+1;
+      double delta=R(S,A)+(gamma* Q_vals(S_prime,A_prime)) - Q_vals(S,A);
+      Q_vals=Q_vals + (alpha*delta*Elig_trace);
+      Elig_trace=Elig_trace*gamma*lambda;
+      
       episode  = episode+1;
       actions=arma::vec(1);
       actions.fill(-1);

@@ -119,9 +119,11 @@ mse_compare=function(enreg,rat){
     init_state=as.numeric(allpaths_num[1,2])
     ### Generate simulated data using the estimated params
     #aca_model1_sim <- aca_gen_model(H_mod,alpha,episode_len_mod,total_trials,init_state,model=1)
-    generated_data <- aca_gen_sim(matrix(0,nrow=2,ncol=6),alpha_mod,episode_len_mod, total_trials,init_state,model=1)
-    #generated_data <- sarsa_gen_sim(matrix(0,nrow=2,ncol=6),alpha_mod,gamma_mod,lambda_mod,total_trials,init_state)
+    episode_length <- floor(2+28*episode_len)
+    generated_data <- aca_gen_sim(allpaths_num,alpha,episode_length, total_trials,init_state,model=1)
+    #generated_data <- sarsa_gen_sim(allpaths_num,alpha_mod,gamma_mod,lambda_mod,total_trials,init_state)
     
+
     if(length(which(SMA(generated_data[,3],10)>=0.9))<500){
       missedOptimalIter=missedOptimalIter+1
       next
@@ -132,7 +134,7 @@ mse_compare=function(enreg,rat){
     ## Start index = When rewards/30 trials reaches 0.5
     start_index=0
     end_index=0
-    l<-which(SMA(generated_data[,3],30)>=0.5)
+    l<-which(SMA(generated_data[,3],10)>=0.5)
     k<-split(l, cumsum(c(1, diff(l) != 1)))
     for(set in 1:length(k)){
       if(length(k[[set]])>10){
@@ -140,15 +142,7 @@ mse_compare=function(enreg,rat){
         break
       }
     }
-    ## End index = When rewards/30 trials reaches 0.9
-    # l<-which(SMA(generated_data[,3],30)>=0.95)
-    # k<-split(l, cumsum(c(1, diff(l) != 1)))
-    # for(set in 1:length(k)){
-    #   if(length(k[[set]])>100){
-    #     end_index=k[[set]][1]
-    #     break
-    #   }
-    # }
+
     r<-rle(SMA(generated_data[,3],30))
     rIndx<-which(diff(cumsum(r$lengths))>50)[1]
     end_index=cumsum(r$lengths)[(rIndx)]
@@ -162,24 +156,29 @@ mse_compare=function(enreg,rat){
     
     out_model1 <-DEoptim(aca_negLogLik1, lower = c(0,0), upper = c(1,1), allpaths = generated_data[1:half_index,], model = 1, sim=1,DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200)) 
     alpha_model1_est = out_model1$optim$bestmem[1]
-    episode_model1_est = 2+(out_model1$optim$bestmem[2]*28)
+    episode_model1_est = floor(2+(out_model1$optim$bestmem[2]*28))
     ### Compute MSE for Model1 using simulated data
     aca_model1_probMatrix <-acaGetProbMatrix(generated_data, alpha_model1_est,episode_model1_est,matrix(0,nrow=2,ncol=6),model=1,sim=1)
-    mse_model1_mat <- computeMSE(generated_data,aca_model1_probMatrix,sim=1)
-    mse_model1 <- sum(mse_model1_mat[(half_index+1):end_index])/(end_index-half_index)
-    # mse_model1_mat <-aca_mle_lik(generated_data,alpha_model1_est,episode_model1_est,matrix(0,2,6),model=1,sim=1)
-    # mse_model1 <- (-1)*sum(mse_model1_mat[(half_index+1):end_index])
+    # mse_model1_mat_method1 <- computeMSE(generated_data,aca_model1_probMatrix,sim=1)
+    # mse_model1_method1 <- sum(mse_model1_mat_method1[,(half_index+1):end_index])/(end_index-half_index)
+    mse_model1_mat_method2 <- computeMSE2(generated_data,aca_model1_probMatrix,sim=1)
+    mse_model1_method2 <- sum(mse_model1_mat_method2[(half_index+1):end_index])/(end_index-half_index)
+    
+    #mse_model1_mat <-aca_mle_lik(generated_data,alpha_model1_est,episode_model1_est,matrix(0,2,6),model=1,sim=1)
+    #mse_model1 <- (-1)*sum(mse_model1_mat[(half_index+1):end_index])
 
     # ## Estimate Model2 parameters for simulated data
     out_model2 <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1),allpaths=generated_data[1:half_index,],model = 2, sim=1, DEoptim.control(NP=20,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
     alpha_model2_est = out_model2$optim$bestmem[1]
-    episode_model2_est = 2+(out_model2$optim$bestmem[2]*28)
+    episode_model2_est = floor(2+(out_model2$optim$bestmem[2]*28))
     ## Compute MSE for Model2 using simulated data
     aca_model2_probMatrix <-acaGetProbMatrix(generated_data, alpha_model2_est,episode_model2_est,matrix(0,nrow=2,ncol=6),model=2,sim=1)
-    mse_model2_mat <- computeMSE2(generated_data,aca_model2_probMatrix,sim=1)
-    mse_model2 <- sum(mse_model2_mat[(half_index+1):end_index])/(end_index-half_index)
-    # mse_model2_mat <-aca_mle_lik(generated_data,alpha_model2_est,episode_model2_est,matrix(0,2,6),model=2,sim=1)
-    # mse_model2 <- (-1)*sum(mse_model2_mat[(half_index+1):end_index])
+    # mse_model2_mat_method1 <- computeMSE(generated_data,aca_model2_probMatrix,sim=1)
+    # mse_model2_method1 <- sum(mse_model2_mat_method1[,(half_index+1):end_index])/(end_index-half_index)
+    mse_model2_mat_method2 <- computeMSE2(generated_data,aca_model2_probMatrix,sim=1)
+    mse_model2_method2 <- sum(mse_model2_mat_method2[(half_index+1):end_index])/(end_index-half_index)
+        #mse_model2_mat <-aca_mle_lik(generated_data,alpha_model2_est,episode_model2_est,matrix(0,2,6),model=2,sim=1)
+    #mse_model2 <- (-1)*sum(mse_model2_mat[(half_index+1):end_index])
     
     
     
@@ -190,16 +189,19 @@ mse_compare=function(enreg,rat){
     lambda_sarsa_est = out_sarsa$optim$bestmem[3]
     ## Compute MSE for Model2 using simulated data
     sarsa_probMatrix <-sarsaGetProbMatrix(generated_data, alpha_sarsa_est,gamma_sarsa_est,lambda_sarsa_est, matrix(0,nrow=2,ncol=6),sim=1)
-    mse_sarsa_mat <-computeMSE(generated_data,sarsa_probMatrix,sim=1)
-    mse_sarsa <- sum(mse_sarsa_mat[(half_index+1):end_index])/(end_index-half_index)
+    # mse_sarsa_mat_method1 <-computeMSE(generated_data,sarsa_probMatrix,sim=1)
+    # mse_sarsa_method1 <- sum(mse_sarsa_mat_method1[,(half_index+1):end_index])/(end_index-half_index)
+    mse_sarsa_mat_method2 <-computeMSE2(generated_data,sarsa_probMatrix,sim=1)
+    mse_sarsa_method2 <- sum(mse_sarsa_mat_method2[(half_index+1):end_index])/(end_index-half_index)
+    
     #mse_sarsa_mat <-sarsa_mle(generated_data,alpha_sarsa_est,gamma_sarsa_est,lambda_sarsa_est,matrix(0,2,6),sim=1)
     #mse_sarsa <- (-1)*sum(mse_sarsa_mat[(half_index+1):end_index])
     
-    mat_res[iter,1]=mse_model1
+    mat_res[iter,1]=mse_model1_method2
     mat_res[iter,2]=toString(out_model1$optim$bestmem)
-    mat_res[iter,3]=mse_model2
+    mat_res[iter,3]=mse_model2_method2
     mat_res[iter,4]=toString(out_model2$optim$bestmem)
-    mat_res[iter,5]=mse_sarsa
+    mat_res[iter,5]=mse_sarsa_method2
     mat_res[iter,6]=toString(out_sarsa$optim$bestmem)
     
     if(mat_res[iter,1]==0 ||mat_res[iter,3]==0||mat_res[iter,5]==0 ){
@@ -207,14 +209,17 @@ mse_compare=function(enreg,rat){
       break
     }
     
-    index_min=which.min(c(mse_model1,10000,mse_sarsa))
+    index_min=which.min(c(mse_model1_method1,100000,mse_sarsa_method1))
     if(index_min==1){
       mat_res[iter,7]="ACA model1"
+      #break
     }else if(index_min==2){
       mat_res[iter,7]="ACA model2"
     }
     else if(index_min==3){
       mat_res[iter,7]="SARSA"
+      print(sprintf("SARSA likelihood lower, stopping"))
+      break
     }
     
     iter=iter+1

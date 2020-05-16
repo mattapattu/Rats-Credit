@@ -113,7 +113,6 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
   arma::vec states(1);
   states.fill(-1);
   
-  
   int initState=0;
   bool changeState = false;
   bool returnToInitState = false;
@@ -135,9 +134,17 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
     allpaths_sarsa(i,1)=S;
     allpaths_sarsa(i,2)=R(S,A);
     
+    
+    
+
     int S_prime=sarsa_getNextState(S,A);
     int A_prime=softmax_action_sel(Q_vals,S);
     
+    
+    Elig_trace(S,A)=Elig_trace(S,A)+1;
+    double delta=R(S,A)+(gamma* Q_vals(S_prime,A_prime)) - Q_vals(S,A);
+    Q_vals=Q_vals + (alpha*delta*Elig_trace);
+    Elig_trace=Elig_trace*gamma*lambda;
     
     //Rcpp::Rcout << "A="<< A << ", S=" << S << ", S_prime="<< S_prime << std::endl;
     int sz = actions.n_elem;
@@ -146,6 +153,8 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
     
     states.resize(sz+1);
     states(sz)=S;
+    
+    
     
     if(S_prime!=initState){
       changeState = true;
@@ -161,10 +170,6 @@ arma::mat sarsa_gen_sim(arma::mat &Q_vals,float alpha,float gamma,float lambda,i
       returnToInitState = false;
       //Elig_trace=Elig_trace*0;
       
-      Elig_trace(S,A)=Elig_trace(S,A)+1;
-      double delta=R(S,A)+(gamma* Q_vals(S_prime,A_prime)) - Q_vals(S,A);
-      Q_vals=Q_vals + (alpha*delta*Elig_trace);
-      Elig_trace=Elig_trace*gamma*lambda;
       
       episode  = episode+1;
       actions=arma::vec(1);

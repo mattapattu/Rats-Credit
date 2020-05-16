@@ -1,6 +1,8 @@
 library(ggplot2)
 library(seriation)
 library(igraph)
+library("RColorBrewer")
+
 
 round2 = function(x, n) {
   posneg = sign(x)
@@ -36,7 +38,9 @@ plot.heatmap.paths=function(enreg,rat,dirpath1,plot){
     
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths <- toString(r$values)
-    allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    #allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k)|(, f, g)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k)|(, j, a)|(, j, b)|(, f, g)|(, f, b)|(, f, a)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+
 
     neurons <- max(as.numeric(enreg[[ses]]$SPIKES[,"neuron"]))
     ### Loop through each neuron in enreg[[ses]] of current rat
@@ -51,29 +55,31 @@ plot.heatmap.paths=function(enreg,rat,dirpath1,plot){
       ### timesinBoxes - store time spend in each box for every trial
       timesinBoxes <- matrix(0, last_trial, 12)
       
+      
+      
       for(t in 1:last_trial){
         
         pos_trial_t  <- which(enreg[[ses]]$POS[,"trial"] == t)
         time_spent_in_trial = as.numeric(enreg[[ses]]$POS[pos_trial_t[length(pos_trial_t)],1]) - as.numeric(enreg[[ses]]$POS[pos_trial_t[1],1])
-        if(length(grep("h.*c.*d.*e",allpaths[t],value = FALSE))>0){
+        if(length(grep("^, h.*c.*d.*e",allpaths[t],value = FALSE))>0){
           pathNb=1
-        }else if(length(grep("j.*k.*a.*g.*f.*e",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, j.*k.*a.*g.*f.*e",allpaths[t],value = FALSE))>0){
           pathNb=2
-        }else if(length(grep("h.*c.*b.*a.*g.*f.*e",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, h.*c.*b.*a.*g.*f.*e",allpaths[t],value = FALSE))>0){
           pathNb=3
-        }else if(length(grep("j.*k.*a.*b.*c.*d.*e",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, j.*k.*a.*b.*c.*d.*e",allpaths[t],value = FALSE))>0){
           pathNb=4
-        }else if(length(grep("j.*i",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, j.*i",allpaths[t],value = FALSE))>0){
           pathNb=5
-        }else if(length(grep("d.*c.*h.*i",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, d.*c.*h.*i",allpaths[t],value = FALSE))>0){
           pathNb=7
-        }else if(length(grep("f.*g.*a.*k.*j.*i",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, f.*g.*a.*k.*j.*i",allpaths[t],value = FALSE))>0){
           pathNb=8
-        }else if(length(grep("d.*c.*b.*a.*k.*j.*i",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, d.*c.*b.*a.*k.*j.*i",allpaths[t],value = FALSE))>0){
           pathNb=9
-        }else if(length(grep("f.*g.*a.*b.*c.*h.*i",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, f.*g.*a.*b.*c.*h.*i",allpaths[t],value = FALSE))>0){
           pathNb=10
-        }else if(length(grep("f.*e",allpaths[t],value = FALSE))>0){
+        }else if(length(grep("^, f.*e",allpaths[t],value = FALSE))>0){
           pathNb=11
         }else if(length(grep(".*i$",allpaths[t],value = FALSE))>0){
           pathNb=6 
@@ -514,16 +520,41 @@ splitAllGroupsPaths=function(nSpikes,timesinBoxes,i,start_trial,end_trial,pval_a
   return(newList)
 }
 
+connect_check <- function(x) {
+  return_vector <- vector(length=length(x), mode='double')
+  
+  grp_num <- 1
+  previous <- x[1]
+  
+  for (i in 1:length(x)) {  
+    if (x[i]==previous) {
+      return_vector[i] <- grp_num
+    }
+    else {
+      grp_num <- grp_num + 1
+      return_vector[i] <- grp_num
+    }  
+    previous <- x[i]
+  }
+  return(return_vector)
+}
+
 ###########################################################################
 #### Plot seriated matrix 
 matrix.seriate.paths=function(mat,neuron,ses,rat,labels,dirpath){
   
   
-  rownames <- c("Path1-49","Path1-51","Path2-49","Path2-51","Path3-49","Path3-51","CorrPath-49","CorrPath-51","Path5-49","Path5-51","UnkownPath-49","UnkownPath-51")
-  colnames <- c("Path1-49","Path1-51","Path2-49","Path2-51","Path3-49","Path3-51","CorrPath-49","CorrPath-51","Path5-49","Path5-51","UnkownPath-49","UnkownPath-51")
-  mat<-mat[rownames,,drop=FALSE]
-  labels <- labels[,colnames,drop=FALSE]
-  longData<-melt((mat))
+  #rownames <- c("Path1-49","Path1-51","Path2-49","Path2-51","Path3-49","Path3-51","CorrPath-49","CorrPath-51","Path5-49","Path5-51","UnkownPath-49","UnkownPath-51")
+  #colnames <- c("Path1-49","Path1-51","Path2-49","Path2-51","Path3-49","Path3-51","CorrPath-49","CorrPath-51","Path5-49","Path5-51","UnkownPath-49","UnkownPath-51")
+  rownames(mat) <- c(1:12)
+  #colnames(mat) <- c(1:12)
+  #mat<-mat[rownames,,drop=FALSE]
+  #labels <- labels[,colnames,drop=FALSE]
+  # labels1[which(labels=="-")] <-"" 
+  # labels1[which(labels=="")] <-"-" 
+  mat1 <-mat
+  mat1[which(t(labels)!="")]<-NA
+  longData<-melt((mat1))
   #mat[which(is.nan(mat))]<-0
   #mat[which(is.infinite(mat))] <- 0
   # o<-seriate(mat, method = "BEA_TSP")
@@ -538,15 +569,36 @@ matrix.seriate.paths=function(mat,neuron,ses,rat,labels,dirpath){
   #   theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=0.3),
   #                      axis.text.y=element_text(size=9),
   #                      plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(labels)))
-  ggplot(longData, aes(x = Var2, y = Var1)) + 
-    geom_raster(aes(fill=value)) + 
-    scale_fill_continuous(low="grey90", high="red", 
-                          guide="colorbar",na.value="yellow") +
-    labs(x="Trials", y="Boxes", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
-    theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=-2),
-                       axis.text.y=element_text(size=9),
-                       plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(t(labels))),size=13,vjust = 0.4, hjust = 0.5)+geom_vline(xintercept = c(1:NCOL(mat)), linetype=4)
+  # ggplot(longData, aes(x = Var2, y = Var1)) + 
+  #   geom_raster(aes(fill=value)) + 
+  #   scale_fill_continuous(low="grey90", high="red", 
+  #                         guide="colorbar",na.value="yellow") +
+  #   labs(x="Trials", y="Boxes", title=paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep="")) +
+  #   theme_bw() + theme(axis.text.x=element_text(size=9, angle=0, vjust=-2),
+  #                      axis.text.y=element_text(size=9),
+  #                      plot.title=element_text(size=11)) +geom_text(aes(label = as.vector(t(labels))),size=13,vjust = 0.4, hjust = 0.5)+geom_vline(xintercept = c(1:NCOL(mat)), linetype=4)
+ 
+  #sc <- scale_color_manual(rainbow(7))
+ #  myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+ # sc <- scale_fill_gradientn(colours = myPalette(7))
+ #  ggplot(data=longData[which(!is.na(longData[,3])),],aes(x=Var2,y=Var1)) + 
+ #    geom_path(linetype = "dashed") + geom_point(shape=21, size = 7, aes(fill = value)) + 
+ #    sc+
+ #    scale_y_continuous(breaks=c(1:12),labels=c("Path1-49","Path2-49","Path3-49","CorrPath-49","Path5-49","UnkownPath-49","Path1-51","Path2-51","Path3-51","CorrPath-51","Path5-51","UnkownPath-51"))+
+ #    labs(x = "Trials",y="Paths",title = paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep=""))
   
+  longData<-longData[which(!is.na(longData[,3])),]
+  longData$value <- round(longData$value)
+  longData$connected <- connect_check(longData$value)
+  
+  longData$value <- as.factor(longData$value)
+  longData$connected <- as.factor(longData$connected)
+  g <- ggplot(longData, aes(longData$Var2,longData$Var1)) + theme_bw() +   scale_fill_manual(values = rainbow(length(levels(longData$value)))) +   scale_color_manual(values = rainbow(length(levels(longData$value))))
+  g$labels$fill <- "Firing rates"
+  
+  g+geom_path(linetype=2, color='gray50', group=1) +
+    geom_line(aes(color=longData$value, group=longData$connected), size=1) +
+    geom_point(shape=21, size=6, aes(fill=longData$value))+scale_y_continuous(breaks=c(1:12),labels=c("Path1-49","Path2-49","Path3-49","CorrPath-49","Path5-49","UnkownPath-49","Path1-51","Path2-51","Path3-51","CorrPath-51","Path5-51","UnkownPath-51"))+labs(x = "Trials",y="Paths",title = paste('Heatmap_',rat,'_neuron_',neuron,'_ses_',ses,sep=""))+labs(color='Firing rates')
   
   ggsave(path=dirpath,filename=paste('Heatmap_seriated_',rat,'_Neuron_',neuron,'_ses_',ses,'.png',sep=""), device = "png",width = 16, height = 9, dpi = 100)
 }

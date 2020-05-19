@@ -12,22 +12,21 @@ using namespace Rcpp;
 
 
 
-// [[Rcpp::export("softmax_cpp3")]]
-double softmax_cpp3(int A,int S,arma::mat &H,double temperature){
+
+double softmax_cpp3(int A,int S,arma::mat &H){
   //Rcpp::Rcout <<  "S="<< S<<std::endl;
   arma::rowvec v = H.row(S);
-  v=v/temperature;
   //Rcpp::Rcout <<  v<< std::endl;
   double m=arma::max(v);
-  // double exp_sum  = std::exp(H(S,0)-m)+std::exp(H(S,1)-m)+std::exp(H(S,2)-m)+std::exp(H(S,3)-m)+std::exp(H(S,4)-m)+std::exp(H(S,5)-m) ;
-  // double pr_A = (std::exp(H(S,A)-m))/exp_sum;
+  double exp_sum  = std::exp(H(S,0)-m)+std::exp(H(S,1)-m)+std::exp(H(S,2)-m)+std::exp(H(S,3)-m)+std::exp(H(S,4)-m)+std::exp(H(S,5)-m) ;
+  double pr_A = (std::exp(H(S,A)-m))/exp_sum;
   
   //  float m=arma::max(v);
-   v=exp(v-m);
-  // //Rcpp::Rcout << "m=" << m<< std::endl;
-   double exp_sum  = arma::accu(v) ;
-   v=v/exp_sum;
-   double pr_A=v[A];
+  //  v=exp(v-m);
+  // // //Rcpp::Rcout << "m=" << m<< std::endl;
+  //  double exp_sum  = arma::accu(v) ;
+  //  v=v/exp_sum;
+  //  double pr_A=v[A];
   
   if(pr_A<0){
     Rcpp::Rcout <<"A="<<A<< ", S=" <<S << std::endl;
@@ -63,10 +62,10 @@ double softmax_cpp3(int A,int S,arma::mat &H,double temperature){
     
     Rcpp::Rcout << "exp_sum=" << exp_sum  << std::endl;
     Rcpp::Rcout << "numerator=" << (std::exp(H(S,A)-m))  << std::endl;
-    Rcpp::Rcout <<  "Max(v)="<< m << std::endl;
+    Rcpp::Rcout <<  "pr_A="<< pr_A << std::endl;
     Rcpp::Rcout <<  H<< std::endl;
     Rcpp::Rcout <<"A=" <<A<< ", S=" <<S <<", m="<<m<< std::endl;
-    //Rcpp::Rcout << "temperature=" << temperature  << std::endl;
+    Rcpp::Rcout << "Numerator=" << std::exp(H(S,A)-m)  << std::endl;
     Rcpp::Rcout << "(std::exp(H(S,0))-m)=" << std::exp(H(S,0)-m)  << std::endl;
     Rcpp::Rcout << "(std::exp(H(S,1))-m)=" << std::exp(H(S,1)-m)  << std::endl;
     Rcpp::Rcout << "(std::exp(H(S,2))-m)=" << std::exp(H(S,2)-m)  << std::endl;
@@ -96,11 +95,10 @@ int aca_getNextState(int curr_state,int action){
   return(new_state);
 }
 
-int softmax_action_sel(arma::mat &H,int S,double temperature){
+int softmax_action_sel(arma::mat &H,int S){
   
   arma::rowvec v = H.row(S);
   double m=arma::max(v);
-  v=v/temperature;
   v=exp(v-m);
   double exp_sum  = arma::accu(v) ;
   v=v/exp_sum;
@@ -111,7 +109,7 @@ int softmax_action_sel(arma::mat &H,int S,double temperature){
 }
 
 //updateHMat(H,actions, states, time_taken_for_trial, alpha,N, score_episode, avg_score, model);
-arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec time_taken_for_trial,  double alpha,float score_episode,double avg_score, arma::mat activityMatrix, int model, int episode,double temperature){
+arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec time_taken_for_trial,  double alpha,float score_episode,double avg_score, arma::mat activityMatrix, int model, int episode){
 
   if(model==1){
     
@@ -203,7 +201,7 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
         continue;
       }
       double  curr_action = uniq_action1(l);
-      double delta_H = alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,0,H,temperature));
+      double delta_H = alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,0,H));
       H(0,curr_action)= H(0,curr_action)+delta_H;
       if(R_IsNaN((H(0,curr_action)))){
         Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
@@ -225,7 +223,7 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
     
     for(unsigned int l=0;l< setdiff_state1.size();l++){
       double  curr_action = setdiff_state1(l);
-      H(0,curr_action)= H(0,curr_action)-(alpha*(score_episode-avg_score)*(softmax_cpp3(curr_action,0,H,temperature)));
+      H(0,curr_action)= H(0,curr_action)-(alpha*(score_episode-avg_score)*(softmax_cpp3(curr_action,0,H)));
       if(R_IsNaN((H(0,curr_action)))){
         Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
         stop("H is NAN");
@@ -248,7 +246,7 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
       }
       double  curr_action = uniq_action2(l);
       
-      H(1,curr_action)= H(1,curr_action)+(alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,1,H,temperature)));
+      H(1,curr_action)= H(1,curr_action)+(alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,1,H)));
       if(R_IsNaN((H(1,curr_action)))){
         Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<< std::endl;
         //Rcpp::Rcout <<"epsLim=" <<epsLim<< "activity="<< activity<<std::endl;
@@ -268,7 +266,7 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
     for(unsigned int l=0;l< setdiff_state2.size();l++){
       double  curr_action = setdiff_state2(l);
       
-      H(1,curr_action)= H(1,curr_action)-(alpha*(score_episode-avg_score)*(softmax_cpp3(curr_action,1,H,temperature)));
+      H(1,curr_action)= H(1,curr_action)-(alpha*(score_episode-avg_score)*(softmax_cpp3(curr_action,1,H)));
       if(R_IsNaN((H(1,curr_action)))){
         Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
         stop("H is NAN");
@@ -310,7 +308,6 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
       H(0,curr_action)= H(0,curr_action)+delta_H;
       if(R_IsNaN((H(0,curr_action)))){
         Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
-        Rcpp::Rcout <<"episode=" <<episode<< ", activityMatrix="<< activityMatrix<<std::endl;
         stop("H is NAN");
       }else if(H(0,curr_action) == R_PosInf){
         Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<std::endl;
@@ -402,35 +399,9 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
   return(H);
 }
 
-// [[Rcpp::export("learningPhaseOver")]]
-bool learningPhaseOver(arma::vec rewards,int curr_index){
-  bool over=true;
-  if(curr_index>60){
-    //Rcpp::Rcout << "rewards=" <<rewards << std::endl;
-    for(int i=0;i<5;i++){
-      
-      int start_index = curr_index-30-i;
-      int end_index = curr_index-i;
-      //Rcpp::Rcout << "start_index=" <<start_index<<", end_index=" <<end_index << std::endl;
-      //Rcpp::Rcout << rewards.subvec(633,663) <<  std::endl;
-      float mov_avg=arma::accu(rewards(arma::span(start_index,end_index)))/30;
-      //Rcpp::Rcout << "mov_avg=" <<mov_avg << std::endl;
-      if(mov_avg<0.95){
-        over=false;
-        break;
-      }
-    }
-    return(over);
-
-  }else{
-    return(false);
-  }
-  
-}
-
 // [[Rcpp::export("aca_gen_sim")]]
-arma::mat aca_gen_sim(arma::mat &allpaths,arma::mat &H, double alpha,int total_trials,int init_state,int model, double temperature ){
-  //arma::mat H = arma::zeros(2,6);
+arma::mat aca_gen_sim(arma::mat &allpaths,double alpha,int total_trials,int init_state,int model){
+  arma::mat H = arma::zeros(2,6);
   arma::mat R= arma::zeros(2,6);
   //R.fill(-1);
   R(0,3)=1;
@@ -464,9 +435,7 @@ arma::mat aca_gen_sim(arma::mat &allpaths,arma::mat &H, double alpha,int total_t
     }
     
     
-    
-        
-    A=softmax_action_sel(H,S,temperature);
+    A=softmax_action_sel(H,S);
     
     
     if(R(S,A)==1){
@@ -476,10 +445,6 @@ arma::mat aca_gen_sim(arma::mat &allpaths,arma::mat &H, double alpha,int total_t
     allpaths_aca_model2(i,0)=A;
     allpaths_aca_model2(i,1)=S;
     allpaths_aca_model2(i,2)=R(S,A);
-    
-    if(learningPhaseOver(allpaths_aca_model2.col(2),i)){
-      temperature=1;
-    }
     
     
     arma::uvec state_idx = arma::find(allpaths_aca_model2.col(1)==S && allpaths_aca_model2.col(0)==A);
@@ -508,6 +473,42 @@ arma::mat aca_gen_sim(arma::mat &allpaths,arma::mat &H, double alpha,int total_t
       changeState = false;
       returnToInitState = false;
       
+      
+      //arma::vec time_taken_for_trial=arma::zeros(actions.n_elem);
+      //avg_score = avg_score + (score_episode-avg_score)/episode;
+      
+      // arma::vec actions;
+      // arma::vec states;
+      // arma::vec time_taken_for_trial; 
+      // arma::vec episodes;
+      // arma::uvec rewardIdx;
+      // 
+      // //int epslen=0;
+      // if(episode > N){
+      //   arma::uvec episodeIdx = arma::find(allpaths_aca_model2.col(4) > (episode-N));
+      //   
+      //   arma::vec allpath_actions = allpaths_aca_model2.col(0);
+      //   actions=allpath_actions.elem(episodeIdx);
+      //   
+      //   arma::vec allpath_states = allpaths_aca_model2.col(1);
+      //   states=allpath_states.elem(episodeIdx);
+      //   
+      //   arma::vec allpath_times = allpaths_aca_model2.col(3);
+      //   time_taken_for_trial=allpath_times.elem(episodeIdx);
+      //   
+      //   arma::vec allpath_episodes = allpaths_aca_model2.col(4);
+      //   episodes=allpath_episodes.elem(episodeIdx);
+      //   
+      //   //epslen=episodeIdx.n_elem;
+      // }else{
+      //   actions=allpaths_aca_model2(arma::span(0,i),0);
+      //   states=allpaths_aca_model2(arma::span(0,i),1);
+      //   time_taken_for_trial=allpaths_aca_model2(arma::span(0,i),3);
+      //   episodes = allpaths_aca_model2(arma::span(0,i),4);
+      //   //epslen=actions.n_elem;
+      // }
+      
+      
       arma::uvec episodeIdx = arma::find(allpaths_aca_model2.col(4) == (episode));
       arma::vec allpath_actions = allpaths_aca_model2.col(0);
       arma::vec actions=allpath_actions.elem(episodeIdx);
@@ -533,9 +534,22 @@ arma::mat aca_gen_sim(arma::mat &allpaths,arma::mat &H, double alpha,int total_t
           activityMatrix(state,acts)=arma::accu(time_in_state.elem(act_idx))/arma::accu(time_in_state);
         }
       }
-
-      H=updateHMat(H,actions, states, time_taken_for_trial, alpha, score_episode, avg_score,activityMatrix, model,episode,temperature);
-
+      // for(unsigned int state=0;state<2;state++){
+      //   for(unsigned int acts=0;acts<6;acts++){
+      //     arma::vec allpaths_curr_states = allpath_states(arma::span(0,i));
+      //     arma::uvec state_idx = arma::find(allpaths_curr_states==state);
+      //     arma::uvec act_idx = arma::find(allpath_actions.elem(state_idx)==acts);
+      //     arma::vec time_in_state = allpath_times.elem(state_idx);
+      //     //Rcpp::Rcout << "allpaths_curr_states=" <<allpaths_curr_states<<", state_idx="<<state_idx<<std::endl;
+      //     activityMatrix(state,acts)=arma::accu(time_in_state.elem(act_idx))/arma::accu(time_in_state);
+      //   }
+      // }
+      
+      //Rcpp::Rcout << "episode="<<episode<< ", score_episode="<<score_episode<<", avg_score="<<avg_score<<std::endl;
+      
+      H=updateHMat(H,actions, states, time_taken_for_trial, alpha, score_episode, avg_score,activityMatrix, model,episode);
+      //Rcpp::Rcout << "H="<< H << std::endl;
+        
       score_episode=0;
       episode = episode+1;
       resetVector = true;
@@ -552,7 +566,7 @@ arma::mat aca_gen_sim(arma::mat &allpaths,arma::mat &H, double alpha,int total_t
 }
 
 // [[Rcpp::export("aca_mle_lik")]]
-arma::vec aca_mle_lik(arma::mat allpaths,double alpha, arma::mat &H,int model,int sim, double temperature1, int endExplore,double temperature2){
+arma::vec aca_mle_lik(arma::mat allpaths,double alpha, arma::mat &H,int model,int sim){
 
   int nrow = allpaths.n_rows;
   if(sim !=1){
@@ -579,20 +593,12 @@ arma::vec aca_mle_lik(arma::mat allpaths,double alpha, arma::mat &H,int model,in
   int i;
   float avg_score = 0;
   bool resetVector = true;
-  double temperature=0;
-
   for ( i = 0; i < (nrow-1); i++) {
     
     if(resetVector){
       initState=S;
       //Rcpp::Rcout <<"initState="<<initState<<std::endl;
       resetVector= false;
-    }
-    
-    if(i<=endExplore){
-      temperature=temperature1;
-    }else{
-      temperature=temperature2;
     }
     
     
@@ -626,14 +632,7 @@ arma::vec aca_mle_lik(arma::mat allpaths,double alpha, arma::mat &H,int model,in
     }else if(S_prime==initState && changeState){
       returnToInitState = true;
     }
-    double prob_a = softmax_cpp3(A,S,H,temperature);
-    if(R_IsNaN((prob_a))){
-      
-      Rcpp::Rcout << "temperature=" << temperature  << std::endl;
-      Rcpp::Rcout << "alpha=" << alpha << std::endl;
-      stop("logProb is NAN");
-    }
-    
+    double prob_a = softmax_cpp3(A,S,H);
     double logProb = log(prob_a);
     mseMatrix(i)=logProb;
     //log_lik=log_lik+ logProb;
@@ -692,7 +691,7 @@ arma::vec aca_mle_lik(arma::mat allpaths,double alpha, arma::mat &H,int model,in
       //Rcpp::Rcout << "i=" <<i<< ", episode="<<episode<<std::endl;
       //Rcpp::Rcout << "activityMatrix=" <<activityMatrix<<std::endl;
       
-      H=updateHMat(H,actions, states, time_taken_for_trial, alpha, score_episode, avg_score,activityMatrix, model,episode,temperature);
+      H=updateHMat(H,actions, states, time_taken_for_trial, alpha, score_episode, avg_score,activityMatrix, model,episode);
        //Rcpp::Rcout <<  "H="<<H<<std::endl;
       score_episode=0;
       episode = episode+1;
@@ -710,7 +709,7 @@ arma::vec aca_mle_lik(arma::mat allpaths,double alpha, arma::mat &H,int model,in
 
 
 // [[Rcpp::export("acaGetProbMatrix")]]
-arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int model,int sim,double temperature1,double temperature2, int learningend){
+arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int model,int sim){
   //int sim=1;
   int episode=1;
   int nrow = allpaths.n_rows;
@@ -734,7 +733,6 @@ arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int mode
   int i;
   float avg_score = 0;
   bool resetVector = true;
-  double temperature=0;
   
   arma::mat probMatrix_aca=arma::zeros(nrow,12);
   arma::mat mseMatrix=arma::zeros(nrow,4);
@@ -748,12 +746,6 @@ arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int mode
       resetVector= false;
     }
 
-    if(i<=learningend){
-      temperature=temperature1;
-    }else{
-      temperature=temperature2;
-    }
-    
     int R=allpaths(i,2);
     if(R>0){
       score_episode = score_episode+1;
@@ -780,7 +772,7 @@ arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int mode
       probMatrix_aca.submat(i,6,i,11)=arma::zeros(1,6);
       //Rcpp::Rcout << "probMatrix_aca="<< probMatrix_aca << std::endl;
       for(int act=0;act<6;act++){
-        double x = softmax_cpp3(act,0,H,temperature);
+        double x = softmax_cpp3(act,0,H);
         probMatrix_aca(i,act)=x;
       }
     }else if(S==1){
@@ -788,7 +780,7 @@ arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int mode
       probMatrix_aca.submat(i,0,i,5)=arma::zeros(1,6);
       //Rcpp::Rcout << "probMatrix_aca="<< probMatrix_aca << std::endl;
       for(int act=0;act<6;act++){
-        double x = softmax_cpp3(act,1,H,temperature);
+        double x = softmax_cpp3(act,1,H);
         probMatrix_aca(i,(6+act))=x;
       }
     }
@@ -807,7 +799,38 @@ arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int mode
       returnToInitState = false;
       
       
-
+    //avg_score = avg_score + (score_episode-avg_score)/episode;
+      
+      // arma::vec actions;
+      // arma::vec states;
+      // arma::vec time_taken_for_trial;
+      // arma::vec episodes;
+      // arma::uvec rewardIdx;
+      // //int epslen=0;
+      // if(episode > N){
+      //   arma::uvec episodeIdx = arma::find(allpaths.col(4) > (episode-N));
+      //   
+      //   arma::vec allpath_actions = allpaths.col(0);
+      //   actions=allpath_actions.elem(episodeIdx);
+      //   
+      //   arma::vec allpath_states = allpaths.col(1);
+      //   states=allpath_states.elem(episodeIdx);
+      //   
+      //   arma::vec allpath_times = allpaths.col(3);
+      //   time_taken_for_trial=allpath_times.elem(episodeIdx);
+      //   
+      //   arma::vec allpath_episodes = allpaths.col(4);
+      //   episodes=allpath_episodes.elem(episodeIdx);
+      //   
+      //   //epslen=episodeIdx.n_elem;
+      // }else{
+      //   actions=allpaths(arma::span(0,i),0);
+      //   states=allpaths(arma::span(0,i),1);
+      //   time_taken_for_trial=allpaths(arma::span(0,i),3);
+      //   episodes = allpaths(arma::span(0,i),4);
+      //   //epslen=actions.n_elem;
+      // }
+      
       arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
       arma::vec allpath_actions = allpaths.col(0);
       arma::vec actions=allpath_actions.elem(episodeIdx);
@@ -838,7 +861,6 @@ arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int mode
           arma::uvec state_idx = arma::find(allpath_states(arma::span(0,i))==state);
           arma::uvec act_idx = arma::find(allpath_actions.elem(state_idx)==acts);
           arma::vec time_in_state = allpath_times.elem(state_idx);
-          //Rcpp::Rcout << "states="<<allpath_states(arma::span(0,i))<<std::endl;
           activityMatrix(state,acts)=arma::accu(time_in_state.elem(act_idx))/arma::accu(time_in_state);
         }
       }
@@ -846,7 +868,7 @@ arma::mat acaGetProbMatrix(arma::mat allpaths,double alpha,arma::mat &H,int mode
       
       //Rcpp::Rcout << "episode="<<episode<< ", score_episode="<<score_episode<<", avg_score="<<avg_score<<std::endl;
       
-      H=updateHMat(H,actions, states, time_taken_for_trial, alpha, score_episode, avg_score,activityMatrix, model,episode,temperature);
+      H=updateHMat(H,actions, states, time_taken_for_trial, alpha, score_episode, avg_score,activityMatrix, model,episode);
       
       score_episode=0;
       episode = episode+1;

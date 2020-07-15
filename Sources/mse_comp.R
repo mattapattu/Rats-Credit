@@ -90,178 +90,184 @@ mse_compare=function(enreg,rat){
   allpaths_num <- matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
   ################Call ACA
 
-  endLearningStage = 0 ## Trial nb where learning stage ends
-  l<-which(SMA(allpaths_num[,3],30)>=0.9)
-  k<-split(l, cumsum(c(1, diff(l) != 1)))
-  for(set in 1:length(k)){
-    if(length(k[[set]])>30){
-      endLearningStage=k[[set]][1]
-      break
-    }
-  }
-  
-  Hinit <-genInitValues(allpaths_num,sim=2)
-  
-  for(model in c(1:3)){
-    out <- DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2,DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
-    alpha = out$optim$bestmem[1]
-    mat_res <- matrix(0,nrow=100,ncol=7)
-    colnames(mat_res) <- c("ACA MSE","ACA bestval","GB MSE","GB bestval","GB-ACA MSE","GB-ACA bestval","Selected Model")
-    iter=1
-    start_index=0
-    end_index=0
-    missedOptimalIter=0
-    while(iter<=100){
-      #print(sprintf("iter=%i",iter))
-      total_trials = length(allpaths_num[,1])
-      init_state=as.numeric(allpaths_num[1,2])-1
-      ### Generate simulated data using the estimated params
-      generated_data <- aca_gen_sim(allpaths_num,H=Hinit, alpha,total_trials,init_state,model=model)
-      #generated_data <- sarsa_gen_sim(allpaths_num,alpha_mod,gamma_mod,lambda_mod,total_trials,init_state)
-
-
-      if(length(which(SMA(generated_data[,3],10)>=0.9))<500){
-        missedOptimalIter=missedOptimalIter+1
-        next
-      }
-
-      ## all indices of allpaths_num with SMA >=0.6
-      ## Split the indices into sets of consecutive indices
-      ## Start index = When rewards/30 trials reaches 0.5
-      start_index=0
-      l<-which(SMA(generated_data[,3],30)>=0.6)
-      k<-split(l, cumsum(c(1, diff(l) != 1)))
-      for(set in 1:length(k)){
-        if(length(k[[set]])>30){
-          start_index=k[[set]][1]
-          break
-        }
-      }
-      end_index=0
-      l<-which(SMA(generated_data[,3],30)>=0.95)
-      k<-split(l, cumsum(c(1, diff(l) != 1)))
-      for(set in 1:length(k)){
-        if(length(k[[set]])>30){
-          end_index=k[[set]][1]
-          break
-        }
-      }
-
-      if(end_index <= start_index){
-        next
-      }
-
-      ### Estimate Model1 parameters for simulated data
-      half_index = start_index
-      #half_index=0
-      
-      Hinit <-genInitValues(generated_data,sim=1)
-      
-      movAvg <- getMovingAverage(generated_data,sim=1)
-
-      ACA <-DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit, allpaths = generated_data[1:half_index,], model = 1, sim=1,DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
-      alpha_ACA = ACA$optim$bestmem[1]
-      ### Compute MSE for Model1 using simulated data
-      ACA_probMatrix <-acaGetProbMatrix(generated_data, alpha_ACA,H=Hinit, model=1, sim=1)
-      # mse_model1_mat_method1 <- computeMSE(generated_data,ACA_probMatrix,sim=1)
-      # mse_model1_method1 <- sum(mse_model1_mat_method1[,(half_index+1):end_index])/(end_index-half_index)
-      mse_ACA_mat_method2 <- computeMSE3(generated_data,ACA_probMatrix,movAvg,sim=1)
-      mse_ACA_method2 <- sum(mse_ACA_mat_method2[(half_index+1):end_index])/(end_index-half_index)
-      # ACA_lik_mat <-aca_mle_lik(generated_data,alpha_ACA, H=Hinit, model=1,sim=1)
-      # ACA_lik <- (-1)*sum(ACA_lik_mat[(half_index+1):end_index])
-
-      # ## Estimate Model2 parameters for simulated data
-      GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, H=Hinit, allpaths=generated_data[1:half_index,],model = 2, sim=1, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
-      alpha_GB = GB$optim$bestmem[1]
-      #episode_model2_est = floor(2+(out_model2$optim$bestmem[2]*28))
-      ## Compute MSE for Model2 using simulated data
-      GB_probMatrix <-acaGetProbMatrix(generated_data, alpha_GB, H=Hinit, model=2,sim=1)
-      mse_GB_mat_method2 <- computeMSE3(generated_data,GB_probMatrix,movAvg,sim=1)
-      mse_GB_method2 <- sum(mse_GB_mat_method2[(half_index+1):end_index])/(end_index-half_index)
-      # GB_lik_mat <-aca_mle_lik(generated_data,alpha_GB,H=Hinit,model=2,sim=1)
-      # GB_lik <- (-1)*sum(GB_lik_mat[(half_index+1):end_index])
-
-      # ## Estimate Model2 parameters for simulated data
-      ACA_GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1,H=Hinit, allpaths=generated_data[1:half_index,],model = 3, sim=1, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
-      alpha_ACA_GB = ACA_GB$optim$bestmem[1]
-      ## Compute MSE for Model2 using simulated data
-      GB_ACA_probMatrix <-acaGetProbMatrix(generated_data, alpha_ACA_GB,H=Hinit,model=3,sim=1)
-      # mse_model2_mat_method1 <- computeMSE(generated_data,aca_model2_probMatrix,sim=1)legend("bottomright", legend=c("Prob. of reward in S2 for GB", "Prob. of reward in S2 for GB_ACA","Prob. of reward in S2 for ACA","Empirical prob. of reward in S2", "Mov. Avg of Reward/30 trials in S2"),col=c("black","red","green","orange","blue"),cex=0.6,lty = c(1,1,1,1,2))
-      # mse_model2_method1 <- sum(mse_model2_mat_method1[,(half_index+1):end_index])/(end_index-half_index)
-      mse_GB_ACA_mat_method2 <- computeMSE3(generated_data,GB_ACA_probMatrix,movAvg,sim=1)
-      mse_GB_ACA_method2 <- sum(mse_GB_ACA_mat_method2[(half_index+1):end_index])/(end_index-half_index)
-      # ACA_GB_lik_mat <-aca_mle_lik(generated_data,alpha_ACA_GB,H=Hinit,model=3,sim=1)
-      # ACA_GB_lik <- (-1)*sum(ACA_GB_lik_mat[(half_index+1):end_index])
-
-
-
-     
-      mat_res[iter,1]=mse_ACA_method2
-      mat_res[iter,2]=toString(ACA$optim$bestmem)
-      mat_res[iter,3]=mse_GB_method2
-      mat_res[iter,4]=toString(GB$optim$bestmem)
-      mat_res[iter,5]=mse_GB_ACA_method2
-      mat_res[iter,6]=toString(ACA_GB$optim$bestmem)
-
-      if(mat_res[iter,1]==0 ||mat_res[iter,3]==0||mat_res[iter,5]==0){
-        print(sprintf("Stopping as MSE =0"))
-        break
-      }
-
-      index_min=which.min(c(mat_res[iter,1],mat_res[iter,3],mat_res[iter,5]))
-      if(index_min==1){
-        mat_res[iter,7]="ACA"
-      }
-      else if(index_min==2){
-        mat_res[iter,7]="GB"
-      }
-      else if(index_min==3){
-        mat_res[iter,7]="ACA_GB"
-      }
-
-      iter=iter+1
-
-    }
-    print(sprintf("Nb of iterations where optimal behaviour was not learned=%i",missedOptimalIter))
-
-    if(model==1){
-      jpeg(paste("boxplot_ACA_",rat,".jpeg",sep=""))
-    }else if(model==2){
-      jpeg(paste("boxplot_GB_",rat,".jpeg",sep=""))
-    }else if(model==3){
-      jpeg(paste("boxplot_GB_ACA_",rat,".jpeg",sep=""))
-    }
-
-    boxplot(as.numeric(mat_res[,1]),as.numeric(mat_res[,3]),as.numeric(mat_res[,5]),xaxt="n")
-    axis(side=1, at=c(1,2,3), labels = c("ACA","GB","GB_ACA"))
-    dev.off()
-
-    if(model==1){
-      if(length(which(mat_res[,7]=="ACA")) < 70){
-        print(sprintf("ACA is selected less than 70 times for %s. Exiting validation",rat))
-        break
-      }else{
-        print(sprintf("ACA is selected more than 70 times for %s.",rat))
-      }
-    }
-    else if(model==2){
-      if(length(which(mat_res[,7]=="GB")) < 70){
-        print(sprintf("GB is selected less than 70 times for %s. Exiting validation",rat))
-        break
-      }else{
-        print(sprintf("GB is selected more than 70 times for %s.",rat))
-      }
-    }else if(model==3){
-      if(length(which(mat_res[,7]=="ACA_GB")) < 70){
-        print(sprintf("GB_ACA is selected less than 70 times for %s. Exiting validation",rat))
-        break
-      }else{
-        print(sprintf("GB_ACA is selected more than 70 times for %s.",rat))
-      }
-    }
-
-  }
-  #print(sprintf("All 3  models validated for %s.",rat))
+  # endLearningStage = 0 ## Trial nb where learning stage ends
+  # l<-which(SMA(allpaths_num[,3],30)>=0.9)
+  # k<-split(l, cumsum(c(1, diff(l) != 1)))
+  # for(set in 1:length(k)){
+  #   if(length(k[[set]])>30){
+  #     endLearningStage=k[[set]][1]
+  #     break
+  #   }
+  # }
+  # 
+  # Hinit <-genInitValues(allpaths_num,sim=2)
+  # #Hinit <- matrix(0,2,6)
+  # 
+  # for(model in c(1:2)){
+  #   out <- DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2,DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
+  #   alpha = out$optim$bestmem[1]
+  #   mat_res <- matrix(0,nrow=100,ncol=7)
+  #   colnames(mat_res) <- c("ACA MSE","ACA bestval","GB MSE","GB bestval","GB-ACA MSE","GB-ACA bestval","Selected Model")
+  #   iter=1
+  #   start_index=0
+  #   end_index=0
+  #   missedOptimalIter=0
+  #   while(iter<=100){
+  #     #print(sprintf("iter=%i",iter))
+  #     total_trials = length(allpaths_num[,1])
+  #     init_state=as.numeric(allpaths_num[1,2])-1
+  #     ### Generate simulated data using the estimated params
+  #     generated_data <- aca_gen_sim(allpaths_num,H=Hinit, alpha,total_trials,init_state,model=model)
+  #     #generated_data <- sarsa_gen_sim(allpaths_num,alpha_mod,gamma_mod,lambda_mod,total_trials,init_state)
+  # 
+  # 
+  #     if(length(which(SMA(generated_data[,3],10)>=0.9))<500){
+  #       missedOptimalIter=missedOptimalIter+1
+  #       next
+  #     }
+  # 
+  #     ## all indices of allpaths_num with SMA >=0.6
+  #     ## Split the indices into sets of consecutive indices
+  #     ## Start index = When rewards/30 trials reaches 0.5
+  #     start_index=0
+  #     l<-which(SMA(generated_data[,3],30)>=0.6)
+  #     k<-split(l, cumsum(c(1, diff(l) != 1)))
+  #     for(set in 1:length(k)){
+  #       if(length(k[[set]])>30){
+  #         start_index=k[[set]][1]
+  #         break
+  #       }
+  #     }
+  #     end_index=0
+  #     l<-which(SMA(generated_data[,3],30)>=0.95)
+  #     k<-split(l, cumsum(c(1, diff(l) != 1)))
+  #     for(set in 1:length(k)){
+  #       if(length(k[[set]])>30){
+  #         end_index=k[[set]][1]
+  #         break
+  #       }
+  #     }
+  # 
+  #     if(end_index <= start_index){
+  #       next
+  #     }
+  # 
+  #     ### Estimate Model1 parameters for simulated data
+  #     half_index = start_index
+  # 
+  #     Hinit1 <-genInitValues(generated_data,sim=1)
+  #     #Hinit <- matrix(0,2,6)
+  #     
+  #     movAvg1 <- getMovingAverage(generated_data,sim=1)
+  #     
+  # 
+  #     ACA <-DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit1, allpaths = generated_data[1:half_index,], model = 1, sim=1,DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
+  #     alpha_ACA = ACA$optim$bestmem[1]
+  #     ### Compute MSE for Model1 using simulated data
+  #     ACA_probMatrix <-acaGetProbMatrix(generated_data, alpha_ACA,H=Hinit1, model=1, sim=1)
+  #     # mse_model1_mat_method1 <- computeMSE(generated_data,ACA_probMatrix,sim=1)
+  #     # mse_model1_method1 <- sum(mse_model1_mat_method1[,(half_index+1):end_index])/(end_index-half_index)
+  #     mse_ACA_mat_method2 <- computeMSE3(generated_data,ACA_probMatrix,movAvg1,sim=1)
+  #     mse_ACA_method2 <- sum(mse_ACA_mat_method2[(half_index+1):end_index])/(end_index-half_index)
+  #     # ACA_lik_mat <-aca_mle_lik(generated_data,alpha_ACA, H=Hinit, model=1,sim=1)
+  #     # ACA_lik <- (-1)*sum(ACA_lik_mat[(half_index+1):end_index])
+  # 
+  #     # ## Estimate Model2 parameters for simulated data
+  #     GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, H=Hinit1, allpaths=generated_data[1:half_index,],model = 2, sim=1, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  #     alpha_GB = GB$optim$bestmem[1]
+  #     #episode_model2_est = floor(2+(out_model2$optim$bestmem[2]*28))
+  #     ## Compute MSE for Model2 using simulated data
+  #     GB_probMatrix <-acaGetProbMatrix(generated_data, alpha_GB, H=Hinit1, model=2,sim=1)
+  #     mse_GB_mat_method2 <- computeMSE3(generated_data,GB_probMatrix,movAvg1,sim=1)
+  #     mse_GB_method2 <- sum(mse_GB_mat_method2[(half_index+1):end_index])/(end_index-half_index)
+  #     # GB_lik_mat <-aca_mle_lik(generated_data,alpha_GB,H=Hinit,model=2,sim=1)
+  #     # GB_lik <- (-1)*sum(GB_lik_mat[(half_index+1):end_index])
+  # 
+  #     # ## Estimate Model2 parameters for simulated data
+  #     # ACA_GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1,H=Hinit1, allpaths=generated_data[1:half_index,],model = 3, sim=1, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  #     # alpha_ACA_GB = ACA_GB$optim$bestmem[1]
+  #     # ## Compute MSE for Model2 using simulated data
+  #     # GB_ACA_probMatrix <-acaGetProbMatrix(generated_data, alpha_ACA_GB,H=Hinit1,model=3,sim=1)
+  #     # # mse_model2_mat_method1 <- computeMSE(generated_data,aca_model2_probMatrix,sim=1)legend("bottomright", legend=c("Prob. of reward in S2 for GB", "Prob. of reward in S2 for GB_ACA","Prob. of reward in S2 for ACA","Empirical prob. of reward in S2", "Mov. Avg of Reward/30 trials in S2"),col=c("black","red","green","orange","blue"),cex=0.6,lty = c(1,1,1,1,2))
+  #     # # mse_model2_method1 <- sum(mse_model2_mat_method1[,(half_index+1):end_index])/(end_index-half_index)
+  #     # mse_GB_ACA_mat_method2 <- computeMSE3(generated_data,GB_ACA_probMatrix,movAvg1,sim=1)
+  #     # mse_GB_ACA_method2 <- sum(mse_GB_ACA_mat_method2[(half_index+1):end_index])/(end_index-half_index)
+  #     # ACA_GB_lik_mat <-aca_mle_lik(generated_data,alpha_ACA_GB,H=Hinit,model=3,sim=1)
+  #     # ACA_GB_lik <- (-1)*sum(ACA_GB_lik_mat[(half_index+1):end_index])
+  # 
+  # 
+  # 
+  #    
+  #     mat_res[iter,1]=mse_ACA_method2
+  #     mat_res[iter,2]=toString(ACA$optim$bestmem)
+  #     mat_res[iter,3]=mse_GB_method2
+  #     mat_res[iter,4]=toString(GB$optim$bestmem)
+  #     # mat_res[iter,5]=mse_GB_ACA_method2
+  #     # mat_res[iter,6]=toString(ACA_GB$optim$bestmem)
+  # 
+  #     # if(mat_res[iter,1]==0 ||mat_res[iter,3]==0||mat_res[iter,5]==0){
+  #     #   print(sprintf("Stopping as MSE =0"))
+  #     #   break
+  #     # }
+  # 
+  #     index_min=which.min(c(mat_res[iter,1],mat_res[iter,3]))
+  #     if(index_min==1){
+  #       mat_res[iter,7]="ACA"
+  #       #break
+  #     }
+  #     else if(index_min==2){
+  #       mat_res[iter,7]="GB"
+  #       #break
+  #     }
+  #     # else if(index_min==3){
+  #     #   mat_res[iter,7]="ACA_GB"
+  #     # }
+  # 
+  #     iter=iter+1
+  # 
+  #   }
+  #   print(sprintf("Nb of iterations where optimal behaviour was not learned=%i",missedOptimalIter))
+  # 
+  #   if(model==1){
+  #     jpeg(paste("boxplot_ACA_",rat,".jpeg",sep=""))
+  #   }else if(model==2){
+  #     jpeg(paste("boxplot_GB_",rat,".jpeg",sep=""))
+  #    }
+  #   # else if(model==3){
+  #   #    jpeg(paste("boxplot_GB_ACA_",rat,".jpeg",sep=""))
+  #   #  }
+  # 
+  #   boxplot(as.numeric(mat_res[,1]),as.numeric(mat_res[,3]),xaxt="n")
+  #   axis(side=1, at=c(1,2), labels = c("ACA","GB"))
+  #   dev.off()
+  # 
+  #   if(model==1){
+  #     if(length(which(mat_res[,7]=="ACA")) < 70){
+  #       print(sprintf("ACA is selected less than 70 times for %s. Exiting validation",rat))
+  #       break
+  #     }else{
+  #       print(sprintf("ACA is selected more than 70 times for %s.",rat))
+  #     }
+  #   }
+  #   else if(model==2){
+  #     if(length(which(mat_res[,7]=="GB")) < 70){
+  #       print(sprintf("GB is selected less than 70 times for %s. Exiting validation",rat))
+  #       break
+  #     }else{
+  #       print(sprintf("GB is selected more than 70 times for %s.",rat))
+  #     }
+  #   }
+  #   # else if(model==3){
+  #   #   if(length(which(mat_res[,7]=="ACA_GB")) < 70){
+  #   #     print(sprintf("GB_ACA is selected less than 70 times for %s. Exiting validation",rat))
+  #   #     break
+  #   #   }else{
+  #   #     print(sprintf("GB_ACA is selected more than 70 times for %s.",rat))
+  #   #   }
+  #   # }
+  # 
+  # }
+  # #print(sprintf("All 3  models validated for %s.",rat))
 
  ##### Model Selection GB vd GB_ACA on Acutal Data #########################3
   
@@ -293,52 +299,56 @@ mse_compare=function(enreg,rat){
   half_index = start_index
   #half_index=0
   
-  Hinit <-genInitValues(generated_data,sim=2)
-  movAvg <- getMovingAverage(generated_data,sim=2)
+  Hinit2 <-genInitValues(generated_data,sim=2)
+  #Hinit <- matrix(0,2,6)
+  movAvg2 <- getMovingAverage(generated_data,sim=2)
   
-  ACA <-DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit, allpaths = generated_data[1:half_index,], model = 1, sim=2,DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
+  ACA <-DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit2, allpaths = generated_data[1:half_index,], model = 1, sim=2,DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
   alpha_ACA = ACA$optim$bestmem[1]
   ### Compute MSE for Model1 using simulated data
-  ACA_probMatrix <-acaGetProbMatrix(generated_data, alpha_ACA,H=Hinit, model=1, sim=2)
-  mse_ACA_mat <- computeMSE3(generated_data,ACA_probMatrix,movAvg,sim=2)
-  mse_ACA <- sum(mse_ACA_mat[(half_index+1):end_index])/(end_index-half_index)
-  # ACA_lik_mat <-aca_mle_lik(generated_data,alpha_ACA, H=Hinit, model=1,sim=2)
-  # ACA_lik <- (-1)*sum(ACA_lik_mat[(half_index+1):end_index])
+  #ACA_probMatrix <-acaGetProbMatrix(generated_data, alpha_ACA,H=Hinit2, model=1, sim=2)
+  #mse_ACA_mat <- computeMSE3(generated_data,ACA_probMatrix,movAvg2,sim=2)
+  #mse_ACA <- sum(mse_ACA_mat[(half_index+1):end_index])/(end_index-half_index)
+  ACA_lik_mat <-aca_mle_lik(generated_data,alpha_ACA, H=Hinit2, model=1,sim=2)
+  ACA_lik <- (-1)*sum(ACA_lik_mat[(half_index+1):end_index])
   
   # ## Estimate Model2 parameters for simulated data
-  GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, H=Hinit, allpaths=generated_data[1:half_index,],model = 2, sim=2, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, H=Hinit2, allpaths=generated_data[1:half_index,],model = 2, sim=2, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   alpha_GB = GB$optim$bestmem[1]
   ## Compute MSE for Model2 using simulated data
-  GB_probMatrix <-acaGetProbMatrix(generated_data, alpha_GB, H=Hinit, model=2,sim=2)
-  mse_GB_mat <- computeMSE3(generated_data,GB_probMatrix,movAvg,sim=2)
-  mse_GB <- sum(mse_GB_mat[(half_index+1):end_index])/(end_index-half_index)
-  # GB_lik_mat <-aca_mle_lik(generated_data,alpha_GB,H=Hinit,model=2,sim=2)
-  # GB_lik <- (-1)*sum(GB_lik_mat[(half_index+1):end_index])
+  #GB_probMatrix <-acaGetProbMatrix(generated_data, alpha_GB, H=Hinit2, model=2,sim=2)
+  #mse_GB_mat <- computeMSE3(generated_data,GB_probMatrix,movAvg2,sim=2)
+  #mse_GB <- sum(mse_GB_mat[(half_index+1):end_index])/(end_index-half_index)
+  GB_lik_mat <-aca_mle_lik(generated_data,alpha_GB,H=Hinit2,model=2,sim=2)
+  GB_lik <- (-1)*sum(GB_lik_mat[(half_index+1):end_index])
   
-  # ## Estimate Model2 parameters for simulated data
-  ACA_GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1,H=Hinit, allpaths=generated_data[1:half_index,],model = 3, sim=2, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
-  alpha_ACA_GB = ACA_GB$optim$bestmem[1]
-  ## Compute MSE for Model2 using simulated data
-  GB_ACA_probMatrix <-acaGetProbMatrix(generated_data, alpha_ACA_GB,H=Hinit,model=3,sim=2)
-  mse_GB_ACA_mat <- computeMSE3(generated_data,GB_ACA_probMatrix,movAvg,sim=2)
-  mse_GB_ACA <- sum(mse_GB_ACA_mat[(half_index+1):end_index])/(end_index-half_index)
-  # ACA_GB_lik_mat <-aca_mle_lik(generated_data,alpha_ACA_GB,H=Hinit,model=3,sim=2)
-  # ACA_GB_lik <- (-1)*sum(ACA_GB_lik_mat[(half_index+1):end_index])
+  # # ## Estimate Model2 parameters for simulated data
+  # ACA_GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1,H=Hinit2, allpaths=generated_data[1:half_index,],model = 3, sim=2, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  # alpha_ACA_GB = ACA_GB$optim$bestmem[1]
+  # ## Compute MSE for Model2 using simulated data
+  # GB_ACA_probMatrix <-acaGetProbMatrix(generated_data, alpha_ACA_GB,H=Hinit2,model=3,sim=2)
+  # mse_GB_ACA_mat <- computeMSE3(generated_data,GB_ACA_probMatrix,movAvg2,sim=2)
+  # mse_GB_ACA <- sum(mse_GB_ACA_mat[(half_index+1):end_index])/(end_index-half_index)
+  # # ACA_GB_lik_mat <-aca_mle_lik(generated_data,alpha_ACA_GB,H=Hinit,model=3,sim=2)
+  # # ACA_GB_lik <- (-1)*sum(ACA_GB_lik_mat[(half_index+1):end_index])
   
   #print(sprintf("For %s, ACA likelihood = %f, GB likelihood = %f, GB_ACA likelihood = %f", rat, ACA_lik, GB_lik, ACA_GB_lik))
-  print(sprintf("For %s, ACA MSE = %f, GB MSE = %f, GB_ACA MSE = %f", rat, mse_ACA_method2, mse_GB_method2, mse_GB_ACA_method2))
+  #print(sprintf("For %s, ACA MSE = %f, GB MSE = %f", rat, mse_ACA, mse_GB))
+  print(sprintf("For %s, ACA likelihood = %f, GB likelihood = %f", rat, ACA_lik, GB_lik))
   
-  index_min=which.min(c(mse_ACA,mse_GB,mse_GB_ACA))
+  #index_min=which.min(c(mse_ACA,mse_GB))
+  index_min=which.min(c(ACA_lik,GB_lik))
   
   if(index_min==1){
     print(sprintf("ACA is best fit for %s", rat))
   }else if(index_min==2){
     print(sprintf("GB is best fit for %s", rat))
-  }else if(index_min==3){
-    print(sprintf("GB_ACA is best fit for %s", rat))
-  }
- 
-  generatePlots(rat,allpaths_num,ACA_probMatrix, GB_probMatrix, GB_ACA_probMatrix)
+   }
+  #else if(index_min==3){
+  #   print(sprintf("GB_ACA is best fit for %s", rat))
+  # }
+  # 
+  #generatePlots(rat,allpaths_num,ACA_probMatrix, GB_probMatrix)
   
   
   
@@ -440,7 +450,7 @@ updateACAPathNbmse=function(allpaths){
 
 genInitValues=function(allpaths,sim){
   H <- matrix(0,2,6)
-  twoHundredActions <- allpaths[1:200,c(1,2)]
+  twoHundredActions <- allpaths[1:100,c(1,2)]
   if(sim==1){
     stateOne = 0
     stateTwo = 1
@@ -455,14 +465,23 @@ genInitValues=function(allpaths,sim){
   stateTwoVisits = which(twoHundredActions[,2]==stateTwo)
   for(act in actRange){
     for(state in c(stateOne:stateTwo)){
-      if(state == 1){
+      if(state == stateOne){
         actCounter = length(which(twoHundredActions[stateOneVisits,1] == act))
-        H[state,act]= (actCounter/length(stateOneVisits))
+        if(sim == 1){
+          H[(state+1),(act+1)]= actCounter/length(stateOneVisits)
+        }else{
+          H[state,act]= actCounter/length(stateOneVisits)
+        }
+        
 
       }else{
         actCounter = length(which(twoHundredActions[stateTwoVisits,1] == act))
-        H[state,act]= (actCounter/length(stateTwoVisits))
-       
+        
+        if(sim == 1){
+          H[(state+1),(act+1)]= actCounter/length(stateTwoVisits)
+        }else{
+          H[state,act]= actCounter/length(stateTwoVisits)
+        }
       }
       
     }
@@ -473,14 +492,14 @@ genInitValues=function(allpaths,sim){
 }
 
 
-generatePlots=function(rat,allpaths,GBprobMatrix, GB_ACAprobMatrix, ACAprobMatrix){
+generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix){
   
   for(act in c(1:6)){
     for(state in c(1:2)){
       jpeg(paste("Prob_",rat,"_Path", act, "_State",state,".jpeg",sep=""))
       plot(GBprobMatrix[which(GBprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='black',type='l',ylim=c(0,1),ylab="Probability",main=paste("Probability of selecting Path",act," in State ", state, " for ", rat,sep="" ))
-      lines(GB_ACAprobMatrix[which(GB_ACAprobMatrix[,(act+6*(state-1))]!=0),(act+6*(state-1))],col='red',type='l')
-      # lines(ACAprobMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='green',type='l')
+      #lines(GB_ACAprobMatrix[which(GB_ACAprobMatrix[,(act+6*(state-1))]!=0),(act+6*(state-1))],col='red',type='l')
+      lines(ACAprobMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='green',type='l')
       
       if(act==4||act==10){
         lines(movavg(allpaths[which(ACAprobMatrix[,(act+6*(state-1))]!=0),3],100),col='blue',lty=2)
@@ -501,7 +520,7 @@ getMovingAverage=function(allpaths,sim){
   colLen = length(allpaths[,1])
   movingAvg = numeric(colLen)
   stateOne = 1
-  StateTwo = 2
+  stateTwo = 2
   window = 20
   if(sim == 1){
     stateOne = 0

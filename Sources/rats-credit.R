@@ -37,7 +37,7 @@ dirpath1 = file.path(path,"Results","Plots",time1)
 dir.create(dirpath1)
 
 ### Loop through the enreg of all 6 rats
-for (i in c(2)) {
+for (i in c(6:2)) {
   n=FindNode(DATA,rat[[i]])
   
   ## Get the enreg of rat[[i]]  
@@ -88,7 +88,7 @@ for (i in c(2)) {
   
   #debug(mazeACA2)
   #mazeACA2(enreg,rat[i])
-  debug(mse_compare)
+  #debug(mse_compare)
   res_mat<-mse_compare(enreg,rat[i])
   
   #mle_rl_softmax(enreg,rat[i])

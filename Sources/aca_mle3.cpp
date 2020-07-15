@@ -388,6 +388,7 @@ arma::mat aca_gen_sim(arma::mat &allpaths, arma::mat H, double alpha,int total_t
   //arma::mat H = arma::zeros(2,6);
   //H(0,0)=3;
   //H(1,0)=3;
+  //Rcpp::Rcout <<"H="<<H<<std::endl;
   arma::mat R= arma::zeros(2,6);
   //R.fill(-1);
   R(0,3)=1;

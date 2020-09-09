@@ -124,22 +124,12 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
     
     for(unsigned int l=0;l< uniq_action1.n_elem;l++){
      
-     // arma::uvec state1_all_idx = arma::find(states==0);
       double  curr_action = uniq_action1(l);
-     //  arma::vec time_s1 =  time_taken_for_trial.elem(state1_all_idx);
-     //  arma::vec actions_s1 = actions.elem(state1_all_idx);
-     //  arma::uvec act_idx = arma::find(actions_s1==curr_action);
-     //  double total_time_spent_in_state1 = arma::accu(time_s1);
-      //double activity= arma::accu(time_s1.elem(act_idx))/total_time_spent_in_state1;
       arma::vec last_ep_time_s1 = time_taken_for_trial.elem(state1_idx);
       arma::vec last_ep_actions_s1 = actions.elem(state1_idx);
       arma::uvec curr_act_idx= arma::find(last_ep_actions_s1==curr_action);
       double activity= arma::accu(last_ep_time_s1.elem(curr_act_idx))/arma::accu(time_taken_for_trial);
-      //double activity = activityMatrix(0,curr_action);
-      
-      //double activity= curr_act_idx.n_elem/arma::accu(time_taken_for_trial);
-      //Rcpp::Rcout <<"actions="<< curr_action <<", state="  <<1<<", activity="<<activity<< std::endl;
-      
+
       H(0,curr_action)= (H(0,curr_action)+(alpha*(score_episode)*(activity)));
       if(R_IsNaN((H(0,curr_action)))){
         Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
@@ -152,7 +142,7 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
       
     }
     
-    
+
     
     arma::uvec state2_idx = find(states==1);
     arma::vec uniq_action2 = arma::unique(actions.elem(state2_idx));
@@ -162,20 +152,11 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
         continue;
       }
       double  curr_action = uniq_action2(l);
-      // arma::uvec state2_all_idx = find(states==1);
-      // arma::vec time_s2=  time_taken_for_trial.elem(state2_all_idx);
-      // arma::vec actions_s2 = actions.elem(state2_all_idx);
-      // arma::uvec act_idx = arma::find(actions_s2==curr_action);
-      // double total_time_spent_in_state2 = arma::accu(time_s2);
-      //double activity= arma::accu(time_s2.elem(act_idx))/total_time_spent_in_state2;
       arma::vec last_ep_time_s2 = time_taken_for_trial.elem(state2_idx);
       arma::vec last_ep_actions_s2 = actions.elem(state2_idx);
       arma::uvec curr_act_idx= arma::find(last_ep_actions_s2==curr_action);
       double activity= arma::accu(last_ep_time_s2.elem(curr_act_idx))/arma::accu(time_taken_for_trial);
-      //double activity = activityMatrix(1,curr_action);
-      //double activity= curr_act_idx.n_elem/arma::accu(time_taken_for_trial);
 
-      //Rcpp::Rcout <<"actions="<< curr_action <<", state="  <<2<<", activity="<<activity<< std::endl;
       H(1,curr_action)= (H(1,curr_action)+(alpha*score_episode*(activity)));
       
       if(R_IsNaN((H(1,curr_action)))){
@@ -187,6 +168,9 @@ arma::mat updateHMat(arma::mat &H,arma::vec actions, arma::vec states, arma::vec
       }else if(H(1,curr_action) < 0){
       }
     }
+    
+    H = H*alpha;
+    
   }else if(model==2){
     
     // UPDATE CREDIT OF STATE 1 ACTIONS
@@ -486,16 +470,7 @@ arma::mat aca_gen_sim(arma::mat &allpaths, arma::mat H, double alpha,int total_t
           activityMatrix(state,acts)=arma::accu(time_in_state.elem(act_idx))/arma::accu(time_in_state);
         }
       }
-      // for(unsigned int state=0;state<2;state++){
-      //   for(unsigned int acts=0;acts<6;acts++){
-      //     arma::vec allpaths_curr_states = allpath_states(arma::span(0,i));
-      //     arma::uvec state_idx = arma::find(allpaths_curr_states==state);
-      //     arma::uvec act_idx = arma::find(allpath_actions.elem(state_idx)==acts);
-      //     arma::vec time_in_state = allpath_times.elem(state_idx);
-      //     //Rcpp::Rcout << "allpaths_curr_states=" <<allpaths_curr_states<<", state_idx="<<state_idx<<std::endl;
-      //     activityMatrix(state,acts)=arma::accu(time_in_state.elem(act_idx))/arma::accu(time_in_state);
-      //   }
-      // }
+
       
       //Rcpp::Rcout << "episode="<<episode<< ", score_episode="<<score_episode<<", avg_score="<<avg_score<<std::endl;
       
@@ -918,7 +893,8 @@ arma::vec computeMSE3(arma::mat allpaths,arma::mat probMatrix_m1,arma::vec movAv
       action=action-1;
     }
     
-    mseMatrix(i)=pow(movAvg(i)-probMatrix_m1(i,((6*state)+action)),2);
+    //mseMatrix(i)=pow(movAvg(i)-probMatrix_m1(i,((6*state)+action)),2);
+    mseMatrix(i)=abs(movAvg(i)-probMatrix_m1(i,((6*state)+action)));
     
    // Rcpp::Rcout <<"movAvg(i)="<<movAvg(i)<<", prob=" <<probMatrix_m1(i,((6*state)+action))<<", mseMatrix(i)="<<mseMatrix(i)<<std::endl;
   }

@@ -44,7 +44,7 @@ dirpath1 = file.path(path,"Results","Plots",time1)
 dir.create(dirpath1)
 
 ### Loop through the enreg of all 6 rats
-for (i in c(2:2)) {
+for (i in c(6)) {
   n=FindNode(DATA,rat[[i]])
   
   ## Get the enreg of rat[[i]]  
@@ -52,13 +52,13 @@ for (i in c(2:2)) {
   
   for(ses in c(1:length(enreg))){
     
-    print(sprintf("Rat = %i , Session = %i",i,ses))
+    #print(sprintf("Rat = %i , Session = %i",i,ses))
     
     if(is.null(enreg[[ses]])){
-      print(sprintf("No enreg in  %s session %i",rat[i], ses))
+      #print(sprintf("No enreg in  %s session %i",rat[i], ses))
       next
     }else if(isempty(enreg[[ses]]$EVENTS)){
-      print(sprintf("No EVENT record in  %s session %i",rat[i], ses))
+      #print(sprintf("No EVENT record in  %s session %i",rat[i], ses))
       next
     }
     
@@ -85,6 +85,6 @@ for (i in c(2:2)) {
   #plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
   
   debug(compareModels)
-  res_mat<-compareModels(enreg,rat[i])
+  compareModels(enreg,rat[i])
   
 }

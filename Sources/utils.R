@@ -89,6 +89,70 @@ genInitValues=function(allpaths,sim){
   return(H)
 }
 
+boxplotMse = function(mat_res, model,rat){
+  
+  if(model == 1){
+    jpeg(paste("boxplot_ACA_",rat,".jpeg",sep=""))
+  }else if(model == 2){
+    jpeg(paste("boxplot_GB_",rat,".jpeg",sep=""))
+  }else if(model == 3){
+    jpeg(paste("boxplot_GB_ACA_",rat,".jpeg",sep=""))
+  }else if(model == 4){
+    jpeg(paste("boxplot_ACA2_",rat,".jpeg",sep=""))
+  }else if(model == 5){
+    jpeg(paste("boxplot_ACA3_",rat,".jpeg",sep=""))
+  }
+  
+  boxplot(as.numeric(mat_res[,1]),as.numeric(mat_res[,3]),xaxt="n")
+  axis(side=1, at=c(1,2), labels = c("ACA","GB"))
+  dev.off()
+}
+
+checkValidation=function(mat_res, model,rat){
+  ret = TRUE 
+  if(model==1){
+    if(length(which(mat_res[,7]=="ACA")) < 70){
+      print(sprintf("ACA is selected less than 70 times for %s. Exiting validation",rat))
+      ret = FALSE
+    }else{
+      print(sprintf("ACA is selected more than 70 times for %s.",rat))
+    }
+  }
+  else if(model==2){
+    if(length(which(mat_res[,7]=="GB")) < 70){
+      print(sprintf("GB is selected less than 70 times for %s. Exiting validation",rat))
+      ret = FALSE
+    }else{
+      print(sprintf("GB is selected more than 70 times for %s.",rat))
+    }
+  }
+  else if(model==3){
+    if(length(which(mat_res[,7]=="ACA_GB")) < 70){
+      print(sprintf("GB_ACA is selected less than 70 times for %s. Exiting validation",rat))
+      ret = FALSE
+    }else{
+      print(sprintf("GB_ACA is selected more than 70 times for %s.",rat))
+    }
+  }
+  else if(model==4){
+    if(length(which(mat_res[,7]=="ACA2")) < 70){
+      print(sprintf("ACA2 is selected less than 70 times for %s. Exiting validation",rat))
+      ret = FALSE
+    }else{
+      print(sprintf("ACA2 is selected more than 70 times for %s.",rat))
+    }
+  }
+  else if(model==5){
+    if(length(which(mat_res[,7]=="ACA3")) < 70){
+      print(sprintf("ACA3 is selected less than 70 times for %s. Exiting validation",rat))
+      ret = FALSE
+    }else{
+      print(sprintf("ACA3 is selected more than 70 times for %s.",rat))
+    }
+  }
+  return(ret)
+}
+
 
 generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix){
   
@@ -156,7 +220,7 @@ getStartIndex = function(generated_data){
 
 getEndIndex = function(generated_data){
   end_index=0
-  l<-which(SMA(generated_data[,3],20)>=0.95)
+  l<-which(SMA(generated_data[,3],30)>=0.95)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
     if(length(k[[set]])>30){
@@ -167,7 +231,7 @@ getEndIndex = function(generated_data){
   return(end_index)
 }
 
-enregCombine=function(enreg){
+enregCombine=function(enreg,rat){
   allpaths <- matrix("",0,2)
   colnames(allpaths) <- c("Path","Session")
   ### Loop through all enreg[[ses]] of current rat

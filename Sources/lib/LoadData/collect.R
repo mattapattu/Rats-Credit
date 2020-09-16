@@ -36,7 +36,7 @@ buildDataTree=function(){
       #ses=1
       for(ses in 1:length(enreg)){
         if(is.null(enreg[[ses]])){
-          print(sprintf("No enreg data for %s , ses %i", rat$name,ses))
+          #print(sprintf("No enreg data for %s , ses %i", rat$name,ses))
           next
         }
         #temps, tetrode, neurone, remove last voltage values

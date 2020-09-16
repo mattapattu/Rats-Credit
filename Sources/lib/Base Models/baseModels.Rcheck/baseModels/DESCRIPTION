@@ -1,0 +1,15 @@
+Package: baseModels
+Type: Package
+Title: What the package does (short line)
+Version: 1.0
+Date: 2020-09-11
+Author: Who wrote it
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+Imports: Rcpp (>= 1.0.3)
+LinkingTo: Rcpp, RcppArmadillo
+NeedsCompilation: yes
+Packaged: 2020-09-11 13:40:47 UTC; matta
+Built: R 3.6.1; x86_64-w64-mingw32; 2020-09-11 13:40:57 UTC; windows
+Archs: i386, x64

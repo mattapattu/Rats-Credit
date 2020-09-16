@@ -7,11 +7,15 @@ library("plot3D")
 library(data.tree)
 library(pracma)
 library(sp) #for spatial polygons
-library(baseModel)
 
 
 setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
 source("lib/LoadData/collect.R")
+source("lib/LoadData/aca.R")
+source("lib/LoadData/func.R")
+source("mse_comp.R")
+source("mazeAca3.R")
+
 
 options(error = recover)
 
@@ -23,9 +27,13 @@ options(error = recover)
 #}
 
 #Load SDM and SDL folders (SDM113,SDL101, etc.)
-setwd("C:/Rats-Credits/Data")
 
-DATA=buildDataTree()
+setwd("C:/Rats-Credits/Data")
+load("DATA.RData")
+# DATA=buildDataTree()
+# resalex=leo.boxes()
+# boites=alex.mergeBoxes(resalex$boxes)
+
 rat=DATA$Get('name', filterFun = function(x) x$level == 3)
 
 ### set dirpath where all plots will be saved 
@@ -43,6 +51,7 @@ for (i in c(2:2)) {
   enreg=convert.node.to.enreg(n)
   
   for(ses in c(1:length(enreg))){
+    
     print(sprintf("Rat = %i , Session = %i",i,ses))
     
     if(is.null(enreg[[ses]])){
@@ -59,6 +68,7 @@ for (i in c(2:2)) {
     enreg=add.rewards.to.pos(ses,enreg)
     
     ## Add column "boxname" to enreg[[ses]]$POS
+    #debug(add.box.to.pos)
     enreg=add.box.to.pos(ses,enreg,spolygons)
     
     ### Add column "boxnames" to enreg[[ses]]$SPIKES
@@ -74,6 +84,7 @@ for (i in c(2:2)) {
   #debug(plot.heatmap.paths)
   #plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
   
-  res_mat<-mse_compare(enreg,rat[i])
+  debug(compareModels)
+  res_mat<-compareModels(enreg,rat[i])
   
 }

@@ -154,7 +154,7 @@ checkValidation=function(mat_res, model,rat){
 }
 
 
-generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix){
+generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix, ACA2probMatrix, ACA3probMatrix){
   
   for(act in c(1:6)){
     for(state in c(1:2)){
@@ -162,14 +162,16 @@ generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix){
       plot(GBprobMatrix[which(GBprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='black',type='l',ylim=c(0,1),ylab="Probability",main=paste("Probability of selecting Path",act," in State ", state, " for ", rat,sep="" ))
       #lines(GB_ACAprobMatrix[which(GB_ACAprobMatrix[,(act+6*(state-1))]!=0),(act+6*(state-1))],col='red',type='l')
       lines(ACAprobMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='green',type='l')
+      lines(ACA2probMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='orange',type='l')
+      lines(ACA3probMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='red',type='l')
       
       if(act==4||act==10){
         lines(movavg(allpaths[which(ACAprobMatrix[,(act+6*(state-1))]!=0),3],100),col='blue',lty=2)
-        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for GB_ACA","Prob. of reward for ACA", "Mov. Avg of Reward/100 trials"),col=c("black","red","green","blue"),cex=0.6,lty = c(1,1,1,2))
+        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for GB_ACA","Prob. of reward for ACA", "Mov. Avg of Reward/100 trials"),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
         
       }else{
-        lines(movavg(as.numeric(allpaths[,1]== act & allpaths[,2]==state),100),col='blue',lty=2)
-        legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for GB_ACA","Prob. of reward for ACA","Empirical prob."),col=c("black","red","green","blue"),cex=0.6,lty = c(1,1,1,2))
+        lines(movavg(as.numeric(allpaths[,1]== act & allpaths[,2]==state),10),col='blue',lty=2)
+        legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for ACA2","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
         
       }
       dev.off()

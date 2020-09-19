@@ -11,7 +11,7 @@ source("mle_aca.R")
 
 
 ### Use optimal paramters on actual data and compute Mean Squared Error.
-compareModels=function(enreg,rat){
+comparePathModels=function(enreg,rat){
   
   allpaths = enregCombine(enreg, rat)
   allpaths = updateACAPathNbmse(allpaths)
@@ -59,7 +59,8 @@ compareModels=function(enreg,rat){
   ##### Model Selection On Acutal Data #########################3
   
   generated_data <- allpaths_num
-  res = modelCompare(generated_data, models, sim=2)
+  
+  res = modelCompare(generated_data, models, window = 5, sim=2)
 
   min_index = 0
   min = 100000
@@ -73,7 +74,7 @@ compareModels=function(enreg,rat){
   }
   print(sprintf("%s is best fit for %s", res[[min_index]]$model, rat))
   
-  #generatePlots(rat,allpaths_num,ACA_probMatrix, GB_probMatrix)
+  generatePlots(rat,allpaths_num,res$acamse$probMatrix, res$gbmse$probMatrix, res$aca2mse$probMatrix, res$aca3mse$probMatrix)
 }
 
 

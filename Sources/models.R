@@ -13,7 +13,7 @@ acaMse = function(Hinit2, generated_data, sim, half_index, end_index,movAvg){
   mse_ACA = sum(mse_ACA_mat[(half_index+1):end_index])/(end_index-half_index)
   # ACA_lik_mat <-aca_mle_lik(generated_data,alpha_ACA, H=Hinit2, model=1,sim=2)
   # ACA_lik <- (-1)*sum(ACA_lik_mat[(half_index+1):end_index])
-  return(list("model" = "ACA", "mse" = mse_ACA, "alpha" = alpha_ACA))
+  return(list("model" = "ACA", "mse" = mse_ACA, "alpha" = alpha_ACA, "probMatrix" = ACA_probMatrix))
 }
 
 gbMse = function(Hinit2, generated_data, sim, half_index, end_index,movAvg){
@@ -26,7 +26,7 @@ gbMse = function(Hinit2, generated_data, sim, half_index, end_index,movAvg){
   mse_GB <- sum(mse_GB_mat[(half_index+1):end_index])/(end_index-half_index)
   # GB_lik_mat <-aca_mle_lik(generated_data,alpha_GB,H=Hinit2,model=2,sim=2)
   # GB_lik <- (-1)*sum(GB_lik_mat[(half_index+1):end_index])
-  return(list("model" = "GB", "mse" = mse_GB, "alpha" = alpha_GB))
+  return(list("model" = "GB", "mse" = mse_GB, "alpha" = alpha_GB, "probMatrix" = GB_probMatrix))
 }
 
 gbAcaMse = function(Hinit2, generated_data, sim, half_index, end_index,movAvg){
@@ -38,7 +38,7 @@ gbAcaMse = function(Hinit2, generated_data, sim, half_index, end_index,movAvg){
   mse_GB_ACA <- sum(mse_GB_ACA_mat[(half_index+1):end_index])/(end_index-half_index)
   # ACA_GB_lik_mat <-aca_mle_lik(generated_data,alpha_ACA_GB,H=Hinit,model=3,sim=2)
   # ACA_GB_lik <- (-1)*sum(ACA_GB_lik_mat[(half_index+1):end_index])
-  return(list("model" = "GB-ACA", "mse" = mse_GB_ACA, "alpha" = alpha_ACA_GB))
+  return(list("model" = "GB-ACA", "mse" = mse_GB_ACA, "alpha" = alpha_ACA_GB, "probMatrix" = GB_ACA_probMatrix))
 }
 
 
@@ -49,7 +49,7 @@ aca2Mse = function(Hinit2, generated_data, sim, half_index, end_index,movAvg){
   ACA2_probMatrix = Aca2::getProbMatrix(generated_data, alpha_ACA2,H=Hinit2,sim,model=4)
   mse_ACA2_mat = (pathProbability(generated_data,ACA2_probMatrix,sim) - movAvg)^2
   mse_ACA2 = sum(mse_ACA2_mat[(half_index+1):end_index])/(end_index-half_index)
-  return(list("model" = "ACA2", "mse" = mse_ACA2, "alpha" = alpha_ACA2))
+  return(list("model" = "ACA2", "mse" = mse_ACA2, "alpha" = alpha_ACA2,"probMatrix" = ACA2_probMatrix))
 }
 
 aca3Mse = function(Hinit2, generated_data, sim, half_index, end_index, movAvg){
@@ -60,7 +60,7 @@ aca3Mse = function(Hinit2, generated_data, sim, half_index, end_index, movAvg){
   ACA3_probMatrix = Aca3::getProbMatrix(generated_data, alpha_ACA3,gamma_ACA3, H=Hinit2, sim, model=5)
   mse_ACA3_mat = (pathProbability(generated_data,ACA3_probMatrix,sim) - movAvg)^2
   mse_ACA3 = sum(mse_ACA3_mat[(half_index+1):end_index])/(end_index-half_index)
-  return(list("model" = "ACA3" ,"mse" = mse_ACA3, "alpha" = alpha_ACA3,"gamma" = gamma_ACA3))
+  return(list("model" = "ACA3" ,"mse" = mse_ACA3, "alpha" = alpha_ACA3,"gamma" = gamma_ACA3, "probMatrix" = ACA3_probMatrix))
 }
 
 aca_negLogLik1=function(par,Hinit, allpaths,model,sim) {
@@ -89,7 +89,7 @@ aca_negLogLik1=function(par,Hinit, allpaths,model,sim) {
 }
 
 
-modelCompare = function(generated_data, models, sim){
+modelCompare = function(generated_data, models, window,  sim){
   
   #start_index = getStartIndex(generated_data)
   end_index = getEndIndex(generated_data)
@@ -100,7 +100,7 @@ modelCompare = function(generated_data, models, sim){
   }
   
   Hinit1 <-genInitValues(generated_data,sim=sim)
-  movAvg1 <- getMovingAverage(generated_data,window=30,sim=sim)
+  movAvg1 <- getMovingAverage(generated_data,window=window,sim=sim)
   
   acamse = list()
   gbmse = list()
@@ -174,7 +174,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num){
         next
       }
       
-      res = modelCompare(generated_data, models, sim=1)
+      res = modelCompare(generated_data, models, window = 5, sim=1)
       
       min_index = 0
       min = 100000

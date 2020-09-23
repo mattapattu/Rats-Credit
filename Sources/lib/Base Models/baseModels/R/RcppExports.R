@@ -29,12 +29,12 @@ rcpparma_bothproducts <- function(x) {
     .Call(`_baseModels_rcpparma_bothproducts`, x)
 }
 
-updateTrialTimes <- function(allpaths, enreg_pos) {
-    .Call(`_baseModels_updateTrialTimes`, allpaths, enreg_pos)
+getTrialTimes <- function(allpaths, enreg_pos) {
+    .Call(`_baseModels_getTrialTimes`, allpaths, enreg_pos)
 }
 
-empiricalProbMat <- function(allpaths) {
-    .Call(`_baseModels_empiricalProbMat`, allpaths)
+empiricalProbMat <- function(allpaths, window) {
+    .Call(`_baseModels_empiricalProbMat`, allpaths, window)
 }
 
 mseEmpirical <- function(allpaths, probMatrix_m1, movAvg, sim) {

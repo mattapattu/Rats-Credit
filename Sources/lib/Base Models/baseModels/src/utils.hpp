@@ -77,7 +77,7 @@ inline double softmax_cpp3(int A,int S,arma::mat &H){
 }
 
 // [[Rcpp::export()]]
-arma::vec updateTrialTimes(Rcpp::NumericVector allpaths,Rcpp::NumericMatrix enreg_pos){
+arma::vec getTrialTimes(Rcpp::NumericVector allpaths,Rcpp::NumericMatrix enreg_pos){
   
   int nrow = allpaths.size();
   //Rcpp::Rcout <<"nrow="<<nrow<<std::endl;
@@ -115,37 +115,49 @@ arma::vec updateTrialTimes(Rcpp::NumericVector allpaths,Rcpp::NumericMatrix enre
 }
 
 // [[Rcpp::export()]]
-arma::mat empiricalProbMat(arma::mat allpaths){
+arma::mat empiricalProbMat(arma::mat allpaths, int window){
   
   int nrow = allpaths.n_rows;
   arma::mat probMatrix=arma::zeros(nrow,12);
   
   for(int i=0;i<nrow;i++){
     
-    int S=allpaths(i,1);
-    arma::vec states = allpaths(arma::span(0,i),1);
-    arma::vec actions = allpaths(arma::span(0,i),0);
+    int S = allpaths(i,1);
+    arma::vec states;
+    arma::vec actions;
+    if(i >= window){
+      states = allpaths(arma::span((i-window),i),1);
+      actions = allpaths(arma::span((i-window),i),0);
+    }else{
+      states = allpaths(arma::span(0,i),1);
+      actions = allpaths(arma::span(0,i),0);
+    }
+
+    arma::uvec state_idx = arma::find(states == S);
+    
+    arma::vec actions_in_state = actions.elem(state_idx);
+    
+    
+    //Rcpp::Rcout <<"act_idx.n_elem="<<act_idx.n_elem<<", s1_idx.n_elem="<<s1_idx.n_elem<<std::endl;
+    
     
     //Rcpp::Rcout <<"states="<<states<<std::endl;
-    if(S==1){
+    if(S == 1){
       probMatrix.submat(i,6,i,11)=arma::zeros(1,6);
       for(int act=1;act<7;act++){
-        arma::uvec s1_idx = arma::find(states==1);
         
-        arma::vec actions_s1 = actions.elem(s1_idx);
-        arma::uvec act_idx = arma::find(actions_s1==act);
-        //Rcpp::Rcout <<"act_idx.n_elem="<<act_idx.n_elem<<", s1_idx.n_elem="<<s1_idx.n_elem<<std::endl;
-        double x = act_idx.n_elem/(1.0*s1_idx.n_elem);
-        probMatrix(i,(act-1))=x;
+        
+        arma::uvec act_idx = arma::find(actions_in_state == act);
+        double x = act_idx.n_elem/(1.0*state_idx.n_elem);
+        probMatrix(i,(act-1)) = x;
       }
-    }else if(S==2){
-      probMatrix.submat(i,0,i,5)=arma::zeros(1,6);
+    }else if(S == 2){
+      probMatrix.submat(i,0,i,5) = arma::zeros(1,6);
       for(int act=1;act<7;act++){
-        arma::uvec s2_idx = arma::find(states(arma::span(0,i))==2);
-        arma::vec actions_s2 = actions.elem(s2_idx);
-        arma::uvec act_idx = arma::find(actions_s2==act);
-        double x = act_idx.n_elem/(1.0*s2_idx.n_elem);
-        probMatrix(i,(5+act))=x;
+        
+        arma::uvec act_idx = arma::find(actions_in_state == act);
+        double x = act_idx.n_elem/(1.0*state_idx.n_elem);
+        probMatrix(i,(5+act)) = x;
       }
     }
     
@@ -209,6 +221,8 @@ arma::vec pathProbability(arma::mat allpaths,arma::mat probMatrix_m1,int sim){
   //Rcpp::Rcout <<"movAvg="<<movAvg<<std::endl;
   return(mseMatrix);
 }
+
+
 
 
 

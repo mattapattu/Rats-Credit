@@ -95,26 +95,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// updateTrialTimes
-arma::vec updateTrialTimes(Rcpp::NumericVector allpaths, Rcpp::NumericMatrix enreg_pos);
-RcppExport SEXP _baseModels_updateTrialTimes(SEXP allpathsSEXP, SEXP enreg_posSEXP) {
+// getTrialTimes
+arma::vec getTrialTimes(Rcpp::NumericVector allpaths, Rcpp::NumericMatrix enreg_pos);
+RcppExport SEXP _baseModels_getTrialTimes(SEXP allpathsSEXP, SEXP enreg_posSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type allpaths(allpathsSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type enreg_pos(enreg_posSEXP);
-    rcpp_result_gen = Rcpp::wrap(updateTrialTimes(allpaths, enreg_pos));
+    rcpp_result_gen = Rcpp::wrap(getTrialTimes(allpaths, enreg_pos));
     return rcpp_result_gen;
 END_RCPP
 }
 // empiricalProbMat
-arma::mat empiricalProbMat(arma::mat allpaths);
-RcppExport SEXP _baseModels_empiricalProbMat(SEXP allpathsSEXP) {
+arma::mat empiricalProbMat(arma::mat allpaths, int window);
+RcppExport SEXP _baseModels_empiricalProbMat(SEXP allpathsSEXP, SEXP windowSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
-    rcpp_result_gen = Rcpp::wrap(empiricalProbMat(allpaths));
+    Rcpp::traits::input_parameter< int >::type window(windowSEXP);
+    rcpp_result_gen = Rcpp::wrap(empiricalProbMat(allpaths, window));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -154,8 +155,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_baseModels_rcpparma_outerproduct", (DL_FUNC) &_baseModels_rcpparma_outerproduct, 1},
     {"_baseModels_rcpparma_innerproduct", (DL_FUNC) &_baseModels_rcpparma_innerproduct, 1},
     {"_baseModels_rcpparma_bothproducts", (DL_FUNC) &_baseModels_rcpparma_bothproducts, 1},
-    {"_baseModels_updateTrialTimes", (DL_FUNC) &_baseModels_updateTrialTimes, 2},
-    {"_baseModels_empiricalProbMat", (DL_FUNC) &_baseModels_empiricalProbMat, 1},
+    {"_baseModels_getTrialTimes", (DL_FUNC) &_baseModels_getTrialTimes, 2},
+    {"_baseModels_empiricalProbMat", (DL_FUNC) &_baseModels_empiricalProbMat, 2},
     {"_baseModels_mseEmpirical", (DL_FUNC) &_baseModels_mseEmpirical, 4},
     {"_baseModels_pathProbability", (DL_FUNC) &_baseModels_pathProbability, 3},
     {NULL, NULL, 0}

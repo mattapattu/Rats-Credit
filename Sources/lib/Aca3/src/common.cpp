@@ -351,8 +351,8 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, double gamma,  arma
       //Rcpp::Rcout << "activityMatrix=" <<activityMatrix<<std::endl;
 
       H = updateCreditMatrix(H,actions, states, time_taken_for_trial, alpha, score_episode, avg_score,activityMatrix, model);
-      //Rcpp::Rcout <<  "H="<<H<<std::endl;
       H = gamma* H;
+      //Rcpp::Rcout << "i=" <<i << ", H="<<H<<std::endl;
       score_episode=0;
       episode = episode+1;
       resetVector = true;

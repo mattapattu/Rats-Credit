@@ -42,10 +42,10 @@ comparePathModels=function(enreg,rat){
     enreg_comb<-rbind(enreg_comb,enreg[[ses]]$POS)
   }
   
-  l<-cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
-  y<-updateTrialTimes(as.numeric(allpaths[,2]),l)
-  allpaths<-cbind(allpaths,y)
-  allpaths_num <- matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
+  l = cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
+  y = getTrialTimes(as.numeric(allpaths[,2]),l)
+  allpaths = cbind(allpaths,y)
+  allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
 
   #### Holdout Validation ########################################
   endLearningStage = getEndIndex(allpaths_num)
@@ -59,6 +59,8 @@ comparePathModels=function(enreg,rat){
   ##### Model Selection On Acutal Data #########################3
   
   generated_data <- allpaths_num
+  
+  #mat_res = windowCompare(generated_data,models, sim=2)
   
   res = modelCompare(generated_data, models, window = 5, sim=2)
 

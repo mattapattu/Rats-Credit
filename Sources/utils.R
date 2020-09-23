@@ -1,3 +1,6 @@
+library(dplyr)
+
+
 # Handle incomplete paths in the begining or when recording is lost
 updateACAPathNbmse=function(allpaths){
   allpaths <- cbind(allpaths,Path=0,Reward=0,State=0)
@@ -6,22 +9,28 @@ updateACAPathNbmse=function(allpaths){
     trial=i-which(allpaths[,"Session"]==ses)[1]+1
     l<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
     R=sum(as.numeric(enreg[[ses]]$POS[l,"Reward"]))
+    
     if(R>0){
       allpaths[i,4] = 1
     }else{
       allpaths[i,4] = 0
     }
+    
     allpaths[i,3] = getPathNumber(allpaths[i,1])
+    
     if(grepl("^, f",allpaths[i,1])||grepl("^, d",allpaths[i,1])){
       allpaths[i,5]=1
-    }else if(grepl("^, h",allpaths[i,1])||grepl("^, j",allpaths[i,1])){
+    }
+    else if(grepl("^, h",allpaths[i,1])||grepl("^, j",allpaths[i,1])){
       allpaths[i,5]=2
     }
     ## (to assign states for incomplete paths seen at the end/begining of records)
     else if(i>1){
+      
       if(grepl("^.*e$",allpaths[i-1,1])){
         allpaths[i,5]=1
-      }else if(grepl("^.*i$",allpaths[i-1,1])){
+      }
+      else if(grepl("^.*i$",allpaths[i-1,1])){
         allpaths[i,5]=2
       }
       ## If cannot be estimated, then do by default : assume the trial = Path5
@@ -166,11 +175,11 @@ generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix, ACA2probMatrix,
       lines(ACA3probMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='red',type='l')
       
       if(act==4||act==10){
-        lines(movavg(allpaths[which(ACAprobMatrix[,(act+6*(state-1))]!=0),3],100),col='blue',lty=2)
-        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for GB_ACA","Prob. of reward for ACA", "Mov. Avg of Reward/100 trials"),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
+        lines(movavg(allpaths[which(ACAprobMatrix[,(act+6*(state-1))]!=0),3],5),col='blue',lty=2)
+        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for ACA2","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
         
       }else{
-        lines(movavg(as.numeric(allpaths[,1]== act & allpaths[,2]==state),10),col='blue',lty=2)
+        lines(movavg(as.numeric(allpaths[,1]== act & allpaths[,2]==state),5),col='blue',lty=2)
         legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for ACA2","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
         
       }
@@ -180,9 +189,9 @@ generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix, ACA2probMatrix,
   
 }
 
-getMovingAverage=function(allpaths,window,sim){
+getEmpProbMat=function(allpaths,window,sim){
   colLen = length(allpaths[,1])
-  movingAvg = numeric(colLen)
+  empProbMat = numeric(colLen)
   stateOne = 1
   stateTwo = 2
   if(sim == 1){
@@ -201,10 +210,10 @@ getMovingAverage=function(allpaths,window,sim){
       curr_state_idx <- curr_state_idx[(length(curr_state_idx)-window):length(curr_state_idx)]
       
     }
-    movingAvg[trial] <- length(which(allpaths[curr_state_idx,1]== action))/length(curr_state_idx)
+    empProbMat[trial] <- length(which(allpaths[curr_state_idx,1]== action))/length(curr_state_idx)
     
   }
-  return(movingAvg)
+  return(empProbMat)
 }
 
 getStartIndex = function(generated_data){
@@ -275,3 +284,62 @@ enregCombine=function(enreg,rat){
   
   return(allpaths)
 }
+
+locate_xtrem <- function (x, last = FALSE)
+{
+  # use rle to deal with duplicates
+  x_rle <- rle(x)
+  
+  # force the first value to be identified as an extrema
+  first_value <- x_rle$values[1] - x_rle$values[2]
+  
+  # differentiate the series, keep only the sign, and use 'rle' function to
+  # locate increase or decrease concerning multiple successive values.
+  # The result values is a series of (only) -1 and 1.
+  #
+  # ! NOTE: with this method, last value will be considered as an extrema
+  diff_sign_rle <- c(first_value, diff(x_rle$values)) %>% sign() %>% rle()
+  
+  # this vector will be used to get the initial positions
+  diff_idx <- cumsum(diff_sign_rle$lengths)
+  
+  # find min and max
+  diff_min <- diff_idx[diff_sign_rle$values < 0]
+  diff_max <- diff_idx[diff_sign_rle$values > 0]
+  
+  # get the min and max indexes in the original series
+  x_idx <- cumsum(x_rle$lengths)
+  if (last) {
+    min <- x_idx[diff_min]
+    max <- x_idx[diff_max]
+  } else {
+    min <- x_idx[diff_min] - x_rle$lengths[diff_min] + 1
+    max <- x_idx[diff_max] - x_rle$lengths[diff_max] + 1
+  }
+  # just get number of occurences
+  min_nb <- x_rle$lengths[diff_min]
+  max_nb <- x_rle$lengths[diff_max]
+  
+  # format the result as a tibble
+  bind_rows(
+    tibble(Idx = min, Values = x[min], NB = min_nb, Status = "min"),
+    tibble(Idx = max, Values = x[max], NB = max_nb, Status = "max")) %>%
+    arrange(.data$Idx) %>%
+    mutate(Last = last) %>%
+    mutate_at(vars(.data$Idx, .data$NB), as.integer)
+}
+
+
+computeActivityOfCurve = function(probVector,start_index, end_index){
+  
+  if(!all(probVector == 0)){
+    res = locate_xtrem(round(probVector,4))
+    activitySum = sum(abs(diff(res$Values)))
+  }else{
+    activitySum = 0
+  }
+  
+  return(activitySum/(end_index - start_index))
+}
+
+

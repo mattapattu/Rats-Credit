@@ -15,6 +15,7 @@ source("lib/LoadData/aca.R")
 source("lib/LoadData/func.R")
 source("mse_comp.R")
 source("mazeAca3.R")
+source("mse_methods.R")
 
 
 options(error = recover)
@@ -44,7 +45,7 @@ dirpath1 = file.path(path,"Results","Plots",time1)
 dir.create(dirpath1)
 
 ### Loop through the enreg of all 6 rats
-for (i in c(6)) {
+for (i in c(2:6)) {
   n=FindNode(DATA,rat[[i]])
   
   ## Get the enreg of rat[[i]]  
@@ -84,7 +85,7 @@ for (i in c(6)) {
   #debug(plot.heatmap.paths)
   #plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
   
-  debug(compareModels)
-  compareModels(enreg,rat[i])
+  #debug(comparePathModels)
+  comparePathModels(enreg,rat[i])
   
 }

@@ -13,9 +13,12 @@ setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
 source("lib/LoadData/collect.R")
 source("lib/LoadData/aca.R")
 source("lib/LoadData/func.R")
-source("mse_comp.R")
-source("mazeAca3.R")
-source("mse_methods.R")
+source("pathModels.R")
+source("mseMethods.R")
+source("modelData.R")
+source("utils.R")
+source("models.R")
+
 
 
 options(error = recover)
@@ -85,7 +88,7 @@ for (i in c(2:6)) {
   #debug(plot.heatmap.paths)
   #plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
   
-  #debug(comparePathModels)
-  comparePathModels(enreg,rat[i])
-  
+  debug(comparePathModels)
+  comparePathModels(enreg,rat[i], window=100)
+
 }

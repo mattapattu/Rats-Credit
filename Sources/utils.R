@@ -1,5 +1,99 @@
 library(dplyr)
 
+updateACAPathNb=function(allpaths){
+  allpaths <- cbind(allpaths,Path=0,Reward=0)
+  for(i in 1:(length(allpaths[,1]))){
+    ses=as.numeric(allpaths[i,"Session"])
+    trial=i-which(allpaths[,"Session"]==ses)[1]+1
+    l<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
+    R=sum(as.numeric(enreg[[ses]]$POS[l,"Reward"]))
+    if(R>0){
+      allpaths[i,4] = R
+    }else{
+      allpaths[i,4] = 0
+    }
+    allpaths[i,3] = getPathNumber(allpaths[i,1])
+  }
+  return(allpaths)
+}
+
+
+
+
+getPathNumber=function(path){
+  path  = gsub("^, ","",path)
+  
+  if(grepl("^d.*c.*h.*i$",path)){
+    pathnb = 1
+  }else if(grepl("^d.*c.*b.*a.*k.*j.*i$",path)){
+    pathnb = 2
+  }else if(grepl("^f.*g.*a.*k.*j.*i$",path)){
+    pathnb = 3
+  }else if(grepl("^j.*i$",path)||grepl("^h.*i$",path)){
+    pathnb = 5
+  }else if(grepl("^f.*g.*a.*b.*c.*h.*i$",path)){
+    pathnb = 4
+  }else if(grepl("^h.*c.*d.*e$",path)){
+    pathnb = 1
+  }else if(grepl("^h.*c.*b.*a.*g.*f.*e$",path)){
+    pathnb = 2
+  }else if(grepl("^j.*k.*a.*g.*f.*e$",path)){
+    pathnb = 3
+  }else if(grepl("^f.*e$",path)||grepl("^d.*e$",path)){
+    pathnb = 5
+  }else if(grepl("^j.*k.*a.*b.*c.*d.*e$",path)){
+    pathnb = 4
+  }else if(grepl("^.*e$",path)){
+    pathnb = 6
+  }else if(grepl("^.*i$",path)){
+    pathnb = 6
+  }else{
+    ## A =7
+    pathnb=6
+  }
+  
+  return(pathnb)
+}
+
+
+updateACAPathNb1=function(allpaths){
+  allpaths <- cbind(allpaths,Path=0,Reward=0,State=0)
+  for(i in 1:(length(allpaths[,1]))){
+    ses=as.numeric(allpaths[i,"Session"])
+    trial=i-which(allpaths[,"Session"]==ses)[1]+1
+    l<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
+    R=sum(as.numeric(enreg[[ses]]$POS[l,"Reward"]))
+    if(R>0){
+      allpaths[i,4] = R
+    }else{
+      allpaths[i,4] = 0
+    }
+    allpaths[i,3] = getPathNumber(allpaths[i,1])
+    if(grepl("^, f",allpaths[i,1])||grepl("^, d",allpaths[i,1])){
+      allpaths[i,5]=1
+    }else if(grepl("^, h",allpaths[i,1])||grepl("^, j",allpaths[i,1])){
+      allpaths[i,5]=2
+    }
+    ## Why ? ( incomplete paths ?)
+    else if(i>1){
+      if(grepl("^.*e$",allpaths[i-1,1])){
+        allpaths[i,5]=1
+      }else if(grepl("^.*i$",allpaths[i-1,1])){
+        allpaths[i,5]=2
+      }
+    }else if(i==1){
+      if(grepl("^.*e$",allpaths[i,1])){
+        allpaths[i,5]=2
+      }else if(grepl("^.*i$",allpaths[i,1])){
+        allpaths[i,5]=1
+      }
+      
+    }
+    
+  }
+  return(allpaths)
+}
+
 
 # Handle incomplete paths in the begining or when recording is lost
 updateACAPathNbmse=function(allpaths){
@@ -163,7 +257,7 @@ checkValidation=function(mat_res, model,rat){
 }
 
 
-generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix, ACA2probMatrix, ACA3probMatrix){
+generatePlots=function(rat,empiricalProbMatrix,GBprobMatrix, ACAprobMatrix, ACA2probMatrix, ACA3probMatrix){
   
   for(act in c(1:6)){
     for(state in c(1:2)){
@@ -173,13 +267,12 @@ generatePlots=function(rat,allpaths,GBprobMatrix, ACAprobMatrix, ACA2probMatrix,
       lines(ACAprobMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='green',type='l')
       lines(ACA2probMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='orange',type='l')
       lines(ACA3probMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='red',type='l')
+      lines(empiricalProbMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='blue',type='l',lty=2)
       
       if(act==4||act==10){
-        lines(movavg(allpaths[which(ACAprobMatrix[,(act+6*(state-1))]!=0),3],5),col='blue',lty=2)
         legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for ACA2","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
         
       }else{
-        lines(movavg(as.numeric(allpaths[,1]== act & allpaths[,2]==state),5),col='blue',lty=2)
         legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for ACA2","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
         
       }
@@ -330,16 +423,186 @@ locate_xtrem <- function (x, last = FALSE)
 }
 
 
-computeActivityOfCurve = function(probVector,start_index, end_index){
+computeActivity = function(probVector, window){
   
-  if(!all(probVector == 0)){
-    res = locate_xtrem(round(probVector,4))
-    activitySum = sum(abs(diff(res$Values)))
-  }else{
-    activitySum = 0
+  activityVec = numeric(length(c(probVector)))
+  for(i in c(2:(length(probVector)))){
+    
+    if(i <= window){
+      if(sum(probVector[1:i]) != 0 && length(unique(round(probVector[1:i],4))) != 1){
+        res = locate_xtrem(round(probVector[1:i],4))
+        activityVec[i] = sum(abs(diff(res$Values)))
+      }
+      
+    }else{
+      
+      if(sum(probVector[(i-window):i]) != 0 && length(unique(round(probVector[(i-window):i],4))) != 1){
+        res = locate_xtrem(round(probVector[(i-window):i],4))
+        activityVec[i] = sum(abs(diff(res$Values)))
+      }
+      
+    }
   }
   
-  return(activitySum/(end_index - start_index))
+  # if(!all(probVector == 0)){
+  #   res = locate_xtrem(round(probVector,4))
+  #   activitySum = sum(abs(diff(res$Values)))
+  # }else{
+  #   activitySum = 0
+  # }
+  
+  return(activityVec)
+}
+
+plotData = function(res,rat, ranges){
+  
+  
+  for(state in c(1:2)){
+    jpeg(paste("Activity_",res$acamse@Name, "_", rat,"_State_",state,".jpeg",sep=""))
+    par(mfrow=c(3,2))
+    for(act in c(1:6)){
+      plot(res$acamse@Actions[[(6*(state-1)+act)]]@empActivity, type='l',ylab="Activity",main=paste0("Path ",act, " ACA"))
+      lines(res$acamse@Actions[[(6*(state-1)+act)]]@modelActivity,col='red',lty=3)
+      if(state==1){
+        abline(v=ranges$state1$start_index,col='green',lty=2)
+        abline(v=ranges$state1$end_index,col='green',lty=2)
+      }else{
+        abline(v=ranges$state2$start_index,col='green',lty=2)
+        abline(v=ranges$state2$end_index,col='green',lty=2)
+      }
+    }
+    title(paste0(rat," ",res$acamse@Name, "_Activity,  State ", state), outer = TRUE, line = -1)
+    dev.off()
+  }
+  
+  for(state in c(1:2)){
+    jpeg(paste("Activity_",res$gbmse@Name, "_", rat,"_State_",state,".jpeg",sep=""))
+    par(mfrow=c(3,2))
+    for(act in c(1:6)){
+      plot(res$gbmse@Actions[[(6*(state-1)+act)]]@empActivity, type='l',ylab="Activity",main=paste0("Path ",act, " GB"))
+      lines(res$gbmse@Actions[[(6*(state-1)+act)]]@modelActivity,col='red',lty=3)
+      if(state==1){
+        abline(v=ranges$state1$start_index,col='green',lty=2)
+        abline(v=ranges$state1$end_index,col='green',lty=2)
+      }else{
+        abline(v=ranges$state2$start_index,col='green',lty=2)
+        abline(v=ranges$state2$end_index,col='green',lty=2)
+      }
+    }
+    title(paste0(rat," ",res$gbmse@Name, "_Activity,  State ", state), outer = TRUE, line = -1)
+    dev.off()
+  }
+  
+  for(state in c(1:2)){
+    jpeg(paste("Activity_",res$aca2mse@Name, "_", rat,"_State_",state,".jpeg",sep=""))
+    par(mfrow=c(3,2))
+    for(act in c(1:6)){
+      plot(res$aca2mse@Actions[[(6*(state-1)+act)]]@empActivity, type='l',ylab="Activity",main=paste0("Path ",act, " ACA2"))
+      lines(res$aca2mse@Actions[[(6*(state-1)+act)]]@modelActivity,col='red',lty=3)
+      if(state==1){
+        abline(v=ranges$state1$start_index,col='green',lty=2)
+        abline(v=ranges$state1$end_index,col='green',lty=2)
+      }else{
+        abline(v=ranges$state2$start_index,col='green',lty=2)
+        abline(v=ranges$state2$end_index,col='green',lty=2)
+      }
+    }
+    title(paste0(rat," ",res$aca2mse@Name, "_Activity,  State ", state), outer = TRUE, line = -1)
+    dev.off()
+  }
+  
+  for(state in c(1:2)){
+    jpeg(paste("Activity_",res$aca3mse@Name, "_", rat,"_State_",state,".jpeg",sep=""))
+    par(mfrow=c(3,2))
+    for(act in c(1:6)){
+      plot(res$aca3mse@Actions[[(6*(state-1)+act)]]@empActivity, type='l',ylab="Activity",main=paste0("Path ",act, " ACA3"))
+      lines(res$aca3mse@Actions[[(6*(state-1)+act)]]@modelActivity,col='red',lty=3)
+      if(state==1){
+        abline(v=ranges$state1$start_index,col='green',lty=2)
+        abline(v=ranges$state1$end_index,col='green',lty=2)
+      }else{
+        abline(v=ranges$state2$start_index,col='green',lty=2)
+        abline(v=ranges$state2$end_index,col='green',lty=2)
+      }
+    }
+    title(paste0(rat," ",res$aca3mse@Name, "_Activity,  State ", state), outer = TRUE, line = -1)
+    dev.off()
+  }
+  
+
 }
 
 
+plotData2 = function(res,rat, ranges){
+  
+  
+  for(state in c(1:2)){
+    jpeg(paste("Activity_",res$acamse@Name, "_", rat,"_State_",state,".jpeg",sep=""))
+    for(act in c(4)){
+      plot(res$acamse@Actions[[(6*(state-1)+act)]]@empActivity, type='l',ylab="Activity",main=paste0("Path ",act, " ACA"))
+      lines(res$acamse@Actions[[(6*(state-1)+act)]]@modelActivity,col='red',lty=3)
+      if(state==1){
+        abline(v=ranges$state1$start_index,col='green',lty=2)
+        abline(v=ranges$state1$end_index,col='green',lty=2)
+      }else{
+        abline(v=ranges$state2$start_index,col='green',lty=2)
+        abline(v=ranges$state2$end_index,col='green',lty=2)
+      }
+    }
+    title(paste0(rat," ",res$acamse@Name, "_Activity,  State ", state), outer = TRUE, line = -1)
+    dev.off()
+  }
+  
+  for(state in c(1:2)){
+    jpeg(paste("Activity_",res$gbmse@Name, "_", rat,"_State_",state,".jpeg",sep=""))
+    for(act in c(4)){
+      plot(res$gbmse@Actions[[(6*(state-1)+act)]]@empActivity, type='l',ylab="Activity",main=paste0("Path ",act, " GB"))
+      lines(res$gbmse@Actions[[(6*(state-1)+act)]]@modelActivity,col='red',lty=3)
+      if(state==1){
+        abline(v=ranges$state1$start_index,col='green',lty=2)
+        abline(v=ranges$state1$end_index,col='green',lty=2)
+      }else{
+        abline(v=ranges$state2$start_index,col='green',lty=2)
+        abline(v=ranges$state2$end_index,col='green',lty=2)
+      }
+    }
+    title(paste0(rat," ",res$gbmse@Name, "_Activity,  State ", state), outer = TRUE, line = -1)
+    dev.off()
+  }
+  
+  for(state in c(1:2)){
+    jpeg(paste("Activity_",res$aca2mse@Name, "_", rat,"_State_",state,".jpeg",sep=""))
+    for(act in c(4)){
+      plot(res$aca2mse@Actions[[(6*(state-1)+act)]]@empActivity, type='l',ylab="Activity",main=paste0("Path ",act, " ACA2"))
+      lines(res$aca2mse@Actions[[(6*(state-1)+act)]]@modelActivity,col='red',lty=3)
+      if(state==1){
+        abline(v=ranges$state1$start_index,col='green',lty=2)
+        abline(v=ranges$state1$end_index,col='green',lty=2)
+      }else{
+        abline(v=ranges$state2$start_index,col='green',lty=2)
+        abline(v=ranges$state2$end_index,col='green',lty=2)
+      }
+    }
+    title(paste0(rat," ",res$aca2mse@Name, "_Activity,  State ", state), outer = TRUE, line = -1)
+    dev.off()
+  }
+  
+  for(state in c(1:2)){
+    jpeg(paste("Activity_",res$aca3mse@Name, "_", rat,"_State_",state,".jpeg",sep=""))
+    for(act in c(4)){
+      plot(res$aca3mse@Actions[[(6*(state-1)+act)]]@empActivity, type='l',ylab="Activity",main=paste0("Path ",act, " ACA3"))
+      lines(res$aca3mse@Actions[[(6*(state-1)+act)]]@modelActivity,col='red',lty=3)
+      if(state==1){
+        abline(v=ranges$state1$start_index,col='green',lty=2)
+        abline(v=ranges$state1$end_index,col='green',lty=2)
+      }else{
+        abline(v=ranges$state2$start_index,col='green',lty=2)
+        abline(v=ranges$state2$end_index,col='green',lty=2)
+      }
+    }
+    title(paste0(rat," ",res$aca3mse@Name, "_Activity,  State ", state), outer = TRUE, line = -1)
+    dev.off()
+  }
+  
+  
+}

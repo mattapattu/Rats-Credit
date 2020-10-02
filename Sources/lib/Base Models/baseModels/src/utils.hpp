@@ -222,8 +222,68 @@ arma::vec pathProbability(arma::mat allpaths,arma::mat probMatrix_m1,int sim){
   return(mseMatrix);
 }
 
+Rcpp::StringVector getTurns(int path, int state){
+  Rcpp::StringVector turns;
+
+  if(state == 1){
+    if(path == 1){
+      turns.push_back("dch");
+    }else if(path == 2){
+      turns.push_back("gak");
+    }else if(path == 3){
+      turns.push_back("dcb");
+    }else if(path == 4){
+      turns.push_back("gak");
+    }else if(path == 5){
+      turns.push_back("gak");
+    }else if(path == 6){
+      turns.push_back("gak");
+    }
+    
+  }
+  
+
+  return(turns)
+}
 
 
+// [[Rcpp::export()]]
+arma::vec getTurnTimes(arma::mat allpaths,arma::mat enreg){
+  
+  int nrow = allpaths.size();
+  int prev_ses=-1;
+  int trial = 0;
 
+  arma::mat turnMatrix;
+  for(int i=0;i<nrow;i++){
+    
+    //Rcpp::Rcout <<"trial="<<trial<<", allpaths_arma(i)="<<allpaths_arma(i)<<std::endl;
+    if(prev_ses!=allpaths(i,4)){
+      trial=1;
+      prev_ses=allpaths(i,4);
+    }
+    //Rcpp::Rcout <<"i="<<i<<std::endl;
+    arma::uvec ids = arma::find((enreg.col(5) == trial) && (enreg.col(6) == allpaths(i,4)));
+    int start_pos_id = ids(0);
+    //Rcpp::Rcout <<"ids.size="<<ids.n_elem<<std::endl;
+    
+    int max_pos_id = ids(ids.n_elem-1);
+    //Rcpp::Rcout <<"start_pos_id="<<start_pos_id<<", max_pos_id="<<max_pos_id<<std::endl;
+    double time_taken_for_trial=(enreg((max_pos_id-1),0))- enreg(start_pos_id,0);
+    if(time_taken_for_trial==0){
+      time_taken_for_trial=20;
+    }
+    y(i)=time_taken_for_trial;
+
+    Rcpp::StringVector turns = getTurns(allpaths(i,0), allpaths(i,0));
+    arma::rowvec new_row = {(i+1),turn,turnTime};
+    my_matrix = arma::join_vert(my_matrix, new_row);
+
+
+    trial= trial+1;
+  }
+  //=arma::join_horiz(allpaths_arma,y);
+  return(y);
+}
 
 #endif

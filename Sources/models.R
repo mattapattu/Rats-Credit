@@ -4,55 +4,103 @@ library(TTR)
 
 
 
-acaMse = function(Hinit2, generated_data, sim, half_index, end_index){
+
+acaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   ACA = DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit2, allpaths = generated_data[1:half_index,], model=1, sim=sim, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
   alpha_ACA = ACA$optim$bestmem[1]
   
-  ACA_probMatrix = baseModels::getProbMatrix(generated_data, alpha_ACA,H=Hinit2,sim,model=1)
-  mse_ACA = mse_activity(generated_data, ACA_probMatrix, half_index, end_index, sim)
+  params_lik = list("alpha"=alpha_ACA)
   
-  return(list("model" = "ACA", "mse" = mse_ACA, "alpha" = alpha_ACA, "probMatrix" = ACA_probMatrix))
+  empProbMat = baseModels::empiricalProbMat(generated_data[1:half_index,], window = window)
+  ACA <- DEoptim(aca_negLogLik2,lower = 0, upper = 1, H = Hinit2, allpaths = generated_data, start_index = half_index, empProbMatrix = empProbMat, model = 1, window = window, sim = sim, DEoptim.control(NP=10, F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
+  alpha_ACA = ACA$optim$bestmem[1]
+  params_activity = list("alpha"=alpha_ACA)
+  ACA_probMatrix = baseModels::getProbMatrix(generated_data, alpha_ACA, H=Hinit2, sim, model=1)
+  
+  acaActions = getActionData(generated_data, ACA_probMatrix, half_index, end_index, window, sim)
+  actErr = getActivityErr(acaActions,half_index, end_index)
+  lik = -1 * sum(baseModels::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA, Hinit2, sim, model=1))
+  ACA <- new("Model", Name = "ACA", Params_lik = params_lik, Params_activity = params_activity, Actions = acaActions, Metrics = list("activityErr" = actErr,"likelihood" = lik), ProbMatrix = ACA_probMatrix)
+  
+  return(ACA)
 }
 
-gbMse = function(Hinit2, generated_data, sim, half_index, end_index){
+gbData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   
   GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, H = Hinit2, allpaths = generated_data[1:half_index,], model = 2, sim=sim, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
   alpha_GB = GB$optim$bestmem[1]
-  ## Compute MSE for Model2 using simulated data
-  GB_probMatrix <- baseModels::getProbMatrix(generated_data, alpha_GB, H=Hinit2, sim, model=2)
-  mse_GB = mse_activity(generated_data, GB_probMatrix, half_index, end_index, sim)
   
-  return(list("model" = "GB", "mse" = mse_GB, "alpha" = alpha_GB, "probMatrix" = GB_probMatrix))
+  params_lik = list("alpha"=alpha_GB)
+  
+  empProbMat = baseModels::empiricalProbMat(generated_data[1:half_index,], window = window)
+  GB <- DEoptim(aca_negLogLik2,lower = 0, upper = 1, H = Hinit2, allpaths = generated_data, start_index = half_index, empProbMatrix = empProbMat, model = 2, window = window, sim = sim, DEoptim.control(NP=10, F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
+  alpha_GB = GB$optim$bestmem[1]
+  params_activity = list("alpha"=alpha_GB)
+  GB_probMatrix = baseModels::getProbMatrix(generated_data, alpha_GB, H=Hinit2, sim, model=2)
+  
+  gbActions = getActionData(generated_data, GB_probMatrix, half_index, end_index, window, sim)
+  actErr = getActivityErr(gbActions,half_index, end_index)
+  lik = -1 * sum(baseModels::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_GB, Hinit2, sim, model=2))
+  GB <- new("Model", Name = "GB", Params_lik = params_lik, Params_activity = params_activity, Actions = gbActions, Metrics = list("activityErr" = actErr,"likelihood" = lik), ProbMatrix = GB_probMatrix)
+  
+  return(GB)
 }
 
-gbAcaMse = function(Hinit2, generated_data, sim, half_index, end_index){
+gbAcaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   ACA_GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, H = Hinit2, allpaths = generated_data[1:half_index,], model = 3, sim = sim, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
   alpha_ACA_GB = ACA_GB$optim$bestmem[1]
   ## Compute MSE for Model2 using simulated data
   GB_ACA_probMatrix <- baseModels::getProbMatrix(generated_data, alpha_ACA_GB,H=Hinit2, sim, model=3)
-  mse_GB_ACA = mse_activity(generated_data, GB_ACA_probMatrix, half_index, end_index, sim)
-  return(list("model" = "GB-ACA", "mse" = mse_GB_ACA, "alpha" = alpha_ACA_GB, "probMatrix" = GB_ACA_probMatrix))
+  gbacaActions = getActionData(generated_data, GB_ACA_probMatrix, half_index, end_index, window, sim)
+  mse1 = getMse1(gbacaActions,half_index, end_index)
+  mse2 = getMse2(gbacaActions,half_index, end_index)
+  lik = -1 * sum(baseModels::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA_GB, Hinit2, sim, model=3))
+  GBACA <- new("Model", Name = "GB-ACA", Actions = gbacaActions, Metrics = list("mse1" = mse1,"mse2" = mse2,"likelihood" = lik), ProbMatrix = GB_ACA_probMatrix)
+  
+  return(GBACA)
 }
 
 
-aca2Mse = function(Hinit2, generated_data, sim, half_index, end_index){
+aca2Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
   ACA2 <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, H = Hinit2, allpaths = generated_data[1:half_index,], model = 4, sim = sim, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
   alpha_ACA2 = ACA2$optim$bestmem[1]
 
-  ACA2_probMatrix = Aca2::getProbMatrix(generated_data, alpha_ACA2,H=Hinit2,sim,model=4)
-  mse_ACA2 = mse_activity(generated_data, ACA2_probMatrix, half_index, end_index, sim)
+  params_lik = list("alpha"=alpha_ACA2)
   
-  return(list("model" = "ACA2", "mse" = mse_ACA2, "alpha" = alpha_ACA2,"probMatrix" = ACA2_probMatrix))
+  empProbMat = baseModels::empiricalProbMat(generated_data[1:half_index,], window = window)
+  ACA2 <- DEoptim(aca_negLogLik2,lower = 0, upper = 1, H = Hinit2, allpaths = generated_data, start_index = half_index, empProbMatrix = empProbMat, model = 4, window = window, sim = sim, DEoptim.control(NP=10, F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
+  alpha_ACA2 = ACA2$optim$bestmem[1]
+  params_activity = list("alpha"=alpha_ACA2)
+  ACA2_probMatrix = Aca2::getProbMatrix(generated_data, alpha_ACA2, H=Hinit2, sim, model=4)
+  
+  aca2Actions = getActionData(generated_data, ACA2_probMatrix, half_index, end_index, window, sim)
+  actErr = getActivityErr(aca2Actions,half_index, end_index)
+  lik = -1 * sum(Aca2::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA2, Hinit2, sim, model=4))
+  ACA2 <- new("Model", Name = "ACA2", Params_lik = params_lik, Params_activity = params_activity, Actions = aca2Actions, Metrics = list("activityErr" = actErr,"likelihood" = lik), ProbMatrix = ACA2_probMatrix)
+  
+  return(ACA2)
 }
 
-aca3Mse = function(Hinit2, generated_data, sim, half_index, end_index){
-  ACA3 <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=20,F=0.8, CR = 0.9,trace = FALSE, itermax = 50))
+aca3Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
+  ACA3 <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   alpha_ACA3 = ACA3$optim$bestmem[1]
   gamma_ACA3 = ACA3$optim$bestmem[2]
+  #ACA3_probMatrix = Aca3::getProbMatrix(generated_data, alpha_ACA3,gamma_ACA3, H=Hinit2, sim, model=5)
+  params_lik = list("alpha"=alpha_ACA3, "gamma"=gamma_ACA3)
   
+  empProbMat = baseModels::empiricalProbMat(generated_data[1:half_index,], window = window)
+  ACA3 <- DEoptim(aca_negLogLik2,lower = c(0,0), upper = c(1,1), H = Hinit2, allpaths = generated_data, start_index = half_index, empProbMatrix = empProbMat, model = 5, window = window, sim = sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 50))
+  alpha_ACA3 = ACA3$optim$bestmem[1]
+  gamma_ACA3 = ACA3$optim$bestmem[2]
+  params_activity = list("alpha"=alpha_ACA3, "gamma"=gamma_ACA3)
   ACA3_probMatrix = Aca3::getProbMatrix(generated_data, alpha_ACA3,gamma_ACA3, H=Hinit2, sim, model=5)
-  mse_ACA3 = mse_activity(generated_data, ACA3_probMatrix, half_index, end_index, sim)
-  return(list("model" = "ACA3" ,"mse" = mse_ACA3, "alpha" = alpha_ACA3,"gamma" = gamma_ACA3, "probMatrix" = ACA3_probMatrix))
+
+  aca3Actions = getActionData(generated_data, ACA3_probMatrix, half_index, end_index, window, sim)
+  actErr = getActivityErr(aca3Actions,half_index, end_index)
+  lik = -1 * sum(Aca3::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA3, gamma_ACA3, Hinit2, sim, model=5))
+  ACA3 <- new("Model", Name = "ACA3", Params_lik = params_lik, Params_activity = params_activity, Actions = aca3Actions, Metrics = list("activityErr" = actErr,"likelihood" = lik), ProbMatrix = ACA3_probMatrix)
+  
+  return(ACA3)
 }
 
 aca_negLogLik1=function(par,Hinit, allpaths,model,sim) {
@@ -60,16 +108,12 @@ aca_negLogLik1=function(par,Hinit, allpaths,model,sim) {
   alpha = par[1]
 
   if(model == 1 || model == 2 || model == 3){
-    
     lik = baseModels::getPathLikelihood(allpaths, alpha, Hinit, sim, model)
   }else if(model == 4){
-    
     lik = Aca2::getPathLikelihood(allpaths, alpha, Hinit, sim, model)
   }else if(model == 5){
-    
     gamma = par[2]
     lik = Aca3::getPathLikelihood(allpaths, alpha,gamma, Hinit, sim, model)
-    
   }
   
   negLogLik = (-1) *sum(lik)
@@ -83,201 +127,71 @@ aca_negLogLik1=function(par,Hinit, allpaths,model,sim) {
 }
 
 
-modelCompare = function(generated_data, models, window,  sim){
+aca_negLogLik2=function(par,Hinit, allpaths, start_index, empProbMatrix, model, sim, window) {
   
-  #start_index = getStartIndex(generated_data)
-  end_index = getEndIndex(generated_data)
-  start_index = round(end_index/2)
-  if(start_index >= end_index){
-    print(sprintf("start_index >= end_index. Check if rat learns optimal behavior"))
-    return()
-  }
+  alpha = par[1]
   
-  Hinit1 <-genInitValues(generated_data,sim=sim)
-  #empProbMat <- getEmpProbMat(generated_data,window=window,sim=sim)
-  
-  acamse = list()
-  gbmse = list()
-  gbacamse = list()
-  aca2mse = list()
-  aca3mse = list()
-  
-  if(1 %in% models){
-    acamse = acaMse(Hinit1, generated_data, sim=sim, start_index, end_index)
-  }
-  if(2 %in% models){
-    gbmse = gbMse(Hinit1, generated_data, sim=sim, start_index, end_index)
-  }
-  if(3 %in% models){
-    gbacamse = gbAcaMse(Hinit1, generated_data, sim=1, start_index, end_index)
-  }
-  if(4 %in% models){
-    aca2mse = aca2Mse(Hinit1, generated_data, sim=sim, start_index, end_index)
-  }
-  if(5 %in% models){
-    aca3mse = aca3Mse(Hinit1, generated_data, sim=sim, start_index, end_index)
-  }
-  
-  
-  return(list("acamse"=acamse,"gbmse"=gbmse,"gbacamse"=gbacamse, "aca2mse"=aca2mse, "aca3mse"=aca3mse))
-  
-}
-
-validateHoldout=function(models,Hinit,endLearningStage,allpaths_num){
-  validated = TRUE
-  alpha=0
-  gamma=0
-  
-  for(model in models){
+  if(model == 1 || model == 2 || model == 3){
     
-    if(model == 5){
-      out = DEoptim(aca_negLogLik1, lower = c(0,0), upper = c(1,1), H=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 50))
-      alpha = out$optim$bestmem[1]
-      gamma = out$optim$bestmem[2]
-    }else{
-      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
-      alpha = out$optim$bestmem[1]
-    }
+    model_probMatrix = baseModels::getProbMatrix(allpaths, alpha, H = Hinit, sim, model = model)
     
-    mat_res = matrix(0,nrow=100,ncol=(2*length(models)+1))
-    colnames(mat_res) = c("ACA MSE","ACA bestval","GB MSE","GB bestval","ACA2 MSE","ACA2 bestval","Selected Model")
-    iter = 1
-    start_index = 0
-    end_index = 0
-    missedOptimalIter = 0
-    while(iter <= 100){
-      total_trials = length(allpaths_num[,1])
-      init_state = as.numeric(allpaths_num[1,2])-1
-      
-      if(model == 1 || model == 2 || model == 3){
-        generated_data = baseModels::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials, init_state, model=model)
-      }else if(model == 4){
-        generated_data = Aca2::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials,init_state, model=model)
-      }else if(model == 5){
-        generated_data = Aca3::simulateTrials(allpaths_num, H=Hinit, alpha, gamma, total_trials, init_state, model=model)
+  }else if(model == 4){
+    
+    model_probMatrix = Aca2::getProbMatrix(allpaths, alpha, H = Hinit, sim, model = model)
+    
+  }else if(model == 5){
+    
+    gamma = par[2]
+    model_probMatrix = Aca3::getProbMatrix(allpaths, alpha, gamma, H = Hinit, sim, model = model)
+    
+  }
+  
+  
+  activityErr = 0
+  if(sum(as.numeric(model_probMatrix[,4] > 0.9))>50 && sum(as.numeric(model_probMatrix[,10] > 0.9))){
+    
+    for(state in c(1,2)){
+      if(sim == 1){
+        #state_idx = which(generated_data[(start_index+1):end_index,2] == (state-1))
+        state_idx = which(allpaths[1:start_index,2] == (state-1))
+      }else{
+        #state_idx = which(generated_data[(start_index+1):end_index,2] == state)
+        state_idx = which(allpaths[1:start_index,2] == state)
       }
       
-      
-      # if(length(which(SMA(generated_data[,3],10) >= 0.9)) < 500){
-      #   missedOptimalIter=missedOptimalIter+1
-      #   next
-      # }
-      
-      if(getStartIndex(generated_data) >= getEndIndex(generated_data)){
-        missedOptimalIter=missedOptimalIter+1
-        next
+      for(act in c(4)){
+        probVector =  model_probMatrix[state_idx,(6*(state-1)+act)]
+        empProbVector = empProbMatrix[state_idx,(6*(state-1)+act)]
+        
+        modelActivity = abs(diff(probVector))
+        # if(sum(modelActivity) !=0 ){
+        #   modelActivity = modelActivity/mean(modelActivity)
+        # }
+        
+        empActivity = abs(diff(empProbVector))
+        # if(sum(empActivity) !=0 ){
+        #   empActivity = empActivity/mean(empActivity)
+        # }
+        
+        activityErr = activityErr + sum((modelActivity - empActivity ))
+        
       }
-      
-      res = modelCompare(generated_data, models, window = 5, sim=1)
-      
-      min_index = 0
-      min = 100000
-      for(m in models){
-        mat_res[iter,m]=res[[m]]$mse
-        mat_res[iter,(m+1)]=res[[m]]$alpha
-        if(res[[m]]$mse < min){
-          min = res[[m]]$mse
-          min_index = m
-        }
-      }
-      
-      mat_res[iter,(2*length(models)+1)]= res[[min_index]]$model
-      iter=iter+1
     }
-    
-    print(sprintf("Nb of iterations where optimal behaviour was not learned=%i", missedOptimalIter))
-    
-    boxplotMse(mat_res,model,rat)
-    
-    if(!checkValidation(mat_res,model,rat)){
-      validated = FALSE
-      break
-    }
-    
-  }
-  
-  if(validated){
-    print(sprintf("All 3  models validated for %s.",rat)) 
   }else{
-    print(sprintf("Model %d  failed validation for %s.",model, rat))
+    activityErr = 1000000
   }
-  return(mat_res)
+  
+  activityErr = abs(activityErr)
+  
+  
+  # print(sprintf("negLogLik = %f",negLogLik))
+  if(is.infinite(activityErr)){
+    return(1000000)
+  }else{
+    return(activityErr)
+  }
+  
 }
 
 
-windowCompare=function(generated_data, models, sim){
-  
-  end_index = getEndIndex(generated_data)
-  start_index = round(end_index/2)
-  if(start_index >= end_index){
-    print(sprintf("start_index >= end_index. Check if rat learns optimal behavior"))
-    return()
-  }
-  
-  Hinit1 = genInitValues(generated_data,sim=sim)
-  
-  mat_res = matrix(0,nrow=21,ncol=(length(models)+1))
-  cols = vector()
-  
-  if(1 %in% models){
-    cols = c(cols,"ACA")
-  }
-  if(2 %in% models){
-    cols = c(cols,"GB")
-  }
-  if(3 %in% models){
-    cols = c(cols,"GB-ACA")
-  }
-  if(4 %in% models){
-    cols = c(cols,"ACA2")
-  }
-  if(5 %in% models){
-    cols = c(cols,"ACA3")
-  }
-  
-  colnames(mat_res) =  c("window",cols)
-  
-  iter=1
-  
-  for(window in c(2,seq(5, 100, by = 5))){
-    
-    mat_res[iter,1]=window
-    
-    empProbMat <- getEmpProbMat(generated_data,window=window,sim=sim)
 
-    if(1 %in% models){
-      acamse = acaMse(Hinit1, generated_data, sim=sim, start_index, end_index,empProbMat)
-      mat_res[iter,"ACA"]=acamse$mse
-    }
-    if(2 %in% models){
-      gbmse = gbMse(Hinit1, generated_data, sim=sim, start_index, end_index,empProbMat)
-      mat_res[iter,"GB"]=gbmse$mse
-    }
-    if(3 %in% models){
-      gbacamse = gbAcaMse(Hinit1, generated_data, sim=1, start_index, end_index,empProbMat)
-      mat_res[iter,"GB-ACA"]=gbacamse$mse
-    }
-    if(4 %in% models){
-      aca2mse = aca2Mse(Hinit1, generated_data, sim=sim, start_index, end_index,empProbMat)
-      mat_res[iter,"ACA2"]=aca2mse$mse
-    }
-    if(5 %in% models){
-      aca3mse = aca3Mse(Hinit1, generated_data, sim=sim, start_index, end_index,empProbMat)
-      mat_res[iter,"ACA3"]=aca3mse$mse
-    }
-    
-    iter=iter+1
-    
-  }
-  
-  plot(mat_res[1:21,3],type='l',xaxt = "n", xlab="Window size", ylab="MSE")
-  axis(1, at=1:21, labels=mat_res[1:21,1])
-  lines(mat_res[1:21,2],type='l',col='red')
-  lines(mat_res[1:21,4],type='l',col='blue')
-  lines(mat_res[1:21,4],type='l',col='green')
-  lines(mat_res[1:21,4],type='l',col='blue')
-  lines(mat_res[1:21,5],type='l',col='green')
-  legend("topright", legend=c("MSE GB", "MSE ACA","MSE ACA2","MSE ACA3"),col=c("black","red","blue","green"),cex=0.6,lty = c(1,1,1,1))
-  
-  return(mat_res)
-}

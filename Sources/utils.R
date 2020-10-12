@@ -29,7 +29,7 @@ getPathNumber=function(path){
     pathnb = 2
   }else if(grepl("^f.*g.*a.*k.*j.*i$",path)){
     pathnb = 3
-  }else if(grepl("^j.*i$",path)||grepl("^h.*i$",path)){
+  }else if(grepl("^j.*i$",path)){
     pathnb = 5
   }else if(grepl("^f.*g.*a.*b.*c.*h.*i$",path)){
     pathnb = 4
@@ -39,7 +39,7 @@ getPathNumber=function(path){
     pathnb = 2
   }else if(grepl("^j.*k.*a.*g.*f.*e$",path)){
     pathnb = 3
-  }else if(grepl("^f.*e$",path)||grepl("^d.*e$",path)){
+  }else if(grepl("^f.*e$",path)){
     pathnb = 5
   }else if(grepl("^j.*k.*a.*b.*c.*d.*e$",path)){
     pathnb = 4

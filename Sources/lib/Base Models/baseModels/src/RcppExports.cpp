@@ -146,6 +146,64 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getBoxTimes
+arma::vec getBoxTimes(arma::vec enregPosTimes, Rcpp::IntegerVector rleLengths);
+RcppExport SEXP _baseModels_getBoxTimes(SEXP enregPosTimesSEXP, SEXP rleLengthsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type enregPosTimes(enregPosTimesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type rleLengths(rleLengthsSEXP);
+    rcpp_result_gen = Rcpp::wrap(getBoxTimes(enregPosTimes, rleLengths));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurns
+Rcpp::StringVector getTurns(int path, int state);
+RcppExport SEXP _baseModels_getTurns(SEXP pathSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurns(path, state));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnString
+std::string getTurnString(int turnNb);
+RcppExport SEXP _baseModels_getTurnString(SEXP turnNbSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type turnNb(turnNbSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnString(turnNb));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnIdx
+int getTurnIdx(std::string turn);
+RcppExport SEXP _baseModels_getTurnIdx(SEXP turnSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type turn(turnSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnIdx(turn));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnTimes
+arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes);
+RcppExport SEXP _baseModels_getTurnTimes(SEXP allpathsSEXP, SEXP boxTimesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::CharacterMatrix >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type boxTimes(boxTimesSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnTimes(allpaths, boxTimes));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_baseModels_simulateTrials", (DL_FUNC) &_baseModels_simulateTrials, 6},
@@ -159,6 +217,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_baseModels_empiricalProbMat", (DL_FUNC) &_baseModels_empiricalProbMat, 2},
     {"_baseModels_mseEmpirical", (DL_FUNC) &_baseModels_mseEmpirical, 4},
     {"_baseModels_pathProbability", (DL_FUNC) &_baseModels_pathProbability, 3},
+    {"_baseModels_getBoxTimes", (DL_FUNC) &_baseModels_getBoxTimes, 2},
+    {"_baseModels_getTurns", (DL_FUNC) &_baseModels_getTurns, 2},
+    {"_baseModels_getTurnString", (DL_FUNC) &_baseModels_getTurnString, 1},
+    {"_baseModels_getTurnIdx", (DL_FUNC) &_baseModels_getTurnIdx, 1},
+    {"_baseModels_getTurnTimes", (DL_FUNC) &_baseModels_getTurnTimes, 2},
     {NULL, NULL, 0}
 };
 

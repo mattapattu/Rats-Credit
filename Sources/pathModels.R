@@ -42,6 +42,7 @@ comparePathModels=function(enreg,rat, window){
   allpaths = cbind(allpaths,y)
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
 
+  
   #### Holdout Validation ########################################
   endLearningStage = getEndIndex(allpaths_num)
   Hinit = genInitValues(allpaths_num,sim=2)

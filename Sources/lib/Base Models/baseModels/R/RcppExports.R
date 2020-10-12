@@ -45,3 +45,23 @@ pathProbability <- function(allpaths, probMatrix_m1, sim) {
     .Call(`_baseModels_pathProbability`, allpaths, probMatrix_m1, sim)
 }
 
+getBoxTimes <- function(enregPosTimes, rleLengths) {
+    .Call(`_baseModels_getBoxTimes`, enregPosTimes, rleLengths)
+}
+
+getTurns <- function(path, state) {
+    .Call(`_baseModels_getTurns`, path, state)
+}
+
+getTurnString <- function(turnNb) {
+    .Call(`_baseModels_getTurnString`, turnNb)
+}
+
+getTurnIdx <- function(turn) {
+    .Call(`_baseModels_getTurnIdx`, turn)
+}
+
+getTurnTimes <- function(allpaths, boxTimes) {
+    .Call(`_baseModels_getTurnTimes`, allpaths, boxTimes)
+}
+

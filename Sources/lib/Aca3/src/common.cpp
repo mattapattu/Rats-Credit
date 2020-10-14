@@ -79,6 +79,21 @@ inline double softmax_cpp3(int A,int S,arma::mat H){
   return(pr_A);
 }
 
+inline double episolonGreedyProb(int A,int S,arma::mat H,double epsilon){
+  //Rcpp::Rcout <<  "S="<< S<<std::endl;
+  arma::rowvec v = H.row(S);
+  //Rcpp::Rcout <<  v<< std::endl;
+  double m=arma::max(v);
+  double pr_A = 0;
+  if(m==H(S,A)){
+    pr_A = 1 - epsilon + epsilon/6;
+  }else{
+    pr_A = 1/6;
+  }
+  
+  return(pr_A);
+}
+
 int aca_getNextState(int curr_state,int action){
   int new_state=-1;
   if(action == 4){
@@ -111,6 +126,45 @@ int softmax_action_sel(arma::mat H,int S){
 
 }
 
+int epsGreedyActionSel(arma::mat H, int S, double epsilon){
+
+  // Rcpp::Rcout <<"S="<<S<<", H="<<H<<std::endl;
+  arma::rowvec v = H.row(S);
+  //Rcpp::Rcout <<"m="<<m<<", v="<<v<<std::endl;
+
+  arma::uword max_idx = v.index_max();
+  arma::vec probVector(6);
+  probVector.fill(epsilon/6);
+  probVector(max_idx) = epsilon/6 + 1-epsilon;
+  IntegerVector actions = seq(0, 5);
+  int action_selected = Rcpp::RcppArmadillo::sample(actions, 1, true, probVector)[0] ;
+  //Rcpp::Rcout <<"action_selected="<<action_selected<<std::endl;
+
+  return(action_selected);
+
+}
+
+
+int actionSelection(arma::mat H, int S, int method, double epsilon=0){
+  int selected_action = -1;
+  if(method == 1){
+    selected_action = softmax_action_sel(H, S);
+  }else if(method == 2){
+    selected_action = epsGreedyActionSel(H, S, epsilon);
+  }
+  return(selected_action);
+}
+
+double actionProb(int A, int S, arma::mat H, int method, double epsilon=0){
+  double actionProb = -1;
+  if(method == 1){
+    actionProb = softmax_cpp3(A, S, H);
+  }else if(method == 2){
+    actionProb = episolonGreedyProb(A, S, H, epsilon);
+  }
+  return(actionProb);
+}
+
 arma::mat updateCreditMatrix(arma::mat H,arma::vec actions, arma::vec states, arma::vec time_taken_for_trial,  double alpha,float score_episode,double avg_score, arma::mat activityMatrix, int model){
 
   if(model == 5){
@@ -122,7 +176,7 @@ arma::mat updateCreditMatrix(arma::mat H,arma::vec actions, arma::vec states, ar
 
 
 // [[Rcpp::export()]]
-arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, double gamma,int total_trials,int init_state, int model){
+arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, double gamma,int total_trials,int init_state, int model, int policyMethod, double epsilon =0){
   //arma::mat H = arma::zeros(2,6);
   //H(0,0)=3;
   //H(1,0)=3;
@@ -159,7 +213,11 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, double g
     //Rcpp::Rcout <<"i="<<i<<", S="<<S<<", H="<<H<<std::endl;
 
 
-    A=softmax_action_sel(H,S);
+   if(policyMethod == 1){
+      A = actionSelection(H,S,1);
+    }else if(policyMethod == 2){
+      A = actionSelection(H,S,1,epsilon);
+    }
     //Rcpp::Rcout <<"i="<<i<<", A="<<A<<", S="<<S<<std::endl;
 
     score_episode = score_episode + R(S,A);
@@ -237,7 +295,7 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, double g
 }
 
 // [[Rcpp::export()]]
-arma::vec getPathLikelihood(arma::mat allpaths,double alpha, double gamma,  arma::mat H, int sim, int model){
+arma::vec getPathLikelihood(arma::mat allpaths,double alpha, double gamma,  arma::mat H, int sim, int model, int policyMethod, double epsilon =0){
 
   int nrow = allpaths.n_rows;
   if(sim !=1){
@@ -301,7 +359,12 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, double gamma,  arma
     }else if(S_prime==initState && changeState){
       returnToInitState = true;
     }
-    double prob_a = softmax_cpp3(A,S,H);
+    double prob_a = 0;
+    if(policyMethod == 1){
+      prob_a = actionProb(A, S, H, 1);
+    }else if(policyMethod == 2){
+      prob_a = actionProb(A, S, H, 1, epsilon);
+    }
     double logProb = log(prob_a);
     mseMatrix(i)=logProb;
     //log_lik=log_lik+ logProb;
@@ -368,7 +431,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, double gamma,  arma
 }
 
 // [[Rcpp::export()]]
-arma::mat getProbMatrix(arma::mat allpaths,double alpha, double gamma, arma::mat H,int sim, int model){
+arma::mat getProbMatrix(arma::mat allpaths,double alpha, double gamma, arma::mat H,int sim, int model, int policyMethod, double epsilon =0){
   //int sim=1;
   int episode=1;
   int nrow = allpaths.n_rows;
@@ -425,7 +488,12 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha, double gamma, arma::mat
       probMatrix_aca.submat(i,6,i,11)=arma::zeros(1,6);
       //Rcpp::Rcout << "probMatrix_aca="<< probMatrix_aca << std::endl;
       for(int act=0;act<6;act++){
-        double x = softmax_cpp3(act,0,H);
+        double x = 0;
+        if(policyMethod == 1){
+          x = actionProb(act, 0, H, 1);
+        }else if(policyMethod == 2){
+          x = actionProb(act, 0, H, 1, epsilon);
+        }
         probMatrix_aca(i,act)=x;
       }
     }else if(S==1){
@@ -433,7 +501,12 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha, double gamma, arma::mat
       probMatrix_aca.submat(i,0,i,5)=arma::zeros(1,6);
       //Rcpp::Rcout << "probMatrix_aca="<< probMatrix_aca << std::endl;
       for(int act=0;act<6;act++){
-        double x = softmax_cpp3(act,1,H);
+        double x = 0;
+        if(policyMethod == 1){
+          x = actionProb(act, 1, H, 1);
+        }else if(policyMethod == 2){
+          x = actionProb(act, 1, H, 1, epsilon);
+        }
         probMatrix_aca(i,(6+act))=x;
       }
     }

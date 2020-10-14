@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // simulateTrials
-arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, int total_trials, int init_state, int model);
-RcppExport SEXP _baseModels_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP total_trialsSEXP, SEXP init_stateSEXP, SEXP modelSEXP) {
+arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, int total_trials, int init_state, int model, int policyMethod, double epsilon);
+RcppExport SEXP _baseModels_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP total_trialsSEXP, SEXP init_stateSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -18,13 +18,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type total_trials(total_trialsSEXP);
     Rcpp::traits::input_parameter< int >::type init_state(init_stateSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, total_trials, init_state, model));
+    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, total_trials, init_state, model, policyMethod, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
 // getPathLikelihood
-arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int sim, int model);
-RcppExport SEXP _baseModels_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP) {
+arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int sim, int model, int policyMethod, double epsilon, int endTrial);
+RcppExport SEXP _baseModels_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP, SEXP endTrialSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -33,13 +35,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(getPathLikelihood(allpaths, alpha, H, sim, model));
+    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< int >::type endTrial(endTrialSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPathLikelihood(allpaths, alpha, H, sim, model, policyMethod, epsilon, endTrial));
     return rcpp_result_gen;
 END_RCPP
 }
 // getProbMatrix
-arma::mat getProbMatrix(arma::mat allpaths, double alpha, arma::mat H, int sim, int model);
-RcppExport SEXP _baseModels_getProbMatrix(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP) {
+arma::mat getProbMatrix(arma::mat allpaths, double alpha, arma::mat H, int sim, int model, int policyMethod, double epsilon, int endTrial);
+RcppExport SEXP _baseModels_getProbMatrix(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP, SEXP endTrialSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -48,7 +53,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, alpha, H, sim, model));
+    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< int >::type endTrial(endTrialSEXP);
+    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, alpha, H, sim, model, policyMethod, epsilon, endTrial));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getEpisodes
+arma::mat getEpisodes(arma::mat allpaths);
+RcppExport SEXP _baseModels_getEpisodes(SEXP allpathsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    rcpp_result_gen = Rcpp::wrap(getEpisodes(allpaths));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -95,15 +114,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getTrialTimes
-arma::vec getTrialTimes(Rcpp::NumericVector allpaths, Rcpp::NumericMatrix enreg_pos);
-RcppExport SEXP _baseModels_getTrialTimes(SEXP allpathsSEXP, SEXP enreg_posSEXP) {
+// getPathTimes
+arma::vec getPathTimes(Rcpp::NumericVector allpaths, Rcpp::NumericMatrix enreg_pos);
+RcppExport SEXP _baseModels_getPathTimes(SEXP allpathsSEXP, SEXP enreg_posSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type allpaths(allpathsSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type enreg_pos(enreg_posSEXP);
-    rcpp_result_gen = Rcpp::wrap(getTrialTimes(allpaths, enreg_pos));
+    rcpp_result_gen = Rcpp::wrap(getPathTimes(allpaths, enreg_pos));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -204,16 +223,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getComputationalActivity
+arma::vec getComputationalActivity(arma::mat allpaths, arma::mat probabilityMatrix);
+RcppExport SEXP _baseModels_getComputationalActivity(SEXP allpathsSEXP, SEXP probabilityMatrixSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type probabilityMatrix(probabilityMatrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(getComputationalActivity(allpaths, probabilityMatrix));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_baseModels_simulateTrials", (DL_FUNC) &_baseModels_simulateTrials, 6},
-    {"_baseModels_getPathLikelihood", (DL_FUNC) &_baseModels_getPathLikelihood, 5},
-    {"_baseModels_getProbMatrix", (DL_FUNC) &_baseModels_getProbMatrix, 5},
+    {"_baseModels_simulateTrials", (DL_FUNC) &_baseModels_simulateTrials, 8},
+    {"_baseModels_getPathLikelihood", (DL_FUNC) &_baseModels_getPathLikelihood, 8},
+    {"_baseModels_getProbMatrix", (DL_FUNC) &_baseModels_getProbMatrix, 8},
+    {"_baseModels_getEpisodes", (DL_FUNC) &_baseModels_getEpisodes, 1},
     {"_baseModels_rcpparma_hello_world", (DL_FUNC) &_baseModels_rcpparma_hello_world, 0},
     {"_baseModels_rcpparma_outerproduct", (DL_FUNC) &_baseModels_rcpparma_outerproduct, 1},
     {"_baseModels_rcpparma_innerproduct", (DL_FUNC) &_baseModels_rcpparma_innerproduct, 1},
     {"_baseModels_rcpparma_bothproducts", (DL_FUNC) &_baseModels_rcpparma_bothproducts, 1},
-    {"_baseModels_getTrialTimes", (DL_FUNC) &_baseModels_getTrialTimes, 2},
+    {"_baseModels_getPathTimes", (DL_FUNC) &_baseModels_getPathTimes, 2},
     {"_baseModels_empiricalProbMat", (DL_FUNC) &_baseModels_empiricalProbMat, 2},
     {"_baseModels_mseEmpirical", (DL_FUNC) &_baseModels_mseEmpirical, 4},
     {"_baseModels_pathProbability", (DL_FUNC) &_baseModels_pathProbability, 3},
@@ -222,6 +254,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_baseModels_getTurnString", (DL_FUNC) &_baseModels_getTurnString, 1},
     {"_baseModels_getTurnIdx", (DL_FUNC) &_baseModels_getTurnIdx, 1},
     {"_baseModels_getTurnTimes", (DL_FUNC) &_baseModels_getTurnTimes, 2},
+    {"_baseModels_getComputationalActivity", (DL_FUNC) &_baseModels_getComputationalActivity, 2},
     {NULL, NULL, 0}
 };
 

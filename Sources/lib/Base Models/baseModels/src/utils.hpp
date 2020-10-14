@@ -8,8 +8,8 @@
 #include <RcppArmadillo.h>
 #include <RcppArmadilloExtensions/sample.h>
 
-inline double softmax_cpp3(int A,int S,arma::mat &H){
-  //Rcpp::Rcout <<  "S="<< S<<std::endl;
+inline double softmax_cpp3(int A,int S,arma::mat H){
+  Rcpp::Rcout <<  "softmax_cpp3"<<std::endl;
   arma::rowvec v = H.row(S);
   //Rcpp::Rcout <<  v<< std::endl;
   double m=arma::max(v);
@@ -77,8 +77,38 @@ inline double softmax_cpp3(int A,int S,arma::mat &H){
   return(pr_A);
 }
 
+
+inline double episolonGreedyProb(int A,int S,arma::mat H,double epsilon){
+  Rcpp::Rcout <<  "episolonGreedyProb"<< ", epsilon=" << epsilon<<std::endl;
+  arma::rowvec v = H.row(S);
+  //Rcpp::Rcout <<  v<< std::endl;
+  double m=arma::max(v);
+  double pr_A = 0;
+  if(m==H(S,A)){
+    pr_A = 1 - epsilon + epsilon/6;
+  }else{
+    pr_A = (float) 1/ (float) 6;
+  }
+  
+  return(pr_A);
+}
+
+inline double softmaxEps(int A,int S,arma::mat H,double epsilon){
+ //Rcpp::Rcout <<  "softmaxEps" << ", epsilon=" << epsilon<<std::endl;
+  arma::rowvec v = H.row(S);
+  float m=arma::max(v);
+   v=exp((v-m)/epsilon);
+  // //Rcpp::Rcout << "m=" << m<< std::endl;
+   double exp_sum  = arma::accu(v) ;
+   v=v/exp_sum;
+   double pr_A=v[A];
+  
+  return(pr_A);
+}
+
+
 // [[Rcpp::export()]]
-arma::vec getTrialTimes(Rcpp::NumericVector allpaths,Rcpp::NumericMatrix enreg_pos){
+arma::vec getPathTimes(Rcpp::NumericVector allpaths,Rcpp::NumericMatrix enreg_pos){
   
   int nrow = allpaths.size();
   //Rcpp::Rcout <<"nrow="<<nrow<<std::endl;
@@ -255,6 +285,7 @@ arma::vec getBoxTimes(arma::vec enregPosTimes, Rcpp::IntegerVector rleLengths){
   return(boxTimes);
 }
 
+
 // [[Rcpp::export]]
 Rcpp::StringVector getTurns(int path, int state){
 
@@ -363,10 +394,10 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes){
   int currBoxIdx = -1;  // Since index starts from 0 
   arma::mat res_mat;
   //Rcpp::Rcout <<  "totalPaths="<< totalPaths<<std::endl;  
-  for(int i = 0; i < 10; i++){
+  for(int i = 0; i < totalPaths; i++){
     std::string path_string = Rcpp::as<std::string>(allpaths(i,2));
     std::string state_string = Rcpp::as<std::string>(allpaths(i,4));
-    Rcpp::Rcout << "i=" << i << ", path_string =" << path_string << " ,path=" <<allpaths(i,0) <<std::endl;  
+    //Rcpp::Rcout << "i=" << i << ", path_string =" << path_string <<std::endl;  
     int path = std::stoi(path_string);
     int state = std::stoi(state_string);
     Rcpp::StringVector turns;
@@ -407,13 +438,14 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes){
              int turnStartIdx = currBoxIdx + m.position(1) + 1;
              int turnEndIdx = currBoxIdx + m.position(1) + m[1].length(); //m[1].length() counts turnStartIdx also
              arma::uvec ids = arma::conv_to<arma::uvec>::from(arma::regspace(turnStartIdx, turnEndIdx));
-             Rcpp::Rcout << "ids=" << ids<<std::endl;
-             double turnTime = arma::accu(boxTimes.elem(ids));
-             Rcpp::Rcout << "i=" << i << ", turn=" << currTurn << ", currBoxIdx =" << currBoxIdx << " ,turnStartIdx=" <<turnStartIdx << ", turnEndIdx=" <<turnEndIdx <<std::endl;   
-             //Rcpp::Rcout << "path=" <<  path << ", state=" << state << std::endl;
              //Rcpp::Rcout << "ids=" << ids<<std::endl;
+             //Rcpp::Rcout << "turn=" << currTurn << ", currBoxIdx =" << currBoxIdx << " ,turnStartIdx=" <<turnStartIdx << ", turnEndIdx=" <<turnEndIdx <<std::endl;   
+             //Rcpp::Rcout << "path=" <<  path << ", state=" << state << std::endl;
+             //Rcpp::Rcout << "ids=" << ids << std::endl;
+             //Rcpp::Rcout << "method=" << method <<", pattern=" <<pattern << ", s=" <<s << ", match = " << m[1] <<std::endl;
+
+             double turnTime = arma::accu(boxTimes.elem(ids));
              //Rcpp::Rcout << "boxTimes=" << boxTimes.elem(ids)<<std::endl;
-             //Rcpp::Rcout << "method=" << method <<", pattern=" <<pattern << ", s=" <<s << ", match = " << m[1] <<  ", turnTime=" << turnTime<<std::endl;
              new_row(4+method) = turnTime;
 
         }else if(method == 1){
@@ -502,8 +534,33 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes){
     currPath.erase(std::remove(currPath.begin(), currPath.end(), ','), currPath.end());
     currPath.erase(std::remove(currPath.begin(), currPath.end(), ' '), currPath.end());
     currBoxIdx  = currBoxIdx + currPath.length();
-    Rcpp::Rcout << "currBoxIdx=" << currBoxIdx << ", currPath.length=" << currPath.length() << std::endl;
+    //Rcpp::Rcout << "currBoxIdx=" << currBoxIdx << ", currPath=" << currPath << ", currPath.length=" << currPath.length() << std::endl;
   }
   return(res_mat);
 }
+
+// [[Rcpp::export]]
+arma::vec getComputationalActivity(arma::mat allpaths, arma::mat probabilityMatrix){
+  arma::vec episodes = allpaths.col(5);
+  int max_episode = arma::max(episodes);
+  //Rcpp::Rcout << "max_episode=" <<max_episode<<std::endl;
+  int last_ep_idx = 0;
+  arma::vec computationalActivity = arma::zeros(max_episode);
+  arma::rowvec means = arma::mean(probabilityMatrix,0);
+  Rcpp::Rcout << "means=" <<means<<std::endl;
+  for(int i=1; i<=(max_episode-1); i++){
+    arma::uvec episodeIdx = arma::find(allpaths.col(5) == i);
+    int episode_end_idx = arma::max(episodeIdx);
+    //Rcpp::Rcout << "episode_end_idx=" <<episode_end_idx<< ", last_ep_idx=" <<last_ep_idx << std::endl;
+    arma::rowvec probDiff = arma::abs(probabilityMatrix.row(episode_end_idx) - probabilityMatrix.row(last_ep_idx));
+    //Rcpp::Rcout << "probDiff=" <<probDiff<<std::endl;
+    probDiff = probDiff/means;
+    probDiff.replace(arma::datum::nan, 0); 
+    computationalActivity(i) = arma::accu(probDiff);
+    //Rcpp::Rcout << "i=" <<i << ", computationalActivity(i)=" <<computationalActivity(i)<<std::endl;
+    last_ep_idx = i;
+  }
+  return(computationalActivity);
+}
+
 #endif

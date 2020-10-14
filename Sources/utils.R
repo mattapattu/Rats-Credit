@@ -338,6 +338,9 @@ getEndIndex = function(generated_data){
 enregCombine=function(enreg,rat){
   allpaths <- matrix("",0,2)
   colnames(allpaths) <- c("Path","Session")
+  boxTimes <- vector()
+  boxcount1 = 0
+  boxcount2 = 0
   ### Loop through all enreg[[ses]] of current rat
   for(ses in 1:length(enreg)){
     
@@ -372,10 +375,16 @@ enregCombine=function(enreg,rat){
     colnames(allpaths_ses) <- c("Path","Session")
     l<-list(allpaths,allpaths_ses)
     allpaths <- rbind(allpaths,allpaths_ses)
-    
+    #boxtime_ses <- baseModels::getBoxTimes(as.numeric(enreg[[ses]]$POS[,1]), r$lengths)
+    #print(sprintf("boxes - times = %i, sess = %i", (length(boxtime_ses)-length(r$values)), ses))
+    #boxcount1  = boxcount1 + (length(boxtime_ses))
+    #k<-gsub(", ", "", toString(allpaths_ses[,1]), fixed = TRUE)
+    #boxcount2  = boxcount2 + nchar(k)                    
+    #print(sprintf("boxCount = %i, boxCount_allpaths = %i, sess = %i", boxcount1,boxcount2,ses))
+    boxTimes <- c(boxTimes, baseModels::getBoxTimes(as.numeric(enreg[[ses]]$POS[,1]), r$lengths))
   }
   
-  return(allpaths)
+  return(list("allpaths" = allpaths, "boxTimes" = boxTimes))
 }
 
 locate_xtrem <- function (x, last = FALSE)

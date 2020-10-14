@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // simulateTrials
-arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, int total_trials, int init_state, int model);
-RcppExport SEXP _Aca2_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP total_trialsSEXP, SEXP init_stateSEXP, SEXP modelSEXP) {
+arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, int total_trials, int init_state, int model, int policyMethod, double epsilon);
+RcppExport SEXP _Aca2_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP total_trialsSEXP, SEXP init_stateSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -18,13 +18,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type total_trials(total_trialsSEXP);
     Rcpp::traits::input_parameter< int >::type init_state(init_stateSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, total_trials, init_state, model));
+    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, total_trials, init_state, model, policyMethod, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
 // getPathLikelihood
-arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int sim, int model);
-RcppExport SEXP _Aca2_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP) {
+arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int sim, int model, int policyMethod, double epsilon);
+RcppExport SEXP _Aca2_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -33,13 +35,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(getPathLikelihood(allpaths, alpha, H, sim, model));
+    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPathLikelihood(allpaths, alpha, H, sim, model, policyMethod, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
 // getProbMatrix
-arma::mat getProbMatrix(arma::mat allpaths, double alpha, arma::mat H, int sim, int model);
-RcppExport SEXP _Aca2_getProbMatrix(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP) {
+arma::mat getProbMatrix(arma::mat allpaths, double alpha, arma::mat H, int sim, int model, int policyMethod, double epsilon);
+RcppExport SEXP _Aca2_getProbMatrix(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -48,7 +52,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, alpha, H, sim, model));
+    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, alpha, H, sim, model, policyMethod, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -97,9 +103,9 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_Aca2_simulateTrials", (DL_FUNC) &_Aca2_simulateTrials, 6},
-    {"_Aca2_getPathLikelihood", (DL_FUNC) &_Aca2_getPathLikelihood, 5},
-    {"_Aca2_getProbMatrix", (DL_FUNC) &_Aca2_getProbMatrix, 5},
+    {"_Aca2_simulateTrials", (DL_FUNC) &_Aca2_simulateTrials, 8},
+    {"_Aca2_getPathLikelihood", (DL_FUNC) &_Aca2_getPathLikelihood, 7},
+    {"_Aca2_getProbMatrix", (DL_FUNC) &_Aca2_getProbMatrix, 7},
     {"_Aca2_rcpparma_hello_world", (DL_FUNC) &_Aca2_rcpparma_hello_world, 0},
     {"_Aca2_rcpparma_outerproduct", (DL_FUNC) &_Aca2_rcpparma_outerproduct, 1},
     {"_Aca2_rcpparma_innerproduct", (DL_FUNC) &_Aca2_rcpparma_innerproduct, 1},

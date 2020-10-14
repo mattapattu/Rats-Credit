@@ -140,6 +140,16 @@ add.box.to.pos=function(ses,enreg,spolygons){
     }
   }
   
+  ## For all "unk" points, (e.g. rat_103,ses33(1:5) - no previous points) - assign to nearest box ( box b in this case)
+  unknowns <- which(enreg[[ses]]$POS[,"boxname"] == "unk")
+  for(idx in unknowns){
+    spts = SpatialPoints(cbind(as.numeric(enreg[[ses]]$POS[idx,2]),as.numeric(enreg[[ses]]$POS[idx,3])))
+    boxId = which.min(gDistance(spts,spolygons,byid=TRUE))
+    boxname = convertToLetter(toString(boxId))
+    enreg[[ses]]$POS[idx,"boxname"] = boxname
+  }
+                    
+  
   # enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric((g[seq_along(g)-1]=="i"| g[seq_along(g)-1]=="e") & g[-1] != g[-length(g)])))
   enreg=add.trial.to.pos(enreg,ses)
   

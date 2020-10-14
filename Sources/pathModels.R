@@ -8,7 +8,9 @@ library(Aca3)
 ### Use optimal paramters on actual data and compute Mean Squared Error.
 comparePathModels=function(enreg,rat, window){
   
-  allpaths = enregCombine(enreg, rat)
+  enregres = enregCombine(enreg, rat)
+  allpaths = enregres$allpaths
+  boxTimes = enregres$boxTimes
   allpaths = updateACAPathNbmse(allpaths)
   print(sprintf("rat:%s",rat))
 
@@ -38,7 +40,7 @@ comparePathModels=function(enreg,rat, window){
   }
   
   l = cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
-  y = baseModels::getTrialTimes(as.numeric(allpaths[,2]),l)
+  y = baseModels::getPathTimes(as.numeric(allpaths[,2]),l)
   allpaths = cbind(allpaths,y)
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
 

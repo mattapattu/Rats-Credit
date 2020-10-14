@@ -2,20 +2,17 @@ setClass("Action",
          slots = list(
            action="numeric",
            empActivity = "vector",
-           modelActivity = "vector",
-           activityErr = "vector"
-           )
-)
+           modelActivity = "vector")
+          )
 
 
 setClass("Model", 
          slots = list(
            Name = "character", 
            Params_lik = "list",
-           Params_activity = "list",
-           Actions="list",
            Metrics ="list",
            ProbMatrix = "matrix")
+           
 )
 
 

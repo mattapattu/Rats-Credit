@@ -59,7 +59,7 @@ getActionData = function(generated_data, model_probMatrix, start_index, end_inde
       
       activityErr = (modelActivity - empActivity )
       
-      action <- new("Action", action = (6*(state-1)+act), empActivity = empActivity, modelActivity = modelActivity, activityErr = activityErr)
+      action <- new("Action", action = (6*(state-1)+act), empActivity = empActivity, modelActivity = modelActivity)
       Actions = append(Actions,action)
       
      

@@ -9,7 +9,7 @@
 #include <RcppArmadilloExtensions/sample.h>
 
 inline double softmax_cpp3(int A,int S,arma::mat H){
-  Rcpp::Rcout <<  "softmax_cpp3"<<std::endl;
+  //Rcpp::Rcout <<  "softmax_cpp3"<<std::endl;
   arma::rowvec v = H.row(S);
   //Rcpp::Rcout <<  v<< std::endl;
   double m=arma::max(v);
@@ -547,7 +547,7 @@ arma::vec getComputationalActivity(arma::mat allpaths, arma::mat probabilityMatr
   int last_ep_idx = 0;
   arma::vec computationalActivity = arma::zeros(max_episode);
   arma::rowvec means = arma::mean(probabilityMatrix,0);
-  Rcpp::Rcout << "means=" <<means<<std::endl;
+  //Rcpp::Rcout << "means=" <<means<<std::endl;
   for(int i=1; i<=(max_episode-1); i++){
     arma::uvec episodeIdx = arma::find(allpaths.col(5) == i);
     int episode_end_idx = arma::max(episodeIdx);

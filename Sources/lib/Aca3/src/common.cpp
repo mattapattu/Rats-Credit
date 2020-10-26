@@ -216,7 +216,7 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, double g
    if(policyMethod == 1){
       A = actionSelection(H,S,1);
     }else if(policyMethod == 2){
-      A = actionSelection(H,S,1,epsilon);
+      A = actionSelection(H,S,2,epsilon);
     }
     //Rcpp::Rcout <<"i="<<i<<", A="<<A<<", S="<<S<<std::endl;
 
@@ -350,7 +350,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, double gamma,  arma
     }
 
     if(sim !=1){
-      allpaths(i,4)=episode;
+      allpaths(i,5)=episode;
     }
 
 
@@ -363,7 +363,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, double gamma,  arma
     if(policyMethod == 1){
       prob_a = actionProb(A, S, H, 1);
     }else if(policyMethod == 2){
-      prob_a = actionProb(A, S, H, 1, epsilon);
+      prob_a = actionProb(A, S, H, 2, epsilon);
     }
     double logProb = log(prob_a);
     mseMatrix(i)=logProb;
@@ -376,7 +376,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, double gamma,  arma
       returnToInitState = false;
 
 
-      arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
+      arma::uvec episodeIdx = arma::find(allpaths.col(5) == (episode));
       arma::vec allpath_actions = allpaths.col(0);
       arma::vec actions=allpath_actions.elem(episodeIdx);
 
@@ -481,7 +481,7 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha, double gamma, arma::mat
     }
 
     if(sim !=1){
-      allpaths(i,4)=episode;
+      allpaths(i,5)=episode;
     }
 
     if(S==0){
@@ -492,7 +492,7 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha, double gamma, arma::mat
         if(policyMethod == 1){
           x = actionProb(act, 0, H, 1);
         }else if(policyMethod == 2){
-          x = actionProb(act, 0, H, 1, epsilon);
+          x = actionProb(act, 0, H, 2, epsilon);
         }
         probMatrix_aca(i,act)=x;
       }
@@ -505,7 +505,7 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha, double gamma, arma::mat
         if(policyMethod == 1){
           x = actionProb(act, 1, H, 1);
         }else if(policyMethod == 2){
-          x = actionProb(act, 1, H, 1, epsilon);
+          x = actionProb(act, 1, H, 2, epsilon);
         }
         probMatrix_aca(i,(6+act))=x;
       }
@@ -526,7 +526,7 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha, double gamma, arma::mat
 
 
 
-      arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
+      arma::uvec episodeIdx = arma::find(allpaths.col(5) == (episode));
       arma::vec allpath_actions = allpaths.col(0);
       arma::vec actions=allpath_actions.elem(episodeIdx);
 

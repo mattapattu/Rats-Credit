@@ -357,7 +357,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, arma::mat H,int sim
     }
 
     if(sim !=1){
-      allpaths(i,4)=episode;
+      allpaths(i,5)=episode;
     }
 
 
@@ -383,7 +383,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, arma::mat H,int sim
       returnToInitState = false;
 
 
-      arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
+      arma::uvec episodeIdx = arma::find(allpaths.col(5) == (episode));
       arma::vec allpath_actions = allpaths.col(0);
       arma::vec actions=allpath_actions.elem(episodeIdx);
 
@@ -489,7 +489,7 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha,arma::mat H,int sim, int
     }
 
     if(sim !=1){
-      allpaths(i,4)=episode;
+      allpaths(i,5)=episode;
     }
 
     if(S==0){
@@ -534,7 +534,7 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha,arma::mat H,int sim, int
 
 
 
-      arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
+      arma::uvec episodeIdx = arma::find(allpaths.col(5) == (episode));
       arma::vec allpath_actions = allpaths.col(0);
       arma::vec actions=allpath_actions.elem(episodeIdx);
 

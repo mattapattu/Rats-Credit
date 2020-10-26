@@ -206,8 +206,8 @@ boxplotMse = function(mat_res, model,rat){
     jpeg(paste("boxplot_ACA3_",rat,".jpeg",sep=""))
   }
   
-  boxplot(as.numeric(mat_res[,1]),as.numeric(mat_res[,3]),xaxt="n")
-  axis(side=1, at=c(1,2), labels = c("ACA","GB"))
+  boxplot(as.numeric(mat_res[,1]),as.numeric(mat_res[,3]),as.numeric(mat_res[,5]), as.numeric(mat_res[,7]), xaxt="n")
+  axis(side=1, at=c(1,2,3,4), labels = c("ACA","GB", "ACA2", "ACA3"))
   dev.off()
 }
 

@@ -29,6 +29,7 @@ getModelData = function(generated_data, models, window, sim){
   }
   
   Hinit1 <-genInitValues(generated_data,sim=sim)
+  Qinit <-genInitValues(generated_data,sim=sim)
   #empProbMat <- getEmpProbMat(generated_data,window=window,sim=sim)
   
   
@@ -39,6 +40,7 @@ getModelData = function(generated_data, models, window, sim){
   gbacamse = list()
   aca2mse = list()
   aca3mse = list()
+  sarsa = list()
   
   if(1 %in% models){
     acamse = acaData(Hinit1, generated_data, sim=sim, start_index, end_index, window)
@@ -55,6 +57,9 @@ getModelData = function(generated_data, models, window, sim){
   if(5 %in% models){
     aca3mse = aca3Data(Hinit1, generated_data, sim=sim, start_index, end_index, window)
   }
+  # if(6 %in% models){
+  #   sarsa = sarsaData(Qinit, generated_data, sim=sim, start_index, end_index, window)
+  # }
   
   
   return(list("acamse"=acamse,"gbmse"=gbmse,"gbacamse"=gbacamse, "aca2mse"=aca2mse, "aca3mse"=aca3mse))
@@ -62,7 +67,7 @@ getModelData = function(generated_data, models, window, sim){
 }
 
 
-validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window){
+validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat){
   validated = TRUE
   alpha=0
   gamma=0
@@ -79,7 +84,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window){
     }
     
     mat_res = matrix(0,nrow=100,ncol=(2*length(models)+1))
-    colnames(mat_res) = c("ACA MSE","ACA bestval","GB MSE","GB bestval","ACA2 MSE","ACA2 bestval","Selected Model")
+    colnames(mat_res) = c("ACA loglikhood","ACA bestval","GB loglikhood","GB bestval","ACA2 loglikhood","ACA2 bestval","ACA3 loglikhood","ACA3 bestval", "Selected Model")
     iter = 1
     start_index = 0
     end_index = 0
@@ -89,11 +94,11 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window){
       init_state = as.numeric(allpaths_num[1,2])-1
       
       if(model == 1 || model == 2 || model == 3){
-        generated_data = baseModels::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials, init_state, model=model)
+        generated_data = baseModels::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials, init_state, model=model, policyMethod=1)
       }else if(model == 4){
-        generated_data = Aca2::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials,init_state, model=model)
+        generated_data = Aca2::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials,init_state, model=model, policyMethod=1)
       }else if(model == 5){
-        generated_data = Aca3::simulateTrials(allpaths_num, H=Hinit, alpha, gamma, total_trials, init_state, model=model)
+        generated_data = Aca3::simulateTrials(allpaths_num, H=Hinit, alpha, gamma, total_trials, init_state, model=model, policyMethod=1)
       }
       
       
@@ -107,23 +112,26 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window){
         next
       }
       
-      res = modelCompare(generated_data, models, window = window, sim=1)
+      res = getModelData(generated_data, models, window = window, sim=1)
       
       min_index = 0
       min = 100000
       for(m in models){
-        mat_res[iter,m]=res[[m]]$mse
-        mat_res[iter,(m+1)]=res[[m]]$alpha
-        if(res[[m]]$mse < min){
-          min = res[[m]]$mse
+        m_idx = 2*which(m == models)-1
+        mat_res[iter,m_idx]=res[[m]]@Metrics$likelihood
+        mat_res[iter,(m_idx+1)]=res[[m]]@Params_lik$alpha[[1]]
+        if(res[[m]]@Metrics$likelihood < min){
+          min = res[[m]]@Metrics$likelihood
           min_index = m
         }
       }
       
-      mat_res[iter,(2*length(models)+1)]= res[[min_index]]$model
+      
+      mat_res[iter,(2*length(models)+1)]= res[[min_index]]@Name
       iter=iter+1
     }
     
+    save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
     print(sprintf("Nb of iterations where optimal behaviour was not learned=%i", missedOptimalIter))
     
     boxplotMse(mat_res,model,rat)

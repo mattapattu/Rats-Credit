@@ -103,7 +103,7 @@ arma::mat updateCreditMatrix(arma::mat H,arma::vec actions, arma::vec states, ar
 
 
 // [[Rcpp::export()]]
-arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha,int total_trials,int init_state, int model, int policyMethod, double epsilon){
+arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha,int total_trials,int init_state, int model, int policyMethod, double epsilon=0){
   //arma::mat H = arma::zeros(2,6);
   //H(0,0)=3;
   //H(1,0)=3;
@@ -228,7 +228,7 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha,int total
 }
 
 // [[Rcpp::export()]]
-arma::vec getPathLikelihood(arma::mat allpaths,double alpha, arma::mat H,int sim, int model, int policyMethod, double epsilon, int endTrial){
+arma::vec getPathLikelihood(arma::mat allpaths,double alpha, arma::mat H,int sim, int model, int policyMethod, double epsilon=0, int endTrial=0){
   //Rcpp::Rcout << "endTrial=" <<endTrial<< ", policyMethod=" <<policyMethod <<", epsilon="<<epsilon<<std::endl;
   int nrow = allpaths.n_rows;
   if(sim !=1){
@@ -283,7 +283,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, arma::mat H,int sim
     }
 
     if(sim !=1){
-      allpaths(i,4)=episode;
+      allpaths(i,5)=episode;
     }
 
 
@@ -314,7 +314,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, arma::mat H,int sim
       returnToInitState = false;
 
 
-      arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
+      arma::uvec episodeIdx = arma::find(allpaths.col(5) == (episode));
       arma::vec allpath_actions = allpaths.col(0);
       arma::vec actions=allpath_actions.elem(episodeIdx);
 
@@ -368,7 +368,7 @@ arma::vec getPathLikelihood(arma::mat allpaths,double alpha, arma::mat H,int sim
 }
 
 // [[Rcpp::export()]]
-arma::mat getProbMatrix(arma::mat allpaths,double alpha,arma::mat H,int sim, int model, int policyMethod, double epsilon, int endTrial){
+arma::mat getProbMatrix(arma::mat allpaths,double alpha,arma::mat H,int sim, int model, int policyMethod, double epsilon=0, int endTrial=0){
   //int sim=1;
   int episode=1;
   int nrow = allpaths.n_rows;
@@ -418,7 +418,7 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha,arma::mat H,int sim, int
     }
 
     if(sim !=1){
-      allpaths(i,4)=episode;
+      allpaths(i,5)=episode;
     }
 
     if(S==0){
@@ -469,7 +469,7 @@ arma::mat getProbMatrix(arma::mat allpaths,double alpha,arma::mat H,int sim, int
 
 
 
-      arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
+      arma::uvec episodeIdx = arma::find(allpaths.col(5) == (episode));
       arma::vec allpath_actions = allpaths.col(0);
       arma::vec actions=allpath_actions.elem(episodeIdx);
 

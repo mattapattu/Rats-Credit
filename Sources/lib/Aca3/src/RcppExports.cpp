@@ -26,20 +26,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // getPathLikelihood
-arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, arma::mat H, int sim, int model, int policyMethod, double epsilon);
-RcppExport SEXP _Aca3_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
+arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int sim, int model, int policyMethod, double epsilon, int endTrial);
+RcppExport SEXP _Aca3_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP, SEXP endTrialSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
     Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(getPathLikelihood(allpaths, alpha, gamma, H, sim, model, policyMethod, epsilon));
+    Rcpp::traits::input_parameter< int >::type endTrial(endTrialSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPathLikelihood(allpaths, alpha, H, sim, model, policyMethod, epsilon, endTrial));
     return rcpp_result_gen;
 END_RCPP
 }

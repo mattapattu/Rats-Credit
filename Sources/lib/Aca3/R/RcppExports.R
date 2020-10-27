@@ -5,8 +5,8 @@ simulateTrials <- function(allpaths, H, alpha, gamma, total_trials, init_state, 
     .Call(`_Aca3_simulateTrials`, allpaths, H, alpha, gamma, total_trials, init_state, model, policyMethod, epsilon)
 }
 
-getPathLikelihood <- function(allpaths, alpha, gamma, H, sim, model, policyMethod, epsilon = 0) {
-    .Call(`_Aca3_getPathLikelihood`, allpaths, alpha, gamma, H, sim, model, policyMethod, epsilon)
+getPathLikelihood <- function(allpaths, alpha, H, sim, model, policyMethod, epsilon = 0, endTrial = 0L) {
+    .Call(`_Aca3_getPathLikelihood`, allpaths, alpha, H, sim, model, policyMethod, epsilon, endTrial)
 }
 
 getProbMatrix <- function(allpaths, alpha, gamma, H, sim, model, policyMethod, epsilon = 0) {

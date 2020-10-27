@@ -256,7 +256,7 @@ arma::vec getBoxTimes(arma::vec enregPosTimes, Rcpp::IntegerVector rleLengths){
 }
 
 // [[Rcpp::export]]
-Rcpp::StringVector getTurns(int path, int state){
+Rcpp::StringVector getTurnsFromPaths(int path, int state){
 
   Rcpp::StringVector turns;
   if(state == 1){
@@ -370,7 +370,7 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes){
     int path = std::stoi(path_string);
     int state = std::stoi(state_string);
     Rcpp::StringVector turns;
-    turns = getTurns(path,state);
+    turns = getTurnsFromPaths(path,state);
     int nbOfTurns = turns.length();
     //Rcpp::Rcout << "i=" << i << ", path =" << path << " ,state=" <<state <<std::endl;  
     //Rcpp::Rcout << "turns=" << turns << std::endl;  

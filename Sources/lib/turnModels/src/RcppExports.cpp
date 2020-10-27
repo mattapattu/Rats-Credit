@@ -6,6 +6,52 @@
 
 using namespace Rcpp;
 
+// simulateTrials
+arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, int total_trials, int init_state, int model);
+RcppExport SEXP _turnModels_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP total_trialsSEXP, SEXP init_stateSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< int >::type total_trials(total_trialsSEXP);
+    Rcpp::traits::input_parameter< int >::type init_state(init_stateSEXP);
+    Rcpp::traits::input_parameter< int >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, total_trials, init_state, model));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnsLikelihood
+arma::vec getTurnsLikelihood(arma::mat allpaths, double alpha, arma::vec H, int sim, int model);
+RcppExport SEXP _turnModels_getTurnsLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type H(HSEXP);
+    Rcpp::traits::input_parameter< int >::type sim(simSEXP);
+    Rcpp::traits::input_parameter< int >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnsLikelihood(allpaths, alpha, H, sim, model));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getProbMatrix
+arma::mat getProbMatrix(arma::mat allpaths, double alpha, arma::mat H, int sim, int model);
+RcppExport SEXP _turnModels_getProbMatrix(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
+    Rcpp::traits::input_parameter< int >::type sim(simSEXP);
+    Rcpp::traits::input_parameter< int >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, alpha, H, sim, model));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcpparma_hello_world
 arma::mat rcpparma_hello_world();
 RcppExport SEXP _turnModels_rcpparma_hello_world() {
@@ -49,12 +95,133 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getTrialTimes
+arma::vec getTrialTimes(Rcpp::NumericVector allpaths, Rcpp::NumericMatrix enreg_pos);
+RcppExport SEXP _turnModels_getTrialTimes(SEXP allpathsSEXP, SEXP enreg_posSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type enreg_pos(enreg_posSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTrialTimes(allpaths, enreg_pos));
+    return rcpp_result_gen;
+END_RCPP
+}
+// empiricalProbMat
+arma::mat empiricalProbMat(arma::mat allpaths, int window);
+RcppExport SEXP _turnModels_empiricalProbMat(SEXP allpathsSEXP, SEXP windowSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< int >::type window(windowSEXP);
+    rcpp_result_gen = Rcpp::wrap(empiricalProbMat(allpaths, window));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mseEmpirical
+arma::vec mseEmpirical(arma::mat allpaths, arma::mat probMatrix_m1, arma::vec movAvg, int sim);
+RcppExport SEXP _turnModels_mseEmpirical(SEXP allpathsSEXP, SEXP probMatrix_m1SEXP, SEXP movAvgSEXP, SEXP simSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type probMatrix_m1(probMatrix_m1SEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type movAvg(movAvgSEXP);
+    Rcpp::traits::input_parameter< int >::type sim(simSEXP);
+    rcpp_result_gen = Rcpp::wrap(mseEmpirical(allpaths, probMatrix_m1, movAvg, sim));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pathProbability
+arma::vec pathProbability(arma::mat allpaths, arma::mat probMatrix_m1, int sim);
+RcppExport SEXP _turnModels_pathProbability(SEXP allpathsSEXP, SEXP probMatrix_m1SEXP, SEXP simSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type probMatrix_m1(probMatrix_m1SEXP);
+    Rcpp::traits::input_parameter< int >::type sim(simSEXP);
+    rcpp_result_gen = Rcpp::wrap(pathProbability(allpaths, probMatrix_m1, sim));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getBoxTimes
+arma::vec getBoxTimes(arma::vec enregPosTimes, Rcpp::IntegerVector rleLengths);
+RcppExport SEXP _turnModels_getBoxTimes(SEXP enregPosTimesSEXP, SEXP rleLengthsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type enregPosTimes(enregPosTimesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type rleLengths(rleLengthsSEXP);
+    rcpp_result_gen = Rcpp::wrap(getBoxTimes(enregPosTimes, rleLengths));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnsFromPaths
+Rcpp::StringVector getTurnsFromPaths(int path, int state);
+RcppExport SEXP _turnModels_getTurnsFromPaths(SEXP pathSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnsFromPaths(path, state));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnString
+std::string getTurnString(int turnNb);
+RcppExport SEXP _turnModels_getTurnString(SEXP turnNbSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type turnNb(turnNbSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnString(turnNb));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnIdx
+int getTurnIdx(std::string turn);
+RcppExport SEXP _turnModels_getTurnIdx(SEXP turnSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type turn(turnSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnIdx(turn));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnTimes
+arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes);
+RcppExport SEXP _turnModels_getTurnTimes(SEXP allpathsSEXP, SEXP boxTimesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::CharacterMatrix >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type boxTimes(boxTimesSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnTimes(allpaths, boxTimes));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_turnModels_simulateTrials", (DL_FUNC) &_turnModels_simulateTrials, 6},
+    {"_turnModels_getTurnsLikelihood", (DL_FUNC) &_turnModels_getTurnsLikelihood, 5},
+    {"_turnModels_getProbMatrix", (DL_FUNC) &_turnModels_getProbMatrix, 5},
     {"_turnModels_rcpparma_hello_world", (DL_FUNC) &_turnModels_rcpparma_hello_world, 0},
     {"_turnModels_rcpparma_outerproduct", (DL_FUNC) &_turnModels_rcpparma_outerproduct, 1},
     {"_turnModels_rcpparma_innerproduct", (DL_FUNC) &_turnModels_rcpparma_innerproduct, 1},
     {"_turnModels_rcpparma_bothproducts", (DL_FUNC) &_turnModels_rcpparma_bothproducts, 1},
+    {"_turnModels_getTrialTimes", (DL_FUNC) &_turnModels_getTrialTimes, 2},
+    {"_turnModels_empiricalProbMat", (DL_FUNC) &_turnModels_empiricalProbMat, 2},
+    {"_turnModels_mseEmpirical", (DL_FUNC) &_turnModels_mseEmpirical, 4},
+    {"_turnModels_pathProbability", (DL_FUNC) &_turnModels_pathProbability, 3},
+    {"_turnModels_getBoxTimes", (DL_FUNC) &_turnModels_getBoxTimes, 2},
+    {"_turnModels_getTurnsFromPaths", (DL_FUNC) &_turnModels_getTurnsFromPaths, 2},
+    {"_turnModels_getTurnString", (DL_FUNC) &_turnModels_getTurnString, 1},
+    {"_turnModels_getTurnIdx", (DL_FUNC) &_turnModels_getTurnIdx, 1},
+    {"_turnModels_getTurnTimes", (DL_FUNC) &_turnModels_getTurnTimes, 2},
     {NULL, NULL, 0}
 };
 

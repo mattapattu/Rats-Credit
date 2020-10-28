@@ -8,7 +8,8 @@
 #include <RcppArmadilloExtensions/sample.h>
 
 
-//updateHMat(H,actions, states, trialTimes, alpha,N, score_episode, avg_score, model);
+//    H = Aca3CreditUpdate(H, actions, states, time_taken_for_trial,  alpha, score_episode);
+
 inline arma::mat Aca3CreditUpdate(arma::mat H, arma::vec actions, arma::vec states, arma::vec trialTimes,  double alpha,float score_episode){
   
   arma::uvec state1_idx = arma::find(states==0);
@@ -19,8 +20,8 @@ inline arma::mat Aca3CreditUpdate(arma::mat H, arma::vec actions, arma::vec stat
     double  curr_action = uniq_action1(l);
     arma::vec last_ep_time_s1 = trialTimes.elem(state1_idx);
     arma::vec last_ep_actions_s1 = actions.elem(state1_idx);
-    arma::uvec curr_act_idx= arma::find(last_ep_actions_s1==curr_action);
-    double activity= arma::accu(last_ep_time_s1.elem(curr_act_idx))/arma::accu(trialTimes);
+    arma::uvec curr_act_idx = arma::find(last_ep_actions_s1==curr_action);
+    double activity = arma::accu(last_ep_time_s1.elem(curr_act_idx))/arma::accu(trialTimes);
     
     H(0,curr_action)= (H(0,curr_action)+(alpha*(score_episode)*(activity)));
     if(R_IsNaN((H(0,curr_action)))){

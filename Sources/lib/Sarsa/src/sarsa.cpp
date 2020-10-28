@@ -52,6 +52,143 @@ double actionProb(int A, int S, arma::mat H, int method, double epsilon = 0)
   return (actionProb);
 }
 
+// [[Rcpp::export()]]
+arma::mat simulateSarsa(arma::mat allpaths, arma::mat Q, double alpha, double gamma, double lambda, int total_trials, int model, int policyMethod, double epsilon =0){
+  
+  
+  arma::mat R = arma::zeros(2,6);
+  R(0,3)=1;
+  R(1,3)=1;
+  arma::mat generated_data;
+  generated_data.fill(-1);
+
+
+  arma::vec allpath_actions = allpaths.col(0);
+  arma::vec allpath_states = allpaths.col(1);
+  arma::vec allpath_rewards = allpaths.col(2);
+  arma::vec allpath_times = allpaths.col(3);
+  arma::vec sessionVec = allpaths.col(4);
+  arma::vec uniqSessIdx = arma::unique(sessionVec);
+  //Rcpp::Rcout << "sessionVec=" << sessionVec << std::endl;  
+  //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;  
+  int episode=0;
+  
+  // Loop through each session
+  for(unsigned int session = 0; session < (uniqSessIdx.n_elem-1); session++){
+    
+    int sessId = uniqSessIdx(session);
+    // Rcpp::Rcout << "session=" <<session <<", sessId=" << sessId << std::endl;  
+    arma::uvec sessionIdx = arma::find(allpaths.col(4) == (sessId));
+    arma::vec actions_sess = allpath_actions.elem(sessionIdx);
+    arma::vec states_sess = allpath_states.elem(sessionIdx);
+    arma::vec rewards_sess = allpath_rewards.elem(sessionIdx);
+    arma::vec time_taken_for_trial_sess = allpath_times.elem(sessionIdx);
+    
+
+    int initState=0;
+    bool changeState = false;
+    bool returnToInitState = false;
+    bool resetVector = true;
+    int nrow = actions_sess.n_rows;
+    int A = 0;
+    //int A_prime=0;
+    int score_episode=0;
+    float avg_score = 0;
+
+    int S = states_sess(0) - 1;
+    arma::mat etrace(2,6,arma::fill::zeros);
+    arma::mat generated_data_sess(nrow,5);
+    //All episodes in new session
+    for (int i = 0; i < (nrow) ; i++) {
+      // Rcpp::Rcout << "episode=" << i  << std::endl;  
+      if(resetVector){
+        initState=S;
+        //Rcpp::Rcout <<"initState="<<initState<<std::endl;
+        resetVector= false;
+      }
+
+      if(policyMethod == 1){
+        A = actionSelection(H,S,1);
+      }else if(policyMethod == 2){
+        A = actionSelection(H,S,2,epsilon);
+      }
+      // Rcpp::Rcout << "S=" << S << ", A=" << A << ", episode=" << episode <<std::endl;
+
+      score_episode = score_episode + R(S,A);
+      generated_data_sess(i,0)=A;
+      generated_data_sess(i,1)=S;
+      generated_data_sess(i,2)=R(S,A);
+
+      arma::uvec act_idx = arma::find(generated_data_sess.col(1)==S && generated_data_sess.col(0)==A);
+      arma::uvec actual_act_idx = arma::find(states_sess==(S+1) && actions_sess==(A+1));
+      // Rcpp::Rcout << "act_idx.n_elem=" << act_idx.n_elem << ", actual_act_idx.n_elem=" << actual_act_idx.n_elem <<std::endl;
+
+      if(act_idx.n_elem <= actual_act_idx.n_elem){
+        // Rcpp::Rcout << "Here1" <<std::endl; 
+        generated_data_sess(i,3) = allpaths(actual_act_idx(act_idx.n_elem-1),3);
+      }else{
+        if(actual_act_idx.n_elem == 0){
+          // Rcpp::Rcout << "Here2" <<std::endl; 
+          arma::uvec act_idx = arma::find(allpath_states==(S+1) && allpath_actions==(A+1));
+          arma::vec act_times = allpath_times.elem(act_idx);
+          //Rcpp::Rcout << "act_idx=" << act_idx << ", act_times=" << act_times <<std::endl;
+          generated_data_sess(i,3) = arma::mean(act_times);
+          // Rcpp::Rcout << "generated_data_sess(i,3)=" << generated_data_sess(i,3) <<std::endl;
+        }else{
+          // Rcpp::Rcout << "Here3" <<std::endl; 
+          arma::uword last_act = act_idx(act_idx.n_elem-1);
+          // Rcpp::Rcout << "last_act=" << last_act <<std::endl;
+          generated_data_sess(i,3) = generated_data(last_act,3);
+        }
+      }
+
+      generated_data_sess(i,4) = episode;
+
+      int S_prime=aca_getNextState(S,A);
+
+  
+      if(S_prime!=initState){
+        changeState = true;
+      }else if(S_prime==initState && changeState){
+        returnToInitState = true;
+      }
+      
+      //Rcpp::Rcout << "logProb=" << logProb <<std::endl;
+      //log_lik=log_lik+ logProb;
+
+      if (returnToInitState)
+      {
+        //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
+        changeState = false;
+        returnToInitState = false;
+        episode = episode + 1;
+        resetVector = true;
+      }
+      
+
+      double prediction = gamma * Q(S_prime, A_prime);
+      double td_err = R + prediction - Q(S,A);
+
+      etrace(S,A) = etrace(S,A)+1;
+
+      for(int state=0; state<2;state++){
+        for(int act=0; act<5; act++){
+          Q(S,A) = Q(S,A) + (alpha * td_err* etrace(S,A));
+          etrace = lambda*gamma*etrace;
+        }
+      }
+      S = S_prime;
+      //trial=trial+1;
+    }
+
+    H = gamma2*H;
+    //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
+    generated_data = arma::join_cols(generated_data_sess, generated_data);
+    //Rcpp::Rcout <<  "likelihoodVec=" << likelihoodVec<<std::endl;
+  }
+    return (generated_data);
+}
+
 // [[Rcpp::export()]] 
 arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, arma::mat Q, int sim, int policyMethod, double epsilon = 0)
 {

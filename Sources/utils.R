@@ -257,7 +257,7 @@ checkValidation=function(mat_res, model,rat){
 }
 
 
-generatePlots=function(rat,empiricalProbMatrix,GBprobMatrix, ACAprobMatrix, ACA2probMatrix, ACA3probMatrix){
+generatePlots=function(rat,empiricalProbMatrix, ACAprobMatrix, GBprobMatrix,  SARSAprobMatrix, ACA3probMatrix){
   
   for(act in c(1:6)){
     for(state in c(1:2)){
@@ -265,15 +265,15 @@ generatePlots=function(rat,empiricalProbMatrix,GBprobMatrix, ACAprobMatrix, ACA2
       plot(GBprobMatrix[which(GBprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='black',type='l',ylim=c(0,1),ylab="Probability",main=paste("Probability of selecting Path",act," in State ", state, " for ", rat,sep="" ))
       #lines(GB_ACAprobMatrix[which(GB_ACAprobMatrix[,(act+6*(state-1))]!=0),(act+6*(state-1))],col='red',type='l')
       lines(ACAprobMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='green',type='l')
-      lines(ACA2probMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='orange',type='l')
-      lines(ACA3probMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='red',type='l')
+      lines(SARSAprobMatrix[which(SARSAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='orange',type='l')
+      lines(ACA3probMatrix[which(ACA3probMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='red',type='l')
       lines(empiricalProbMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='blue',type='l',lty=2)
       
       if(act==4||act==10){
-        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for ACA2","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
+        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
         
       }else{
-        legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for ACA2","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
+        legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
         
       }
       dev.off()
@@ -323,15 +323,32 @@ getStartIndex = function(generated_data){
 }
 
 getEndIndex = function(generated_data){
-  end_index=0
-  l<-which(SMA(generated_data[,3],30)>=0.95)
+  end_index1=0
+  s1 <- which(generated_data[,2]==1)
+  l<-which(SMA(generated_data[s1,3],30)>=0.95)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
     if(length(k[[set]])>30){
-      end_index=k[[set]][1]
+      end_index1=k[[set]][1]
       break
     }
-  }  
+  }
+  
+  
+  end_index2=0
+  s2 <- which(generated_data[,2]==2)
+  l<-which(SMA(generated_data[s2,3],30)>=0.95)
+  k<-split(l, cumsum(c(1, diff(l) != 1)))
+  for(set in 1:length(k)){
+    if(length(k[[set]])>30){
+      end_index2=k[[set]][1]
+      break
+    }
+  }
+  
+  end_index = max(max(s1[end_index1],s2[end_index2]))
+  print(sprintf("end_index=%i", end_index))
+  
   return(end_index)
 }
 

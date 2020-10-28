@@ -50,14 +50,16 @@ comparePathModels=function(enreg,rat, window){
   Hinit = genInitValues(allpaths_num,sim=2)
   #Hinit <- matrix(0,2,6)
 
-  Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5)
-  models = c(1,2,4,5)
-  #mat_res = validateHoldout(models,Hinit,endLearningStage,allpaths_num, window = window, rat)
+  Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
+  models = c(6,1,2,5)
+  debug(validateHoldout)
+  mat_res = validateHoldout(models,Hinit,endLearningStage,allpaths_num, window = window, rat)
 
   # ##### Model Selection On Acutal Data #########################3
 
   generated_data <- allpaths_num
   #mat_res = windowCompare(generated_data,models, sim=2)
+  #debug(getModelData)
   res = getModelData(generated_data, models, window = window, sim=2)
 
   min_index = 0
@@ -81,7 +83,8 @@ comparePathModels=function(enreg,rat, window){
   #debug(plotData)
   #plotData2(res,rat,ranges)
   empProbMat = baseModels::empiricalProbMat(generated_data, window = window)
-  generatePlots(rat,empProbMat, res$acamse@ProbMatrix, res$gbmse@ProbMatrix, res$aca2mse@ProbMatrix, res$aca3mse@ProbMatrix)
+  #debug(generatePlots)
+  generatePlots(rat,empProbMat, res$acamse@ProbMatrix, res$gbmse@ProbMatrix, res$sarsa@ProbMatrix, res$aca3mse@ProbMatrix)
 }
 
 getTestRange=function(generated_data){

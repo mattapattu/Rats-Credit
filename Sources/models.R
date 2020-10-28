@@ -6,7 +6,7 @@ library(TTR)
 
 
 acaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
-  ACA = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit = Hinit2, allpaths = generated_data[1:half_index,], model=1, sim=sim, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
+  ACA = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit = Hinit2, allpaths = generated_data[1:half_index,], model=1, sim=sim, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
   alpha_ACA = ACA$optim$bestmem[1]
   params_lik = list("alpha"=alpha_ACA)
   
@@ -28,7 +28,7 @@ acaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
 
 gbData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   
-  GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, Hinit =  Hinit2, allpaths = generated_data[1:half_index,], model = 2, sim=sim, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
+  GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, Hinit =  Hinit2, allpaths = generated_data[1:half_index,], model = 2, sim=sim, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   alpha_GB = GB$optim$bestmem[1]
   params_lik = list("alpha"=alpha_GB)
   
@@ -76,7 +76,8 @@ aca2Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
   
   #aca2Actions = getActionData(generated_data, ACA2_probMatrix, half_index, end_index, window, sim)
   paths = baseModels::getEpisodes(generated_data)
-  computationalActivity = baseModels::getComputationalActivity(paths,ACA2_probMatrix)
+  #computationalActivity = baseModels::getComputationalActivity(paths,ACA2_probMatrix)
+  computationalActivity = vector()
   lik = -1 * sum(Aca2::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA2, Hinit2, sim, model=4, policyMethod=1))
   ACA2 <- new("Model", Name = "ACA2", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA2_probMatrix)
   
@@ -84,13 +85,13 @@ aca2Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
 }
 
 aca3Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
-  ACA3 <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1), Hinit = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  ACA3 <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   alpha_ACA3 = ACA3$optim$bestmem[1]
-  gamma_ACA3 = ACA3$optim$bestmem[2]
-  ACA3_probMatrix = Aca3::getProbMatrix(generated_data, alpha_ACA3,gamma_ACA3, H=Hinit2, sim, model=5, policyMethod = 1)
-  params_lik = list("alpha"=alpha_ACA3, "gamma"=gamma_ACA3)
-  
-  # ACA3 <- DEoptim(aca_negLogLik2,lower = c(0,0,0), upper = c(1,1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  gamma1_ACA3 = ACA3$optim$bestmem[2]
+  gamma2_ACA3 = ACA3$optim$bestmem[3]
+  ACA3_probMatrix = Aca3::getProbMatrix(generated_data, alpha_ACA3,gamma1_ACA3,gamma2_ACA3, H=Hinit2, sim, model=5, policyMethod = 1)
+  params_lik = list("alpha"=alpha_ACA3, "gamma1"=gamma1_ACA3, "gamma2"=gamma2_ACA3)
+    # ACA3 <- DEoptim(aca_negLogLik2,lower = c(0,0,0), upper = c(1,1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   # alpha_ACA3 = ACA3$optim$bestmem[1]
   # gamma_ACA3 = ACA3$optim$bestmem[2]
   # epsilon_ACA3 = ACA3$optim$bestmem[3]
@@ -99,23 +100,26 @@ aca3Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
 
   #aca3Actions = getActionData(generated_data, ACA3_probMatrix, half_index, end_index, window, sim)
   paths = baseModels::getEpisodes(generated_data)
-  computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
-  lik = -1 * sum(Aca3::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA3, gamma_ACA3, Hinit2, sim, model=5, policyMethod=1))
+  #computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
+  computationalActivity = vector()
+  lik = -1 * sum(Aca3::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA3, gamma1_ACA3, gamma2_ACA3, Hinit2, sim, model=5, policyMethod=1))
   ACA3 <- new("Model", Name = "ACA3", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA3_probMatrix)
   
   return(ACA3)
 }
 
 sarsaData=function(Qinit, generated_data, sim, half_index, end_index, window){
-  SARSA <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1), Hinit = Qinit, allpaths = generated_data[1:half_index,], model = 6, sim = sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  SARSA <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = matrix(0,2,6), allpaths = generated_data[1:half_index,], model = 6, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   alpha_SARSA = SARSA$optim$bestmem[1]
   gamma_SARSA = SARSA$optim$bestmem[2]
-  SARSA_probMatrix = Sarsa::getProbMatrix(generated_data, alpha_SARSA, gamma_SARSA, Q=Qinit, sim, policyMethod = 1)
+  lambda_SARSA = SARSA$optim$bestmem[3]
+  SARSA_probMatrix = Sarsa::getProbMatrix(generated_data, alpha_SARSA, gamma_SARSA, lambda_SARSA, Q=Qinit, sim, policyMethod = 1)
   params_lik = list("alpha"=alpha_SARSA, "gamma"=gamma_SARSA)
   
-  paths = baseModels::getEpisodes(generated_data)
-  computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
-  lik = -1 * sum(Sarsa::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_SARSA, gamma_SARSA, Qinit, sim, policyMethod=1))
+  #paths = baseModels::getEpisodes(generated_data)
+  #computationalActivity = baseModels::getComputationalActivity(paths,SARSA_probMatrix)
+  computationalActivity = vector()
+  lik = -1 * sum(Sarsa::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_SARSA, gamma_SARSA, lambda_SARSA,  Qinit, sim, policyMethod=1))
   SARSA <- new("Model", Name = "SARSA", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = SARSA_probMatrix)
   return(SARSA)
 }
@@ -129,18 +133,25 @@ aca_negLogLik1=function(par,Hinit, allpaths,model,sim) {
   }else if(model == 4){
     lik = Aca2::getPathLikelihood(allpaths, alpha, Hinit, sim, model,policyMethod=1)
   }else if(model == 5){
-    gamma = par[2]
-    lik = Aca3::getPathLikelihood(allpaths, alpha,gamma, Hinit, sim, model, policyMethod=1)
+    Hinit = matrix(0,2,6)
+    gamma1 = par[2]
+    gamma2 = par[3]
+    lik = Aca3::getPathLikelihood(allpaths, alpha,gamma1,gamma2, Hinit, sim, model, policyMethod=1)
   }else if(model == 6){
     gamma = par[2]
-    lik = Sarsa::getPathLikelihood(allpaths, alpha, gamma, Hinit, sim, policyMethod=1)
+    lambda = par[3]
+    lik = Sarsa::getPathLikelihood(allpaths, alpha, gamma, lambda, Hinit, sim, policyMethod=1)
   }
   
   negLogLik = (-1) *sum(lik)
  # print(sprintf("negLogLik = %f",negLogLik))
   if(is.infinite(negLogLik)){
     return(1000000)
-  }else{
+  }else if(is.nan(negLogLik)){
+    print(sprintf("Alpha = %f, Gamma = %f, Lambda = %f",alpha, gamma, lambda ))
+    return(1000000)
+  }
+  else{
     return(negLogLik)
   }
   
@@ -158,7 +169,8 @@ aca_negLogLik2=function(par,Hinit, allpaths,model,sim, epsilon) {
     lik = Aca2::getPathLikelihood(allpaths, alpha, Hinit, sim, model, policyMethod=2, epsilon)
   }else if(model == 5){
     gamma = par[2]
-    lik = Aca3::getPathLikelihood(allpaths, alpha,gamma, Hinit, sim, model, policyMethod=2, epsilon)
+    lambda = par[3]
+    lik = Aca3::getPathLikelihood(allpaths, alpha, gamma, lambda, Hinit, sim, model, policyMethod=2, epsilon)
   }
   
   negLogLik = (-1) *sum(lik)

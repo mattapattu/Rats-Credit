@@ -57,12 +57,12 @@ getModelData = function(generated_data, models, window, sim){
   if(5 %in% models){
     aca3mse = aca3Data(Hinit1, generated_data, sim=sim, start_index, end_index, window)
   }
-  # if(6 %in% models){
-  #   sarsa = sarsaData(Qinit, generated_data, sim=sim, start_index, end_index, window)
-  # }
+  if(6 %in% models){
+    sarsamse = sarsaData(Qinit, generated_data, sim=sim, start_index, end_index, window)
+  }
   
   
-  return(list("acamse"=acamse,"gbmse"=gbmse,"gbacamse"=gbacamse, "aca2mse"=aca2mse, "aca3mse"=aca3mse))
+  return(list("acamse"=acamse,"gbmse"=gbmse,"gbacamse"=gbacamse, "aca2mse"=aca2mse, "aca3mse"=aca3mse, "sarsamse"=sarsamse))
   
 }
 
@@ -75,9 +75,15 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
   for(model in models){
     
     if(model == 5){
-      out = DEoptim(aca_negLogLik1, lower = c(0,0), upper = c(1,1), H=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 50))
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = matrix(0,2,6), allpaths = allpaths_num[1:endLearningStage,], model = model, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      alpha = out$optim$bestmem[1]
+      gamma1 = out$optim$bestmem[2]
+      gamma2 = out$optim$bestmem[3]
+    }else if(model == 6){
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = matrix(0,2,6), allpaths = allpaths_num[1:endLearningStage,], model = model, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
       alpha = out$optim$bestmem[1]
       gamma = out$optim$bestmem[2]
+      lambda = out$optim$bestmem[3]
     }else{
       out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
       alpha = out$optim$bestmem[1]
@@ -98,7 +104,9 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
       }else if(model == 4){
         generated_data = Aca2::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials,init_state, model=model, policyMethod=1)
       }else if(model == 5){
-        generated_data = Aca3::simulateTrials(allpaths_num, H=Hinit, alpha, gamma, total_trials, init_state, model=model, policyMethod=1)
+        generated_data = Aca3::simulateTrials(allpaths_num, H=matrix(0,2,6), alpha, gamma1,gamma2, total_trials, model=model, policyMethod=1)
+      }else if(model == 6){
+        generated_data = Sarsa::simulateSarsa(allpaths_num, H=matrix(0,2,6), alpha, gamma, lambda, total_trials, model=model, policyMethod=1)
       }
       
       
@@ -106,7 +114,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
       #   missedOptimalIter=missedOptimalIter+1
       #   next
       # }
-      
+      generated_data[,1:2]=generated_data[,1:2]+1
       if(getStartIndex(generated_data) >= getEndIndex(generated_data)){
         missedOptimalIter=missedOptimalIter+1
         next

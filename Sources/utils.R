@@ -270,10 +270,10 @@ generatePlots=function(rat,empiricalProbMatrix, ACAprobMatrix, GBprobMatrix,  SA
       lines(empiricalProbMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='blue',type='l',lty=2)
       
       if(act==4||act==10){
-        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
+        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.8,lty = c(1,1,1,1,2))
         
       }else{
-        legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.6,lty = c(1,1,1,1,2))
+        legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.8,lty = c(1,1,1,1,2))
         
       }
       dev.off()
@@ -322,7 +322,10 @@ getStartIndex = function(generated_data){
   return(start_index)
 }
 
-getEndIndex = function(generated_data){
+getEndIndex = function(generated_data, sim){
+  if(sim==1){
+    generated_data[,1:2] = generated_data[,1:2] + 1
+  }
   end_index1=0
   s1 <- which(generated_data[,2]==1)
   l<-which(SMA(generated_data[s1,3],30)>=0.95)
@@ -346,8 +349,13 @@ getEndIndex = function(generated_data){
     }
   }
   
-  end_index = max(max(s1[end_index1],s2[end_index2]))
-  print(sprintf("end_index=%i", end_index))
+  if(end_index1==0 && end_index2 ==0){
+    end_index = -1
+  }else{
+    end_index = max(s1[end_index1],s2[end_index2])
+  }
+  
+  #print(sprintf("end_index=%i", end_index))
   
   return(end_index)
 }

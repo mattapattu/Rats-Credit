@@ -21,15 +21,17 @@ setClass("Model",
 getModelData = function(generated_data, models, window, sim){
   
   #start_index = getStartIndex(generated_data)
-  end_index = getEndIndex(generated_data)
+  end_index = getEndIndex(generated_data, sim)
   start_index = round(end_index/2)
   if(start_index >= end_index){
     print(sprintf("start_index >= end_index. Check if rat learns optimal behavior"))
     return()
   }
   
-  Hinit1 <-genInitValues(generated_data,sim=sim)
-  Qinit <-genInitValues(generated_data,sim=sim)
+  #Hinit1 <-genInitValues(generated_data,sim=sim)
+  #Qinit <-genInitValues(generated_data,sim=sim)
+  Hinit1 = matrix(0,2,6)
+  Qinit = matrix(0,2,6)
   #empProbMat <- getEmpProbMat(generated_data,window=window,sim=sim)
   
   
@@ -72,6 +74,10 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
   alpha=0
   gamma=0
   
+  mat_res = matrix(0, length(models), length(models))
+  colnames(mat_res) <- models
+  rownames(mat_res) <- models
+  
   for(model in models){
     
     if(model == 5){
@@ -85,12 +91,14 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
       gamma = out$optim$bestmem[2]
       lambda = out$optim$bestmem[3]
     }else{
-      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, H=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
+      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
       alpha = out$optim$bestmem[1]
     }
     
-    mat_res = matrix(0,nrow=100,ncol=(2*length(models)+1))
-    colnames(mat_res) = c("ACA loglikhood","ACA bestval","GB loglikhood","GB bestval","ACA2 loglikhood","ACA2 bestval","ACA3 loglikhood","ACA3 bestval", "Selected Model")
+    #mat_res = matrix(0,nrow=100,ncol=(2*length(models)+1))
+    #colnames(mat_res) = c("ACA loglikhood","ACA bestval","GB loglikhood","GB bestval","ACA2 loglikhood","ACA2 bestval","ACA3 loglikhood","ACA3 bestval", "Selected Model")
+    
+    
     iter = 1
     start_index = 0
     end_index = 0
@@ -100,13 +108,13 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
       init_state = as.numeric(allpaths_num[1,2])-1
       
       if(model == 1 || model == 2 || model == 3){
-        generated_data = baseModels::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials, init_state, model=model, policyMethod=1)
+        generated_data = baseModels::simulateTrials(allpaths_num, H=Hinit, alpha, model=model, policyMethod=1)
       }else if(model == 4){
-        generated_data = Aca2::simulateTrials(allpaths_num, H=Hinit, alpha, total_trials,init_state, model=model, policyMethod=1)
+        generated_data = Aca2::simulateTrials(allpaths_num, H=Hinit, alpha, model=model, policyMethod=1)
       }else if(model == 5){
-        generated_data = Aca3::simulateTrials(allpaths_num, H=matrix(0,2,6), alpha, gamma1,gamma2, total_trials, model=model, policyMethod=1)
+        generated_data = Aca3::simulateTrials(allpaths_num, H=matrix(0,2,6), alpha, gamma1,gamma2, model=model, policyMethod=1)
       }else if(model == 6){
-        generated_data = Sarsa::simulateSarsa(allpaths_num, H=matrix(0,2,6), alpha, gamma, lambda, total_trials, model=model, policyMethod=1)
+        generated_data = Sarsa::simulateSarsa(allpaths_num, Q=matrix(0,2,6), alpha, gamma, lambda, model=model, policyMethod=1)
       }
       
       
@@ -114,48 +122,62 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
       #   missedOptimalIter=missedOptimalIter+1
       #   next
       # }
-      generated_data[,1:2]=generated_data[,1:2]+1
-      if(getStartIndex(generated_data) >= getEndIndex(generated_data)){
+      #generated_data[,1:2]=generated_data[,1:2]+1
+      end_index = getEndIndex(generated_data, sim=1)
+      if(end_index == -1){
         missedOptimalIter=missedOptimalIter+1
         next
       }
       
       res = getModelData(generated_data, models, window = window, sim=1)
       
+      # min_index = 0
+      # min = 100000
+      # for(m in models){
+      #   m_idx = 2*which(m == models)-1
+      #   mat_res[iter,m_idx]=res[[m]]@Metrics$likelihood
+      #   mat_res[iter,(m_idx+1)]=res[[m]]@Params_lik$alpha[[1]]
+      #   if(res[[m]]@Metrics$likelihood < min){
+      #     min = res[[m]]@Metrics$likelihood
+      #     min_index = m
+      #   }
+      # }
+      #mat_res[iter,(2*length(models)+1)]= res[[min_index]]@Name
+      
       min_index = 0
       min = 100000
       for(m in models){
-        m_idx = 2*which(m == models)-1
-        mat_res[iter,m_idx]=res[[m]]@Metrics$likelihood
-        mat_res[iter,(m_idx+1)]=res[[m]]@Params_lik$alpha[[1]]
         if(res[[m]]@Metrics$likelihood < min){
           min = res[[m]]@Metrics$likelihood
           min_index = m
         }
       }
       
+      mat_res[toString(model),toString(min_index)] = mat_res[toString(model),toString(min_index)] + 1
       
-      mat_res[iter,(2*length(models)+1)]= res[[min_index]]@Name
+      
+      
+      print(sprintf("iter=%i", iter))
       iter=iter+1
     }
     
-    save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
+    #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
     print(sprintf("Nb of iterations where optimal behaviour was not learned=%i", missedOptimalIter))
     
-    boxplotMse(mat_res,model,rat)
+    #boxplotMse(mat_res,model,rat)
     
-    if(!checkValidation(mat_res,model,rat)){
-      validated = FALSE
-      break
-    }
+    # if(!checkValidation(mat_res,model,rat)){
+    #   validated = FALSE
+    #   break
+    # }
     
   }
   
-  if(validated){
-    print(sprintf("All 3  models validated for %s.",rat)) 
-  }else{
-    print(sprintf("Model %d  failed validation for %s.",model, rat))
-  }
+  # if(validated){
+  #   print(sprintf("All 3  models validated for %s.",rat)) 
+  # }else{
+  #   print(sprintf("Model %d  failed validation for %s.",model, rat))
+  # }
   return(mat_res)
 }
 

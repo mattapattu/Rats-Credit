@@ -7,20 +7,18 @@
 using namespace Rcpp;
 
 // simulateTrials
-arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, int total_trials, int init_state, int model, int policyMethod, double epsilon);
-RcppExport SEXP _baseModels_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP total_trialsSEXP, SEXP init_stateSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
+arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, int model, int policyMethod, double epsilon);
+RcppExport SEXP _baseModels_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< int >::type total_trials(total_trialsSEXP);
-    Rcpp::traits::input_parameter< int >::type init_state(init_stateSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
     Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, total_trials, init_state, model, policyMethod, epsilon));
+    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, model, policyMethod, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -237,7 +235,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_baseModels_simulateTrials", (DL_FUNC) &_baseModels_simulateTrials, 8},
+    {"_baseModels_simulateTrials", (DL_FUNC) &_baseModels_simulateTrials, 6},
     {"_baseModels_getPathLikelihood", (DL_FUNC) &_baseModels_getPathLikelihood, 8},
     {"_baseModels_getProbMatrix", (DL_FUNC) &_baseModels_getProbMatrix, 8},
     {"_baseModels_getEpisodes", (DL_FUNC) &_baseModels_getEpisodes, 1},

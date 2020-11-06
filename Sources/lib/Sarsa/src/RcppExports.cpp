@@ -49,6 +49,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// simulateSarsa
+arma::mat simulateSarsa(arma::mat allpaths, arma::mat Q, double alpha, double gamma, double lambda, int model, int policyMethod, double epsilon);
+RcppExport SEXP _Sarsa_simulateSarsa(SEXP allpathsSEXP, SEXP QSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< int >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateSarsa(allpaths, Q, alpha, gamma, lambda, model, policyMethod, epsilon));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getPathLikelihood
 arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, arma::mat Q, int sim, int policyMethod, double epsilon);
 RcppExport SEXP _Sarsa_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP QSEXP, SEXP simSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
@@ -91,6 +109,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_Sarsa_rcpparma_outerproduct", (DL_FUNC) &_Sarsa_rcpparma_outerproduct, 1},
     {"_Sarsa_rcpparma_innerproduct", (DL_FUNC) &_Sarsa_rcpparma_innerproduct, 1},
     {"_Sarsa_rcpparma_bothproducts", (DL_FUNC) &_Sarsa_rcpparma_bothproducts, 1},
+    {"_Sarsa_simulateSarsa", (DL_FUNC) &_Sarsa_simulateSarsa, 8},
     {"_Sarsa_getPathLikelihood", (DL_FUNC) &_Sarsa_getPathLikelihood, 8},
     {"_Sarsa_getProbMatrix", (DL_FUNC) &_Sarsa_getProbMatrix, 8},
     {NULL, NULL, 0}

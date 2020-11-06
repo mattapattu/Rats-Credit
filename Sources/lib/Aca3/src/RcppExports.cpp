@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // simulateTrials
-arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, double gamma1, double gamma2, int total_trials, int model, int policyMethod, double epsilon);
-RcppExport SEXP _Aca3_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP total_trialsSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
+arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, double gamma1, double gamma2, int model, int policyMethod, double epsilon);
+RcppExport SEXP _Aca3_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -17,11 +17,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type gamma1(gamma1SEXP);
     Rcpp::traits::input_parameter< double >::type gamma2(gamma2SEXP);
-    Rcpp::traits::input_parameter< int >::type total_trials(total_trialsSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
     Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, gamma1, gamma2, total_trials, model, policyMethod, epsilon));
+    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, gamma1, gamma2, model, policyMethod, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -109,7 +108,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_Aca3_simulateTrials", (DL_FUNC) &_Aca3_simulateTrials, 9},
+    {"_Aca3_simulateTrials", (DL_FUNC) &_Aca3_simulateTrials, 8},
     {"_Aca3_getPathLikelihood", (DL_FUNC) &_Aca3_getPathLikelihood, 10},
     {"_Aca3_getProbMatrix", (DL_FUNC) &_Aca3_getProbMatrix, 9},
     {"_Aca3_rcpparma_hello_world", (DL_FUNC) &_Aca3_rcpparma_hello_world, 0},

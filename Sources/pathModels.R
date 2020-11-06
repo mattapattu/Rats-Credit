@@ -46,14 +46,14 @@ comparePathModels=function(enreg,rat, window){
 
   
   #### Holdout Validation ########################################
-  endLearningStage = getEndIndex(allpaths_num)
+  endLearningStage = getEndIndex(allpaths_num,sim=2)
   Hinit = genInitValues(allpaths_num,sim=2)
   #Hinit <- matrix(0,2,6)
 
   Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
   models = c(6,1,2,5)
-  debug(validateHoldout)
-  mat_res = validateHoldout(models,Hinit,endLearningStage,allpaths_num, window = window, rat)
+  #debug(validateHoldout)
+  #mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num, window = window, rat)
 
   # ##### Model Selection On Acutal Data #########################3
 

@@ -19,7 +19,8 @@ acaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   
   #acaActions = getActionData(generated_data, ACA_probMatrix, half_index, end_index, window, sim)
   paths = baseModels::getEpisodes(generated_data)
-  computationalActivity = baseModels::getComputationalActivity(paths,ACA_probMatrix)
+  #computationalActivity = baseModels::getComputationalActivity(paths,ACA_probMatrix)
+  computationalActivity = vector()
   lik = -1 * sum(baseModels::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA, Hinit2, sim, model=1, policyMethod=1))
   ACA <- new("Model", Name = "ACA", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA_probMatrix)
   
@@ -41,7 +42,8 @@ gbData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   #params_lik = list("alpha"=alpha_GB)
   #gbActions = getActionData(generated_data, GB_probMatrix, half_index, end_index, window, sim)
   paths = baseModels::getEpisodes(generated_data)
-  computationalActivity = baseModels::getComputationalActivity(paths,GB_probMatrix)
+  #computationalActivity = baseModels::getComputationalActivity(paths,GB_probMatrix)
+  computationalActivity = vector()
   lik = -1 * sum(baseModels::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_GB, Hinit2, sim, model=2, policyMethod=1))
   GB <- new("Model", Name = "GB", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = GB_probMatrix)
   

@@ -17,6 +17,10 @@ rcpparma_bothproducts <- function(x) {
     .Call(`_Sarsa_rcpparma_bothproducts`, x)
 }
 
+simulateSarsa <- function(allpaths, Q, alpha, gamma, lambda, model, policyMethod, epsilon = 0) {
+    .Call(`_Sarsa_simulateSarsa`, allpaths, Q, alpha, gamma, lambda, model, policyMethod, epsilon)
+}
+
 getPathLikelihood <- function(allpaths, alpha, gamma, lambda, Q, sim, policyMethod, epsilon = 0) {
     .Call(`_Sarsa_getPathLikelihood`, allpaths, alpha, gamma, lambda, Q, sim, policyMethod, epsilon)
 }

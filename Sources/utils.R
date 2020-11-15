@@ -267,7 +267,7 @@ generatePlots=function(rat,empiricalProbMatrix, ACAprobMatrix, GBprobMatrix,  SA
       lines(ACAprobMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='green',type='l')
       lines(SARSAprobMatrix[which(SARSAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='orange',type='l')
       lines(ACA3probMatrix[which(ACA3probMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='red',type='l')
-      lines(empiricalProbMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='blue',type='l',lty=2)
+      lines(empiricalProbMatrix[which(empiricalProbMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='blue',type='l',lty=2)
       
       if(act==4||act==10){
         legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.8,lty = c(1,1,1,1,2))

@@ -28,6 +28,7 @@ getModelData = function(generated_data, models, window, sim){
     return()
   }
   
+  end_index = length(generated_data[,1])
   #Hinit1 <-genInitValues(generated_data,sim=sim)
   #Qinit <-genInitValues(generated_data,sim=sim)
   Hinit1 = matrix(0,2,6)

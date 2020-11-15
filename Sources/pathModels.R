@@ -43,8 +43,9 @@ comparePathModels=function(enreg,rat, window){
   y = baseModels::getPathTimes(as.numeric(allpaths[,2]),l)
   allpaths = cbind(allpaths,y)
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
-
   
+  turnTimes = getTurnTimes(allpaths,boxTimes)
+
   #### Holdout Validation ########################################
   endLearningStage = getEndIndex(allpaths_num,sim=2)
   Hinit = genInitValues(allpaths_num,sim=2)

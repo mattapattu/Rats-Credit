@@ -4,6 +4,7 @@ library(TTR)
 library(baseModels)
 library(Aca2)
 library(Aca3)
+library(TurnsModels)
 
 ### Use optimal paramters on actual data and compute Mean Squared Error.
 comparePathModels=function(enreg,rat, window){
@@ -44,7 +45,8 @@ comparePathModels=function(enreg,rat, window){
   allpaths = cbind(allpaths,y)
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
   
-  turnTimes = getTurnTimes(allpaths,boxTimes)
+  turnTimes = baseModels::getTurnTimes(allpaths,boxTimes)
+  turnlik=TurnsModels::getTurnsLikelihood(allpaths_num,turnTimes,turnMethod = 0,alpha=0.1,sim=2,model=1)
 
   #### Holdout Validation ########################################
   endLearningStage = getEndIndex(allpaths_num,sim=2)

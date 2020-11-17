@@ -8,88 +8,56 @@
 #include <RcppArmadilloExtensions/sample.h>
 #include "utils.hpp"
 
+void GbCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::vector<int> episodeTurnStates, double alpha, float score_episode, double avg_score)
+{
 
-arma::mat GbCreditUpdate(arma::mat H,arma::vec actions, arma::vec states, double alpha, float score_episode,double avg_score){
-  
-    // UPDATE CREDIT OF STATE 1 ACTIONS
-    Rcpp::IntegerVector all_actions =  Rcpp::seq(0, 5);
-    arma::uvec state1_idx = find(states==0);
-    arma::vec uniq_action1 = arma::unique(actions.elem(state1_idx));
-    
-    // UPDATE CREDIT OF STATE 1 ACTIONS SECLECTED DURING LAST N EPISODS
-    for(unsigned int l=0;l< uniq_action1.n_elem;l++){
-      if(uniq_action1(l)==-1){
-        continue;
-      }
-      double  curr_action = uniq_action1(l);
-      double delta_H = alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,0,H));
-      H(0,curr_action)= H(0,curr_action)+delta_H;
-      if(R_IsNaN((H(0,curr_action)))){
-        Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
-        //Rcpp::Rcout <<  "H="<< H(0,curr_action)<<std::endl;
-        //Rcpp::Rcout <<  "Visits="<< Visits(0,curr_action)<<std::endl;
-      }else if(H(0,curr_action) == R_PosInf){
-        Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<<std::endl;
-      }
-      
-    }
-    
-    // UPDATE CREDIT OF STATE 1 ACTIONS NOT SELECTED DURING LAST N EPISODS
-    
-    Rcpp::IntegerVector setdiff_state1 = Rcpp::setdiff(all_actions,Rcpp::IntegerVector(uniq_action1.begin(),uniq_action1.end()));
-    //Rcpp::Rcout <<  "setdiff_state1="<<setdiff_state1 << std::endl;
-    
-    
-    for(unsigned int l=0;l< setdiff_state1.size();l++){
-      double  curr_action = setdiff_state1(l);
-      H(0,curr_action)= H(0,curr_action)-(alpha*(score_episode-avg_score)*(softmax_cpp3(curr_action,0,H)));
-      if(R_IsNaN((H(0,curr_action)))){
-        Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action<< std::endl;
-      }else if(H(0,curr_action) == R_PosInf){
-        Rcpp::Rcout <<  "state="<<0<<", action="<<curr_action <<std::endl;
+  for (int state = 0; state < 1; state++)
+  {
+    //get turns in state 0/1
+    std::vector<std::string> turns;
+
+    //identify unique turns
+    for (unsigned int index = 0; index < episodeTurnStates.size(); ++index)
+    {
+        if (episodeTurnStates[index] == state)
+      {
+        turns.push_back(episodeTurns[index]->turn);
       }
     }
-    
-    // UPDATE CREDIT OF STATE 2 ACTIONS
-    
-    arma::uvec state2_idx = find(states==1);
-    arma::vec uniq_action2 = arma::unique(actions.elem(state2_idx));
-    
-    // UPDATE CREDIT OF STATE 2 ACTIONS SECLECTED DURING LAST N EPISODS
-    
-    for(unsigned int l=0;l< uniq_action2.n_elem;l++){
-      if(uniq_action2(l)==-1){
-        continue;
+
+    std::sort(turns.begin(), turns.end());
+    turns.erase(std::unique(turns.begin(), turns.end()), turns.end());
+
+    //get the idx of each unique turn in episodeTurnTimes_state
+    //update turn credits
+    for (const auto &curr_turn : turns)
+    {
+      arma::uvec idx; //ids of elements same as curr_turn in episodeTurns
+      arma::uword index = 0;
+      std::shared_ptr<TreeNode> currNode;
+      for (const auto node : episodeTurns)
+      {
+        if (episodeTurnStates[index] == state)
+        {
+          if (node->turn == curr_turn)
+          {
+            idx.insert_rows(idx.n_rows, index);
+            currNode = node;
+          }
+          index++;
+        }
       }
-      double  curr_action = uniq_action2(l);
-      
-      H(1,curr_action)= H(1,curr_action)+(alpha*(score_episode-avg_score)*(1-softmax_cpp3(curr_action,1,H)));
-      if(R_IsNaN((H(1,curr_action)))){
-        Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action<< std::endl;
-        //Rcpp::Rcout <<"epsLim=" <<epsLim<< "activity="<< activity<<std::endl;
-      }else if(H(1,curr_action) == R_PosInf){
-        Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
-        //Rcpp::Rcout <<"epsLim=" <<epsLim<< ", activity="<< activity<<", score_episode="<<score_episode<<std::endl;
-      }
-    }
-    
-    // UPDATE CREDIT OF STATE 2 NOT  ACTIONS SECLECTED DURING LAST N EPISODS
-    
-    
-    Rcpp::IntegerVector setdiff_state2 = Rcpp::setdiff(all_actions,Rcpp::IntegerVector(uniq_action2.begin(),uniq_action2.end()));
-    
-    for(unsigned int l=0;l< setdiff_state2.size();l++){
-      double  curr_action = setdiff_state2(l);
-      
-      H(1,curr_action)= H(1,curr_action)-(alpha*(score_episode-avg_score)*(softmax_cpp3(curr_action,1,H)));
-      if(R_IsNaN((H(1,curr_action)))){
-        Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
-      }else if(H(1,curr_action) == R_PosInf){
-        Rcpp::Rcout <<  "state="<<1<<", action="<<curr_action <<std::endl;
+      currNode->credit = currNode->credit + (alpha * score_episode - avg_score * (1 - softmax(currNode)));
+      if (!currNode->siblings.empty())
+      {
+        for (auto i = currNode->siblings.begin(); i != currNode->siblings.end(); i++)
+        {
+          (*i)->credit = (*i)->credit + (alpha * (score_episode-avg_score) * softmax((*i)));
+        }
       }
     }
-    
-  return(H);
+  }
 }
+
 
 #endif

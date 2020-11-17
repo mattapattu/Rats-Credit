@@ -7,17 +7,18 @@
 using namespace Rcpp;
 
 // getTurnsLikelihood
-arma::vec getTurnsLikelihood(arma::mat allpaths, double alpha, arma::vec H, int sim, int model);
-RcppExport SEXP _TurnsModels_getTurnsLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP) {
+std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, int sim, int model);
+RcppExport SEXP _TurnsModels_getTurnsLikelihood(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP simSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
+    Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(getTurnsLikelihood(allpaths, alpha, H, sim, model));
+    rcpp_result_gen = Rcpp::wrap(getTurnsLikelihood(allpaths, turnTimes, turnMethod, alpha, sim, model));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -190,7 +191,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_TurnsModels_getTurnsLikelihood", (DL_FUNC) &_TurnsModels_getTurnsLikelihood, 5},
+    {"_TurnsModels_getTurnsLikelihood", (DL_FUNC) &_TurnsModels_getTurnsLikelihood, 6},
     {"_TurnsModels_getProbMatrix", (DL_FUNC) &_TurnsModels_getProbMatrix, 5},
     {"_TurnsModels_rcpparma_hello_world", (DL_FUNC) &_TurnsModels_rcpparma_hello_world, 0},
     {"_TurnsModels_rcpparma_outerproduct", (DL_FUNC) &_TurnsModels_rcpparma_outerproduct, 1},

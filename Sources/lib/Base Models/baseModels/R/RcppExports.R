@@ -41,6 +41,10 @@ empiricalProbMat <- function(allpaths, window) {
     .Call(`_baseModels_empiricalProbMat`, allpaths, window)
 }
 
+empiricalProbMat2 <- function(allpaths, window) {
+    .Call(`_baseModels_empiricalProbMat2`, allpaths, window)
+}
+
 mseEmpirical <- function(allpaths, probMatrix_m1, movAvg, sim) {
     .Call(`_baseModels_mseEmpirical`, allpaths, probMatrix_m1, movAvg, sim)
 }

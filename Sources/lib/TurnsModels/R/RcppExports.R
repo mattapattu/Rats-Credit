@@ -5,8 +5,8 @@ getTurnsLikelihood <- function(allpaths, turnTimes, turnMethod, alpha, sim, mode
     .Call(`_TurnsModels_getTurnsLikelihood`, allpaths, turnTimes, turnMethod, alpha, sim, model)
 }
 
-getProbMatrix <- function(allpaths, alpha, H, sim, model) {
-    .Call(`_TurnsModels_getProbMatrix`, allpaths, alpha, H, sim, model)
+getProbMatrix <- function(allpaths, turnTimes, turnMethod, alpha, sim, model) {
+    .Call(`_TurnsModels_getProbMatrix`, allpaths, turnTimes, turnMethod, alpha, sim, model)
 }
 
 rcpparma_hello_world <- function() {
@@ -53,8 +53,8 @@ getTurnString <- function(turnNb) {
     .Call(`_TurnsModels_getTurnString`, turnNb)
 }
 
-getTurnIdx <- function(turn) {
-    .Call(`_TurnsModels_getTurnIdx`, turn)
+getTurnIdx <- function(turn, state) {
+    .Call(`_TurnsModels_getTurnIdx`, turn, state)
 }
 
 getTurnTimes <- function(allpaths, boxTimes) {

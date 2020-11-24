@@ -2,6 +2,7 @@
 #define __UTILS__
 
 #include <vector>
+#include<set>
 #include <algorithm>
 #include <string>
 #include <regex>
@@ -347,58 +348,82 @@ std::string getTurnString(int turnNb)
 }
 
 // [[Rcpp::export]]
-int getTurnIdx(std::string turn)
+unsigned int getTurnIdx(std::string turn, int state)
 {
-  int turnNb = -1;
-  if (turn.compare("dch") == 0)
+  unsigned int turnNb = 100;
+  if(state==0)
   {
-    turnNb = 1;
+    if (turn.compare("dcb") == 0)
+    {
+      turnNb = 1;
+    }
+    else if (turn.compare("dch") == 0)
+    {
+      turnNb = 2;
+    }
+    else if (turn.compare("gak") == 0)
+    {
+      turnNb = 3;
+    }
+    else if (turn.compare("gab") == 0)
+    {
+      turnNb = 4;
+    }
+    else if (turn.compare("bak") == 0)
+    {
+      turnNb = 5;
+    }
+    else if (turn.compare("bag") == 0)
+    {
+      turnNb = 6;
+    }
+    else if (turn.compare("bcd") == 0)
+    {
+      turnNb = 7;
+    }
+    else if (turn.compare("bch") == 0)
+    {
+      turnNb = 8;
+    }
   }
-  else if (turn.compare("gak") == 0)
+  else if(state==1)
   {
-    turnNb = 2;
+    if (turn.compare("hcb") == 0)
+    {
+      turnNb = 9;
+    }
+    else if (turn.compare("hcd") == 0)
+    {
+      turnNb = 10;
+    }
+    else if (turn.compare("kag") == 0)
+    {
+      turnNb = 11;
+    }
+    else if (turn.compare("kab") == 0)
+    {
+      turnNb = 12;
+    }
+    else if (turn.compare("bak") == 0)
+    {
+      turnNb = 13;
+    }
+    else if (turn.compare("bag") == 0)
+    {
+      turnNb = 14;
+    }
+    else if (turn.compare("bcd") == 0)
+    {
+      turnNb = 15;
+    }
+    else if (turn.compare("bch") == 0)
+    {
+      turnNb = 16;
+    }
   }
-  else if (turn.compare("dcb") == 0)
-  {
-    turnNb = 3;
-  }
-  else if (turn.compare("bak") == 0)
-  {
-    turnNb = 4;
-  }
-  else if (turn.compare("gab") == 0)
-  {
-    turnNb = 5;
-  }
-  else if (turn.compare("bch") == 0)
-  {
-    turnNb = 6;
-  }
-  else if (turn.compare("bcd") == 0)
-  {
-    turnNb = 7;
-  }
-  else if (turn.compare("hcd") == 0)
-  {
-    turnNb = 8;
-  }
-  else if (turn.compare("kag") == 0)
-  {
-    turnNb = 9;
-  }
-  else if (turn.compare("hcb") == 0)
-  {
-    turnNb = 10;
-  }
-  else if (turn.compare("bag") == 0)
-  {
-    turnNb = 11;
-  }
-  else if (turn.compare("kab") == 0)
-  {
-    turnNb = 12;
-  }
-  return (turnNb);
+  
+  
+  return (turnNb-1);
 }
 
 // [[Rcpp::export]]
@@ -428,7 +453,7 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
       std::string currTurn = Rcpp::as<std::string>(turns(j));
       // currTurn.erase(std::remove(turns(j).begin(), currTurn.end(), ','), currTurn.end());
       // currTurn.erase(std::remove(turns(j).begin(), currTurn.end(), ' '), currTurn.end());
-      int turnIdx = getTurnIdx(currTurn);
+      unsigned int turnIdx = getTurnIdx(currTurn, state);
 
       arma::rowvec new_row = {static_cast<double>(i + 1), static_cast<double>(path), static_cast<double>(state), static_cast<double>(turnIdx), 0, 0, 0, 0};
 

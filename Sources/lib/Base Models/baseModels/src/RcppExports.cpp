@@ -136,6 +136,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// empiricalProbMat2
+arma::mat empiricalProbMat2(arma::mat allpaths, int window);
+RcppExport SEXP _baseModels_empiricalProbMat2(SEXP allpathsSEXP, SEXP windowSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< int >::type window(windowSEXP);
+    rcpp_result_gen = Rcpp::wrap(empiricalProbMat2(allpaths, window));
+    return rcpp_result_gen;
+END_RCPP
+}
 // mseEmpirical
 arma::vec mseEmpirical(arma::mat allpaths, arma::mat probMatrix_m1, arma::vec movAvg, int sim);
 RcppExport SEXP _baseModels_mseEmpirical(SEXP allpathsSEXP, SEXP probMatrix_m1SEXP, SEXP movAvgSEXP, SEXP simSEXP) {
@@ -245,6 +257,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_baseModels_rcpparma_bothproducts", (DL_FUNC) &_baseModels_rcpparma_bothproducts, 1},
     {"_baseModels_getPathTimes", (DL_FUNC) &_baseModels_getPathTimes, 2},
     {"_baseModels_empiricalProbMat", (DL_FUNC) &_baseModels_empiricalProbMat, 2},
+    {"_baseModels_empiricalProbMat2", (DL_FUNC) &_baseModels_empiricalProbMat2, 2},
     {"_baseModels_mseEmpirical", (DL_FUNC) &_baseModels_mseEmpirical, 4},
     {"_baseModels_pathProbability", (DL_FUNC) &_baseModels_pathProbability, 3},
     {"_baseModels_getBoxTimes", (DL_FUNC) &_baseModels_getBoxTimes, 2},

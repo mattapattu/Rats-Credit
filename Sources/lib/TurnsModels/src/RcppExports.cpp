@@ -23,17 +23,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // getProbMatrix
-arma::mat getProbMatrix(arma::mat allpaths, double alpha, arma::mat H, int sim, int model);
-RcppExport SEXP _TurnsModels_getProbMatrix(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP HSEXP, SEXP simSEXP, SEXP modelSEXP) {
+arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, int sim, int model);
+RcppExport SEXP _TurnsModels_getProbMatrix(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP simSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
+    Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, alpha, H, sim, model));
+    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, turnTimes, turnMethod, alpha, sim, model));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -167,13 +168,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // getTurnIdx
-int getTurnIdx(std::string turn);
-RcppExport SEXP _TurnsModels_getTurnIdx(SEXP turnSEXP) {
+unsigned int getTurnIdx(std::string turn, int state);
+RcppExport SEXP _TurnsModels_getTurnIdx(SEXP turnSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type turn(turnSEXP);
-    rcpp_result_gen = Rcpp::wrap(getTurnIdx(turn));
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnIdx(turn, state));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -192,7 +194,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_TurnsModels_getTurnsLikelihood", (DL_FUNC) &_TurnsModels_getTurnsLikelihood, 6},
-    {"_TurnsModels_getProbMatrix", (DL_FUNC) &_TurnsModels_getProbMatrix, 5},
+    {"_TurnsModels_getProbMatrix", (DL_FUNC) &_TurnsModels_getProbMatrix, 6},
     {"_TurnsModels_rcpparma_hello_world", (DL_FUNC) &_TurnsModels_rcpparma_hello_world, 0},
     {"_TurnsModels_rcpparma_outerproduct", (DL_FUNC) &_TurnsModels_rcpparma_outerproduct, 1},
     {"_TurnsModels_rcpparma_innerproduct", (DL_FUNC) &_TurnsModels_rcpparma_innerproduct, 1},
@@ -204,7 +206,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TurnsModels_getBoxTimes", (DL_FUNC) &_TurnsModels_getBoxTimes, 2},
     {"_TurnsModels_getTurnsFromPaths", (DL_FUNC) &_TurnsModels_getTurnsFromPaths, 2},
     {"_TurnsModels_getTurnString", (DL_FUNC) &_TurnsModels_getTurnString, 1},
-    {"_TurnsModels_getTurnIdx", (DL_FUNC) &_TurnsModels_getTurnIdx, 1},
+    {"_TurnsModels_getTurnIdx", (DL_FUNC) &_TurnsModels_getTurnIdx, 2},
     {"_TurnsModels_getTurnTimes", (DL_FUNC) &_TurnsModels_getTurnTimes, 2},
     {NULL, NULL, 0}
 };

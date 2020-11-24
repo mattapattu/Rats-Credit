@@ -215,6 +215,81 @@ arma::mat empiricalProbMat(arma::mat allpaths, int window)
 }
 
 // [[Rcpp::export()]]
+arma::mat empiricalProbMat2(arma::mat allpaths, int window)
+{
+
+  arma::mat probMatrix;
+
+  arma::vec allpath_actions = allpaths.col(0);
+  arma::vec allpath_states = allpaths.col(1);
+  arma::vec sessionVec = allpaths.col(4);
+  arma::vec uniqSessIdx = arma::unique(sessionVec);
+  //Rcpp::Rcout << "sessionVec=" << sessionVec << std::endl;
+  //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;
+ 
+  // Loop through each session
+  for (unsigned int session = 0; session < (uniqSessIdx.n_elem); session++)
+  {
+     int sessId = uniqSessIdx(session);
+    //Rcpp::Rcout << "session=" <<session <<", sessId=" << sessId << std::endl;
+    arma::uvec sessionIdx = arma::find(allpaths.col(4) == (sessId));
+    arma::vec actions_sess = allpath_actions.elem(sessionIdx);
+    arma::vec states_sess = allpath_states.elem(sessionIdx);
+    int nrow = actions_sess.n_rows;
+    int size = nrow/window;
+    int remaining = nrow % window;
+
+    if(size == 0 && remaining > 0){
+      size = 1;
+    }
+    arma::mat probMatrix_sess(size,15);  
+    for(int i=0;i<size;i++)
+    {
+      probMatrix_sess(i,12) = sessId;
+      
+
+      arma::uword start_idx = i * window;
+      arma::uword end_idx = (i+1)*window - 1;
+      
+      if(nrow/window < 1)
+      {
+        end_idx = remaining-1;
+      }
+      else if(i == size-1)
+      {
+        end_idx = end_idx + remaining;
+      }
+      probMatrix_sess(i,13) =  start_idx;
+      probMatrix_sess(i,14) =  end_idx;
+      arma::uvec range = arma::regspace<arma::uvec>(start_idx,end_idx);
+      //Rcpp::Rcout << "start_idx=" << start_idx << ", end_idx=" << end_idx << std::endl;
+      arma::vec states_chunk = states_sess.elem(range);
+      arma::vec actions_chunk = actions_sess.elem(range);
+      //Rcpp::Rcout << "states_chunk=" << states_chunk << std::endl;
+      //Rcpp::Rcout << "actions_chunk=" << actions_chunk << std::endl;
+      for(int state = 0; state < 2; state++)
+      {
+        
+        arma::uvec state_idx = arma::find(states_chunk == (state+1));
+        arma::vec actions_in_state = actions_chunk.elem(state_idx);
+        //Rcpp::Rcout << "state_idx=" << state_idx << std::endl;
+        //probMatrix_sess.submat(i, 6, i, 11) = arma::zeros(1, 6);
+        for(int act = 0; act < 6; act++)
+          {
+            arma::uvec act_idx = arma::find(actions_in_state == (act+1));
+            //Rcpp::Rcout << "act_idx=" << act_idx << std::endl;
+            double x = act_idx.n_elem / (1.0 * state_idx.n_elem);
+            probMatrix_sess(i, ((state*6) + act)) = x;
+          }      
+      }
+    }
+    probMatrix = arma::join_cols(probMatrix, probMatrix_sess);
+  }
+
+  return (probMatrix);
+}
+
+// [[Rcpp::export()]]
 arma::vec mseEmpirical(arma::mat allpaths, arma::mat probMatrix_m1, arma::vec movAvg, int sim)
 {
 

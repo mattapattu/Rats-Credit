@@ -257,25 +257,80 @@ checkValidation=function(mat_res, model,rat){
 }
 
 
-generatePlots=function(rat,empiricalProbMatrix, ACAprobMatrix, GBprobMatrix,  SARSAprobMatrix, ACA3probMatrix){
+generatePlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  SARSAprobMatrix, ACA3probMatrix, allpaths_num){
+  
+  rle_sess = rle(allpaths_num[,5])
+  last_paths<-cumsum(rle_sess$lengths)
+  allpaths_num<-allpaths_num[-last_paths,]
+  
+  empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num, window = window)
+  
+  state1=which(allpaths_num[,2]==1)
+  state2=which(allpaths_num[,2]==2)
+  rle_state1 = rle(allpaths_num[state1,5])
+  rle_state2 = rle(allpaths_num[state2,5])
   
   for(act in c(1:6)){
     for(state in c(1:2)){
       jpeg(paste("Prob_",rat,"_Path", act, "_State",state,".jpeg",sep=""))
-      plot(GBprobMatrix[which(GBprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='black',type='l',ylim=c(0,1),ylab="Probability",main=paste("Probability of selecting Path",act," in State ", state, " for ", rat,sep="" ))
+      
+      if(state==1){
+        rle_sess = rle_state1
+        stateidx= state1
+      }else{
+        rle_sess = rle_state2
+        stateidx=state2
+      }
+      
+      plot(GBprobMatrix[stateidx,(act+6*(state-1))],col='black',type='l',ylim=c(0,1),ylab="Probability", xaxt='n', xlab='')
       #lines(GB_ACAprobMatrix[which(GB_ACAprobMatrix[,(act+6*(state-1))]!=0),(act+6*(state-1))],col='red',type='l')
-      lines(ACAprobMatrix[which(ACAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='green',type='l')
-      lines(SARSAprobMatrix[which(SARSAprobMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='orange',type='l')
-      lines(ACA3probMatrix[which(ACA3probMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='red',type='l')
-      lines(empiricalProbMatrix[which(empiricalProbMatrix[,act+6*(state-1)]!=0),(act+6*(state-1))],col='blue',type='l',lty=2)
+      
+      axis(1, at=seq(1,length(stateidx),by=100))
+      mtext(paste("State", state, "Trials"), side = 1, line = 2, cex=0.9)
+      axis(3, line=0,at=c(1,cumsum(rle_sess$lengths[-length(rle_sess$lengths)])), labels = rle_sess$values)
+      mtext("Session Nb", side = 3, line = 2, cex=0.9)
+      abline(v=c(1,cumsum(rle_sess$lengths[-length(rle_sess$lengths)])), lty=3)
+      title(paste("Probability of selecting Path",act," in State ", state, " for ", rat,sep="" ), line = 3.3, cex=0.4)
+      
+      lines(empiricalProbMatrix[stateidx,(act+6*(state-1))],col='blue',type='l',lty=1, lwd=1)
+      lines(ACAprobMatrix[stateidx,(act+6*(state-1))],col='green',type='l', lwd=1)
+      lines(SARSAprobMatrix[stateidx,(act+6*(state-1))],col='orange',type='l', lwd=1)
+      lines(ACA3probMatrix[stateidx,(act+6*(state-1))],col='red',type='l', lwd=1)
+      
       
       if(act==4||act==10){
-        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.8,lty = c(1,1,1,1,2))
+        legend("bottomright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.8,lty = c(1,1,1,1,1))
         
       }else{
-        legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.8,lty = c(1,1,1,1,2))
+        legend("topright", legend=c("Prob. of reward for GB", "Prob. of reward for ACA","Prob. of reward for SARSA","Prob. of reward for ACA3", "Empirical prob."),col=c("black","green","orange","red", "blue"),cex=0.8,lty = c(1,1,1,1,1))
         
       }
+      
+     
+      dev.off()
+    }
+  }
+  
+}
+
+
+generateEmpiricalPlots=function(rat,empiricalProbMatrix2,endLearningStage){
+  x2<-empiricalProbMatrix2[,13]
+  x2_rle <- rle(x2)
+  x1<-cumsum(empiricalProbMatrix2[,15]-empiricalProbMatrix2[,14]+1)
+  endLearningIdx = findInterval(endLearningStage, x1)
+  for(act in c(1:6)){
+    for(state in c(1:2)){
+      jpeg(paste("EmpProb_",rat,"_Path", act, "_State",state,".jpeg",sep=""))
+      
+       plot(empiricalProbMatrix2[,(act+6*(state-1))],col='black',type='l',ylim=c(0,1),ylab="Probability", xaxt='n', xlab='Session Nb')
+      #lines(GB_ACAprobMatrix[which(GB_ACAprobMatrix[,(act+6*(state-1))]!=0),(act+6*(state-1))],col='red',type='l')
+      
+      axis(1, line=0,at=cumsum(x2_rle$lengths), labels = x2_rle$values)
+      abline(v=cumsum(x2_rle$lengths), lty=3)
+      abline(v=endLearningIdx,col='red',lwd=3)
+      title(paste("Probability of selecting Path",act," in State ", state, " for ", rat,sep="" ), line = 2, cex=0.4)
+      
       dev.off()
     }
   }

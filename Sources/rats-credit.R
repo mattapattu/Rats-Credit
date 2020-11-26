@@ -13,11 +13,11 @@ setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
 source("lib/LoadData/collect.R")
 source("lib/LoadData/aca.R")
 source("lib/LoadData/func.R")
-source("pathModels.R")
-source("mseMethods.R")
-source("modelData.R")
-source("utils.R")
-source("models.R")
+source("PathModels/pathModels.R")
+source("PathModels/mseMethods.R")
+source("PathModels/modelData.R")
+source("PathModels/utils.R")
+source("PathModels/models.R")
 
 
 

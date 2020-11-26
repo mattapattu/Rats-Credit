@@ -50,9 +50,7 @@ comparePathModels=function(enreg,rat, window){
   # #debug(generateEmpiricalPlots)
   # generateEmpiricalPlots(rat, empprob2,endLearningStage)
   
-  turnTimes = baseModels::getTurnTimes(allpaths,boxTimes)
-  turnlik=TurnsModels::getTurnsLikelihood(allpaths_num,turnTimes,turnMethod = 0,alpha=0.1,sim=2,model=1)
-  TurnsModels::getProbMatrix(allpaths_num,turnTimes,turnMethod = 0,alpha=0.1,sim=2,model=1)
+  
 
   # #### Holdout Validation ########################################
   # endLearningStage = getEndIndex(allpaths_num,sim=2)

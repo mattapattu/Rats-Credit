@@ -1,24 +1,24 @@
-\name{turnModels-package}
-\alias{turnModels-package}
-\alias{turnModels}
+\name{SarsaTurns-package}
+\alias{SarsaTurns-package}
+\alias{SarsaTurns}
 \docType{package}
 \title{
-\packageTitle{turnModels}
+\packageTitle{SarsaTurns}
 }
 \description{
-\packageDescription{turnModels}
+\packageDescription{SarsaTurns}
 }
 \details{
 
 The DESCRIPTION file:
-\packageDESCRIPTION{turnModels}
-\packageIndices{turnModels}
+\packageDESCRIPTION{SarsaTurns}
+\packageIndices{SarsaTurns}
 ~~ An overview of how to use the package, including the most important functions ~~
 }
 \author{
-\packageAuthor{turnModels}
+\packageAuthor{SarsaTurns}
 
-Maintainer: \packageMaintainer{turnModels}
+Maintainer: \packageMaintainer{SarsaTurns}
 }
 \references{
 ~~ Literature or other references for background information ~~

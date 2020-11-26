@@ -1,5 +1,5 @@
-#ifndef __GBCREDITUPDATE__
-#define __GBCREDITUPDATE__
+#ifndef __ACACREDITUPDATE__
+#define __ACACREDITUPDATE__
 
 #include <vector>
 #include <RcppArmadillo.h>
@@ -8,13 +8,15 @@
 #include <RcppArmadilloExtensions/sample.h>
 #include "utils.hpp"
 
-void GbCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::vector<int> episodeTurnStates, double alpha, float score_episode, double avg_score)
+//updateHMat(H,actions, states, trialTimes, alpha,N, score_episode, avg_score, model);
+inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::vector<int> episodeTurnStates, std::vector<double> episodeTurnTimes, double alpha, float score_episode)
 {
  
   
   arma::vec episodeTurnStates_arma = arma::conv_to<arma::vec>::from(episodeTurnStates);
   //Rcpp::Rcout <<  "episodeTurnStates=" << episodeTurnStates_arma <<std::endl;
 
+  arma::vec episodeTurnTimes_arma(episodeTurnTimes);
   for (int state = 0; state < 2; state++)
   {
     //get turns in state 0/1
@@ -66,17 +68,11 @@ void GbCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::ve
 
       if (!currNode)
       {
-        Rcpp::Rcout <<"state=" <<state <<  ", turn="<< *curr_turn  << " not found in episodeTurns" <<std::endl;
+        //Rcpp::Rcout <<"state=" <<state <<  ", turn="<< *curr_turn  << " not found in episodeTurns" <<std::endl;
       } 
-      
-      currNode->credit = currNode->credit + (alpha * (score_episode-avg_score) * (1 - softmax(currNode)));
-      if (!currNode->siblings.empty())
-      {
-        for (auto sibling = currNode->siblings.begin(); sibling != currNode->siblings.end(); sibling++)
-        {
-          (*sibling)->credit = (*sibling)->credit + (alpha * (score_episode-avg_score) * softmax((*sibling)));
-        }
-      }
+      double turnTime = arma::accu(episodeTurnTimes_arma.elem(turnIdx));
+      double activity = turnTime/arma::accu(episodeTurnTimes_arma);
+      currNode->credit = currNode->credit + (alpha * score_episode * activity) ;
       //Rcpp::Rcout <<  "Turn="<< *curr_turn  << ", turnTime=" << turnTime <<std::endl;
     }
 

@@ -560,12 +560,14 @@ void decayCredits(std::shared_ptr<TreeNode> root, double gamma)
     for (auto i = root->child.begin(); i != root->child.end(); i++)
     {
         (*i)->credit = (*i)->credit * gamma;
+        Rcpp::Rcout << "turns=" << (*i)->turn << " credits after decay = " <<(*i)->credit << std::endl;
         std::vector<std::shared_ptr<TreeNode>> childNodes = (*i)->child;
         if (!childNodes.empty())
         {
              for (auto child = childNodes.begin(); child != childNodes.end(); child++)
              {
                 (*child)->credit = (*child)->credit * gamma;
+                Rcpp::Rcout << "turns=" << (*child)->turn << " credits after decay = " <<(*child)->credit << std::endl;
              }
         }  
     }

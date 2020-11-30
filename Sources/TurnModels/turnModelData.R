@@ -18,7 +18,7 @@ setClass("Model",
 
 
 
-getTurnModelData = function(generated_data, boxTimes, models, window, sim){
+getTurnModelData = function(generated_data, turnTimes, models, window, sim){
   
   #start_index = getStartIndex(generated_data)
   end_index = getEndIndex(generated_data, sim)
@@ -34,8 +34,7 @@ getTurnModelData = function(generated_data, boxTimes, models, window, sim){
   #empProbMat <- getEmpProbMat(generated_data,window=window,sim=sim)
   
   
-  turnTimes = baseModels::getTurnTimes(allpaths,boxTimes)
-  
+
   acamse = list()
   gbmse = list()
   gbacamse = list()
@@ -43,14 +42,18 @@ getTurnModelData = function(generated_data, boxTimes, models, window, sim){
   aca3mse = list()
   sarsa = list()
   
-  if(1 %in% models){
-    acaTurn = acaTurnData(generated_data, turnTimes, sim=sim, start_index, end_index, window)
+  if(1 %in% models){      
+    acaTurn0 = acaTurnData(generated_data, turnTimes, turnMethod= 0, sim=sim, start_index, end_index, window)
+    acaTurn1 = acaTurnData(generated_data, turnTimes, turnMethod= 1, sim=sim, start_index, end_index, window)
+    acaTurn2 = acaTurnData(generated_data, turnTimes, turnMethod= 2, sim=sim, start_index, end_index, window)
   }
-  if(2 %in% models){
-    gbTurn = gbTurnData(generated_data, sim=sim, start_index, end_index, window)
+  if(2 %in% models){    
+    gbTurn = gbTurnData(generated_data, turnTimes, turnMethod= 0, sim=sim, start_index, end_index, window)
   }
-  if(5 %in% models){
-    aca3Turn = aca3TurnData(generated_data, turnTimes, sim=sim, start_index, end_index, window)
+  if(5 %in% models){        
+    aca3Turn0 = aca3TurnData(generated_data, turnTimes, turnMethod = 0, sim=sim, start_index, end_index, window)
+    aca3Turn1 = aca3TurnData(generated_data, turnTimes, turnMethod = 1, sim=sim, start_index, end_index, window)
+    aca3Turn2 = aca3TurnData(generated_data, turnTimes, turnMethod = 2, sim=sim, start_index, end_index, window)
   }
   if(6 %in% models){
     sarsaTurn = sarsaTurnData(generated_data, sim=sim, start_index, end_index, window)

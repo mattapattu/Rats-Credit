@@ -9,7 +9,7 @@ library(Aca3Turns)
 library(SarsaTurns)
 
 ### Use optimal paramters on actual data and compute Mean Squared Error.
-comparePathModels=function(enreg,rat, window){
+compareTurnModels=function(enreg,rat, window){
   
   enregres = enregCombine(enreg, rat)
   allpaths = enregres$allpaths
@@ -70,11 +70,10 @@ comparePathModels=function(enreg,rat, window){
   #mat_res = windowCompare(generated_data,models, sim=2)
   #debug(getModelData)
   
-  
-  
-  TurnsModels::getProbMatrix(allpaths_num,turnTimes,turnMethod = 0,alpha=0.1,sim=2,model=1)
-  
-  res = getTurnModelData(generated_data, boxTimes, models, window = window, sim=2)
+  models = c(1,2,5,6)
+  turnTimes = baseModels::getTurnTimes(allpaths,boxTimes)
+  #TurnsModels::getProbMatrix(allpaths_num,turnTimes,turnMethod = 0,alpha=0.1,sim=2,model=1)
+  res = getTurnModelData(generated_data, turnTimes, models, window = window, sim=2)
 
   min_index = 0
   min = 100000

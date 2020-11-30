@@ -43,7 +43,7 @@ inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns
     //for each unique turn - get all instances of that in current episode
 
     for(auto curr_turn = std::begin(turns); curr_turn != std::end(turns); ++curr_turn) {
-      //Rcpp::Rcout << "curr_turn=" <<*curr_turn << " in state=" << state<<std::endl;
+      Rcpp::Rcout << "curr_turn=" <<*curr_turn << " in state=" << state<<std::endl;
       arma::uvec turnIdx; // to store the indices of all instances of curr_turn 
       unsigned int turnIndex = 0;
       std::shared_ptr<TreeNode> currNode;
@@ -73,7 +73,7 @@ inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns
       double turnTime = arma::accu(episodeTurnTimes_arma.elem(turnIdx));
       double activity = turnTime/arma::accu(episodeTurnTimes_arma);
       currNode->credit = currNode->credit + (alpha * score_episode * activity) ;
-      //Rcpp::Rcout <<  "Turn="<< *curr_turn  << ", turnTime=" << turnTime <<std::endl;
+      Rcpp::Rcout <<  "Turn="<< *curr_turn  << ", credit=" << currNode->credit <<std::endl;
     }
 
 

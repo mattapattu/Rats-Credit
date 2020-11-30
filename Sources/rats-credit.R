@@ -13,11 +13,24 @@ setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
 source("lib/LoadData/collect.R")
 source("lib/LoadData/aca.R")
 source("lib/LoadData/func.R")
-source("PathModels/pathModels.R")
-source("PathModels/mseMethods.R")
-source("PathModels/modelData.R")
-source("PathModels/utils.R")
-source("PathModels/models.R")
+# source("PathModels/pathModels.R")
+# source("PathModels/mseMethods.R")
+# source("PathModels/modelData.R")
+# source("PathModels/utils.R")
+# source("PathModels/models.R")
+
+
+for (f in list.files(c("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/PathModels"), pattern="*.R", full.names = TRUE)) {
+  print(f)
+  source(f)
+}
+
+
+for (f in list.files(c("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/TurnModels"), pattern="*.R", full.names = TRUE)) {
+  source(f)
+}
+
+
 
 
 
@@ -88,7 +101,10 @@ for (i in c(2:6)) {
   #debug(plot.heatmap.paths)
   #plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
   
-  debug(comparePathModels)
-  comparePathModels(enreg,rat[i], window=20)
+  # debug(comparePathModels)
+  # comparePathModels(enreg,rat[i], window=20)
+  
+  debug(compareTurnModels)
+  compareTurnModels(enreg,rat[i], window=20)
 
 }

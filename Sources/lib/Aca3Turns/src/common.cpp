@@ -50,7 +50,7 @@ int softmax_action_sel(arma::vec H)
 
 void updateCreditMatrix(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::vector<int> episodeTurnStates, std::vector<double> episodeTurnTimes, double alpha, float score_episode, double avg_score, int model)
 {
-  if (model == 3)
+  if (model == 5)
   {
     Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode);
   }
@@ -388,7 +388,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
       }
 
       
-      Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
+      //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
 
       Rcpp::StringVector turns;
       turns = getTurnsFromPaths(A, S);
@@ -398,7 +398,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
       for (int j = 0; j < nbOfTurns; j++)
       {
         std::string currTurn = Rcpp::as<std::string>(turns(j));
-        Rcpp::Rcout <<"j=" <<j <<", currTurn="<< currTurn<<std::endl;
+        //Rcpp::Rcout <<"j=" <<j <<", currTurn="<< currTurn<<std::endl;
         if (j == 0)
         {
           if (S == 0)
@@ -463,7 +463,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
       //Check if episode ended
       if (returnToInitState)
       {
-        Rcpp::Rcout <<  "Inside end episode"<<std::endl;
+        //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
         changeState = false;
         returnToInitState = false;
 

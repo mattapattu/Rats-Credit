@@ -389,7 +389,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
       }
 
       
-      Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
+      //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
 
       Rcpp::StringVector turns;
       turns = getTurnsFromPaths(A, S);
@@ -399,7 +399,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
       for (int j = 0; j < nbOfTurns; j++)
       {
         std::string currTurn = Rcpp::as<std::string>(turns(j));
-        Rcpp::Rcout <<"j=" <<j <<", currTurn="<< currTurn<<std::endl;
+        //Rcpp::Rcout <<"j=" <<j <<", currTurn="<< currTurn<<std::endl;
         if (j == 0)
         {
           if (S == 0)
@@ -434,10 +434,10 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
         }  
         //Rcpp::Rcout <<"currNode.turn="<< currNode->turn<<std::endl;
         episodeTurns.push_back(currNode);
-        Rcpp::Rcout <<"Adding state="<< S << " to episodeTurnStates"<<std::endl;
+        //Rcpp::Rcout <<"Adding state="<< S << " to episodeTurnStates"<<std::endl;
         episodeTurnStates.push_back(S); 
         //Rcpp::Rcout <<"session_turn_count="<< session_turn_count<<std::endl;
-        Rcpp::Rcout <<"turn_time=" << turn_times_session(session_turn_count) <<std::endl;
+        //Rcpp::Rcout <<"turn_time=" << turn_times_session(session_turn_count) <<std::endl;
         episodeTurnTimes.push_back(turn_times_session(session_turn_count));
 
         
@@ -464,7 +464,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
       //Check if episode ended
       if (returnToInitState)
       {
-        Rcpp::Rcout <<  "Inside end episode"<<std::endl;
+        //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
         changeState = false;
         returnToInitState = false;
 

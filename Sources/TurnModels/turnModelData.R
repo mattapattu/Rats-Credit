@@ -42,10 +42,21 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
   aca3mse = list()
   sarsa = list()
   
-  if(1 %in% models){      
+  if(1 %in% models){   
     acaTurn0 = acaTurnData(generated_data, turnTimes, turnMethod= 0, sim=sim, start_index, end_index, window)
     acaTurn1 = acaTurnData(generated_data, turnTimes, turnMethod= 1, sim=sim, start_index, end_index, window)
     acaTurn2 = acaTurnData(generated_data, turnTimes, turnMethod= 2, sim=sim, start_index, end_index, window)
+    
+    min.idx = which.min(c(acaTurn0@Metrics[[2]],acaTurn1@Metrics[[2]],acaTurn2@Metrics[[2]]))
+    print(sprintf("ACA turnMethod=%i has max likelihood", min.idx-1))
+     if(min.idx == 1){
+      acaTurn = acaTurn0
+    }else if(min.idx == 2){
+      acaTurn = acaTurn1
+    }else if(min.idx == 3){
+      acaTurn = acaTurn2
+    }
+    
   }
   if(2 %in% models){    
     gbTurn = gbTurnData(generated_data, turnTimes, turnMethod= 0, sim=sim, start_index, end_index, window)
@@ -54,6 +65,16 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
     aca3Turn0 = aca3TurnData(generated_data, turnTimes, turnMethod = 0, sim=sim, start_index, end_index, window)
     aca3Turn1 = aca3TurnData(generated_data, turnTimes, turnMethod = 1, sim=sim, start_index, end_index, window)
     aca3Turn2 = aca3TurnData(generated_data, turnTimes, turnMethod = 2, sim=sim, start_index, end_index, window)
+    
+    min.idx = which.min(c(aca3Turn0@Metrics[[2]],aca3Turn1@Metrics[[2]],aca3Turn2@Metrics[[2]]))
+    print(sprintf("ACA3 turnMethod=%i has max likelihood", min.idx-1))
+    if(min.idx == 1){
+      aca3Turn = aca3Turn0
+    }else if(min.idx == 2){
+      aca3Turn = aca3Turn1
+    }else if(min.idx == 3){
+      aca3Turn = aca3Turn2
+    }
   }
   if(6 %in% models){
     sarsaTurn = sarsaTurnData(generated_data, sim=sim, start_index, end_index, window)

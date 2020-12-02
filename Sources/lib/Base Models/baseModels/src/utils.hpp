@@ -561,7 +561,7 @@ int getTurnIdx(std::string turn)
 }
 
 // [[Rcpp::export]]
-arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
+arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes, int sim)
 {
 
   int totalPaths = allpaths.nrow();
@@ -576,6 +576,11 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
     //Rcpp::Rcout << "i=" << i << ", path_string =" << path_string <<std::endl;
     int path = std::stoi(path_string);
     int state = std::stoi(state_string);
+    if(sim == 2)
+    {
+      path = path-1;
+      state = state-1;
+    }
     int sessionNb = std::stoi(sessionNb_string);
     Rcpp::StringVector turns;
     turns = getTurns(path, state);

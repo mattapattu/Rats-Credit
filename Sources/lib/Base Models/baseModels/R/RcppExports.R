@@ -69,8 +69,8 @@ getTurnIdx <- function(turn) {
     .Call(`_baseModels_getTurnIdx`, turn)
 }
 
-getTurnTimes <- function(allpaths, boxTimes) {
-    .Call(`_baseModels_getTurnTimes`, allpaths, boxTimes)
+getTurnTimes <- function(allpaths, boxTimes, sim) {
+    .Call(`_baseModels_getTurnTimes`, allpaths, boxTimes, sim)
 }
 
 getComputationalActivity <- function(allpaths, probabilityMatrix) {

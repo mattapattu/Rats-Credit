@@ -298,27 +298,27 @@ std::string getTurnString(int turnNb)
   std::string turn;
   if (turnNb == 1)
   {
-    turn = "dch";
+    turn = "dcb";
   }
   else if (turnNb == 2)
   {
-    turn = "gak";
+    turn = "dch";
   }
   else if (turnNb == 3)
   {
-    turn = "dcb";
+    turn = "gak";
   }
   else if (turnNb == 4)
   {
-    turn = "bak";
+    turn = "gab";
   }
   else if (turnNb == 5)
   {
-    turn = "gab";
+    turn = "bak";
   }
   else if (turnNb == 6)
   {
-    turn = "bch";
+    turn = "bag";
   }
   else if (turnNb == 7)
   {
@@ -326,23 +326,39 @@ std::string getTurnString(int turnNb)
   }
   else if (turnNb == 8)
   {
-    turn = "hcd";
+    turn = "bch";
   }
   else if (turnNb == 9)
   {
-    turn = "kag";
+    turn = "hcb";
   }
   else if (turnNb == 10)
   {
-    turn = "hcb";
+    turn = "hcd";
   }
   else if (turnNb == 11)
   {
-    turn = "bag";
+    turn = "kag";
   }
   else if (turnNb == 12)
   {
     turn = "kab";
+  }
+  else if (turnNb == 13)
+  {
+    turn = "bak";
+  }
+  else if (turnNb == 14)
+  {
+    turn = "bag";
+  }
+  else if (turnNb == 15)
+  {
+    turn = "bcd";
+  }
+  else if (turnNb == 16)
+  {
+    turn = "bch";
   }
   return (turn);
 }
@@ -560,14 +576,14 @@ void decayCredits(std::shared_ptr<TreeNode> root, double gamma)
     for (auto i = root->child.begin(); i != root->child.end(); i++)
     {
         (*i)->credit = (*i)->credit * gamma;
-        Rcpp::Rcout << "turns=" << (*i)->turn << " credits after decay = " <<(*i)->credit << std::endl;
+        //Rcpp::Rcout << "turns=" << (*i)->turn << " credits after decay = " <<(*i)->credit << std::endl;
         std::vector<std::shared_ptr<TreeNode>> childNodes = (*i)->child;
         if (!childNodes.empty())
         {
              for (auto child = childNodes.begin(); child != childNodes.end(); child++)
              {
                 (*child)->credit = (*child)->credit * gamma;
-                Rcpp::Rcout << "turns=" << (*child)->turn << " credits after decay = " <<(*child)->credit << std::endl;
+                //Rcpp::Rcout << "turns=" << (*child)->turn << " credits after decay = " <<(*child)->credit << std::endl;
              }
         }  
     }

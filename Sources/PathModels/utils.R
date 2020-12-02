@@ -313,6 +313,103 @@ generatePlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  SARSAprobMatrix
   
 }
 
+generateTurnPlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  ACA3probMatrix, SARSAprobMatrix, turnTimes){
+  
+  # rle_sess = rle(allpaths_num[,5])
+  # last_paths<-cumsum(rle_sess$lengths)
+  # allpaths_num<-allpaths_num[-last_paths,]
+  rle_sess = rle(turnTimes[,5])
+  last_paths<-cumsum(rle_sess$lengths)
+  turnTimes1 =  turnTimes[-c(last_paths, (last_paths-1)),]
+  
+  #empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num, window = window)
+  
+  state1=which(turnTimes1[,3]==1)
+  state2=which(turnTimes1[,3]==2)
+  # rle_state1 = rle(allpaths_num[state1,5])
+  # rle_state2 = rle(allpaths_num[state2,5])
+  
+  
+  
+  
+  for(state in c(1:2))
+  {
+    pdf(file=paste("Prob_",rat,"_at_E_State",state,".pdf",sep=""))
+    layout(matrix(c(1,2,3,4,5,5), ncol=2, byrow=TRUE), heights=c(4,4,1))
+    par(mai=rep(0.5, 4))
+    
+    for(turn in c(1:4))
+    {
+      turnIdx = turn + 8*(state-1)
+      turnName = TurnsModels::getTurnString(turnIdx)
+      
+      plot(GBprobMatrix[which(GBprobMatrix[,turnIdx]!=-1),turnIdx],col='black',type='l',ylim=c(0,1),ylab="Probability", xlab=paste("State", state, "Trials"))
+      title(paste("Probability of \"",turnName,"\",State ", state, ",", rat,sep="" ), line = 1, cex=0.4)
+      
+      #lines(empiricalProbMatrix[stateidx,(act+6*(state-1))],col='blue',type='l',lty=1, lwd=1)
+      lines(ACAprobMatrix[which(ACAprobMatrix[,turnIdx]!=-1),turnIdx],col='green',type='l', lwd=1)
+      lines(SARSAprobMatrix[which(SARSAprobMatrix[,turnIdx]!=-1),turnIdx],col='blue',type='l', lwd=1)
+      lines(ACA3probMatrix[which(ACA3probMatrix[,turnIdx]!=-1),turnIdx],col='red',type='l', lwd=1)
+      
+    }
+    par(mai=c(0,0,0,0))
+    plot.new()
+    legend("center", legend=c("Prob. of GB", "Prob. of ACA","Prob. of SARSA","Prob. of ACA3"),col=c("black","green","red", "blue"),cex=0.8,lty = c(1,1,1,1), ncol=4)
+    dev.off()
+    
+    
+    
+    pdf(file=paste("Prob_",rat,"_at_A_State",state,".pdf",sep=""))
+    layout(matrix(c(1,2,3,3), ncol=2, byrow=TRUE), heights=c(4,1))
+    par(mai=rep(0.5, 4))
+    
+    for(turn in c(5:6)){
+      turnIdx = turn + 8*(state-1)
+      turnName = TurnsModels::getTurnString(turnIdx)
+      
+      plot(GBprobMatrix[which(GBprobMatrix[,turnIdx]!=-1),turnIdx],col='black',type='l',ylim=c(0,1),ylab="Probability", xlab=paste("State", state, "Trials"))
+      title(paste("Probability of \"",turnName,"\",State ", state, ",", rat,sep="" ), line = 1, cex=0.4)
+      
+      #lines(empiricalProbMatrix[stateidx,(act+6*(state-1))],col='blue',type='l',lty=1, lwd=1)
+      lines(ACAprobMatrix[which(ACAprobMatrix[,turnIdx]!=-1),turnIdx],col='green',type='l', lwd=1)
+      lines(SARSAprobMatrix[which(SARSAprobMatrix[,turnIdx]!=-1),turnIdx],col='blue',type='l', lwd=1)
+      lines(ACA3probMatrix[which(ACA3probMatrix[,turnIdx]!=-1),turnIdx],col='red',type='l', lwd=1)
+      
+    }
+    par(mai=c(0,0,0,0))
+    plot.new()
+    legend("center", legend=c("Prob. of GB", "Prob. of ACA","Prob. of SARSA","Prob. of ACA3"),col=c("black","green","red", "blue"),cex=0.8,lty = c(1,1,1,1), ncol=4)
+    dev.off()
+    
+    
+    
+    pdf(file=paste("Prob_",rat,"_at_C_State",state,".pdf",sep=""))
+    layout(matrix(c(1,2,3,3), ncol=2, byrow=TRUE), heights=c(4,1))
+    par(mai=rep(0.5, 4))
+    
+    for(turn in c(7:8)){
+      turnIdx = turn + 8*(state-1)
+      turnName = TurnsModels::getTurnString(turnIdx)
+      
+      plot(GBprobMatrix[which(GBprobMatrix[,turnIdx]!=-1),turnIdx],col='black',type='l',ylim=c(0,1),ylab="Probability", xlab=paste("State", state, "Trials"))
+      title(paste("Probability of \"",turnName,"\",State ", state, ",", rat,sep="" ), line = 1, cex=0.4)
+      
+      #lines(empiricalProbMatrix[stateidx,(act+6*(state-1))],col='blue',type='l',lty=1, lwd=1)
+      lines(ACAprobMatrix[which(ACAprobMatrix[,turnIdx]!=-1),turnIdx],col='green',type='l', lwd=1)
+      lines(SARSAprobMatrix[which(SARSAprobMatrix[,turnIdx]!=-1),turnIdx],col='blue',type='l', lwd=1)
+      lines(ACA3probMatrix[which(ACA3probMatrix[,turnIdx]!=-1),turnIdx],col='red',type='l', lwd=1)
+      
+    }
+    par(mai=c(0,0,0,0))
+    plot.new()
+    legend("center", legend=c("Prob. of GB", "Prob. of ACA","Prob. of SARSA","Prob. of ACA3"),col=c("black","green","red", "blue"),cex=0.8,lty = c(1,1,1,1), ncol=4)
+    dev.off() 
+  }
+  
+  
+}
+
+
 
 generateEmpiricalPlots=function(rat,empiricalProbMatrix2,endLearningStage){
   x2<-empiricalProbMatrix2[,13]

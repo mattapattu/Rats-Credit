@@ -298,27 +298,27 @@ std::string getTurnString(int turnNb)
   std::string turn;
   if (turnNb == 1)
   {
-    turn = "dch";
+    turn = "dcb";
   }
   else if (turnNb == 2)
   {
-    turn = "gak";
+    turn = "dch";
   }
   else if (turnNb == 3)
   {
-    turn = "dcb";
+    turn = "gak";
   }
   else if (turnNb == 4)
   {
-    turn = "bak";
+    turn = "gab";
   }
   else if (turnNb == 5)
   {
-    turn = "gab";
+    turn = "bak";
   }
   else if (turnNb == 6)
   {
-    turn = "bch";
+    turn = "bag";
   }
   else if (turnNb == 7)
   {
@@ -326,23 +326,39 @@ std::string getTurnString(int turnNb)
   }
   else if (turnNb == 8)
   {
-    turn = "hcd";
+    turn = "bch";
   }
   else if (turnNb == 9)
   {
-    turn = "kag";
+    turn = "hcb";
   }
   else if (turnNb == 10)
   {
-    turn = "hcb";
+    turn = "hcd";
   }
   else if (turnNb == 11)
   {
-    turn = "bag";
+    turn = "kag";
   }
   else if (turnNb == 12)
   {
     turn = "kab";
+  }
+  else if (turnNb == 13)
+  {
+    turn = "bak";
+  }
+  else if (turnNb == 14)
+  {
+    turn = "bag";
+  }
+  else if (turnNb == 15)
+  {
+    turn = "bcd";
+  }
+  else if (turnNb == 16)
+  {
+    turn = "bch";
   }
   return (turn);
 }
@@ -427,7 +443,7 @@ unsigned int getTurnIdx(std::string turn, int state)
 }
 
 // [[Rcpp::export]]
-arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
+arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes, int sim)
 {
 
   int totalPaths = allpaths.nrow();
@@ -438,13 +454,20 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
   {
     std::string path_string = Rcpp::as<std::string>(allpaths(i, 2));
     std::string state_string = Rcpp::as<std::string>(allpaths(i, 4));
-    //Rcpp::Rcout << "i=" << i << ", path_string =" << path_string << " ,state_string=" <<state_string <<std::endl;
+    std::string sessionNb_string = Rcpp::as<std::string>(allpaths(i, 1));
+    //Rcpp::Rcout << "i=" << i << ", path_string =" << path_string <<std::endl;
     int path = std::stoi(path_string);
     int state = std::stoi(state_string);
+    if(sim == 2)
+    {
+      path = path-1;
+      state = state-1;
+    }
+    int sessionNb = std::stoi(sessionNb_string);
     Rcpp::StringVector turns;
     turns = getTurnsFromPaths(path, state);
     int nbOfTurns = turns.length();
-    //Rcpp::Rcout << "i=" << i << ", path =" << path << " ,state=" <<state <<std::endl;
+    //Rcpp::Rcout << "i=" << i << ", path =" << path << " ,state=" << state << ", nbOfTurns=" <<nbOfTurns<<std::endl;
     //Rcpp::Rcout << "turns=" << turns << std::endl;
 
     for (int j = 0; j < nbOfTurns; j++)
@@ -453,46 +476,48 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
       std::string currTurn = Rcpp::as<std::string>(turns(j));
       // currTurn.erase(std::remove(turns(j).begin(), currTurn.end(), ','), currTurn.end());
       // currTurn.erase(std::remove(turns(j).begin(), currTurn.end(), ' '), currTurn.end());
-      unsigned int turnIdx = getTurnIdx(currTurn, state);
+      int turnIdx = getTurnIdx(currTurn, state);
 
-      arma::rowvec new_row = {static_cast<double>(i + 1), static_cast<double>(path), static_cast<double>(state), static_cast<double>(turnIdx), 0, 0, 0, 0};
+      arma::rowvec new_row = {static_cast<double>(i + 1), static_cast<double>(path), static_cast<double>(state), static_cast<double>(turnIdx), static_cast<double>(sessionNb), 0, 0, 0};
 
-      for (int method = 0; method < 4; method++)
+      for (int method = 0; method < 3; method++)
       {
-        //Rcpp::Rcout <<  "method="<< method<<std::endl;
+
+        std::string s = Rcpp::as<std::string>(allpaths(i, 0));
+        s.erase(std::remove(s.begin(), s.end(), ','), s.end());
+        s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
+        //Rcpp::Rcout <<"s=" <<s << ", method=" << method << std::endl;
+
         if (method == 0)
         {
-          std::string s = Rcpp::as<std::string>(allpaths(i, 0));
-          s.erase(std::remove(s.begin(), s.end(), ','), s.end());
-          s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
-
           std::smatch m;
-          std::string pattern = ".*(";
+          std::string pattern = "(";
           pattern.push_back(currTurn.at(0));
-          pattern += ".*?";
+          pattern += "(";
+          pattern.push_back(currTurn.at(1));
+          pattern += ".*";
           pattern.push_back(currTurn.at(2));
-          pattern.push_back(')');
+          pattern += ")+)";
           std::regex e(pattern);
           std::regex_search(s, m, e);
 
           int turnStartIdx = currBoxIdx + m.position(1) + 1;
           int turnEndIdx = currBoxIdx + m.position(1) + m[1].length(); //m[1].length() counts turnStartIdx also
           arma::uvec ids = arma::conv_to<arma::uvec>::from(arma::regspace(turnStartIdx, turnEndIdx));
-          double turnTime = arma::accu(boxTimes.elem(ids));
 
-          new_row(4 + method) = turnTime;
+          double turnTime = arma::accu(boxTimes.elem(ids));
+          //Rcpp::Rcout << "boxTimes=" << boxTimes.elem(ids)<<std::endl;
+          new_row(5 + method) = turnTime;
         }
         else if (method == 1)
         {
-          std::string s = Rcpp::as<std::string>(allpaths(i, 0));
-          s.erase(std::remove(s.begin(), s.end(), ','), s.end());
-          s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
           std::smatch m;
-          std::string pattern = ".*(";
+          std::string pattern = "((";
           pattern.push_back(currTurn.at(0));
-          pattern += ".*?";
+          pattern += ".*";
           pattern.push_back(currTurn.at(1));
-          pattern.push_back(')');
+          pattern += ")+)";
+          pattern.push_back(currTurn.at(2));
           std::regex e(pattern);
           std::regex_search(s, m, e);
 
@@ -501,19 +526,18 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
           arma::uvec ids = arma::conv_to<arma::uvec>::from(arma::regspace(turnStartIdx, turnEndIdx));
           double turnTime = arma::accu(boxTimes.elem(ids));
 
-          new_row(4 + method) = turnTime;
+          new_row(5 + method) = turnTime;
         }
         else if (method == 2)
         {
-          std::string s = Rcpp::as<std::string>(allpaths(i, 0));
-          s.erase(std::remove(s.begin(), s.end(), ','), s.end());
-          s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
           std::smatch m;
-          std::string pattern = ".*(";
+          std::string pattern;
+          pattern.push_back(currTurn.at(0));
+          pattern += "((";
           pattern.push_back(currTurn.at(1));
-          pattern += ".*?";
+          pattern += ".*";
           pattern.push_back(currTurn.at(2));
-          pattern.push_back(')');
+          pattern += ")+)";
           std::regex e(pattern);
           std::regex_search(s, m, e);
 
@@ -522,13 +546,10 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
           arma::uvec ids = arma::conv_to<arma::uvec>::from(arma::regspace(turnStartIdx, turnEndIdx));
           double turnTime = arma::accu(boxTimes.elem(ids));
 
-          new_row(4 + method) = turnTime;
+          new_row(5 + method) = turnTime;
         }
         else if (method == 3)
         {
-          std::string s = Rcpp::as<std::string>(allpaths(i, 0));
-          s.erase(std::remove(s.begin(), s.end(), ','), s.end());
-          s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
           std::smatch m;
           std::string pattern = ".*(";
           pattern.push_back(currTurn.at(1));
@@ -541,7 +562,7 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
           ids = turnStartIdx;
           double turnTime = arma::accu(boxTimes.elem(ids));
 
-          new_row(4 + method) = turnTime;
+          new_row(5 + method) = turnTime;
         }
       }
       res_mat = arma::join_vert(res_mat, new_row);
@@ -551,7 +572,9 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
     currPath.erase(std::remove(currPath.begin(), currPath.end(), ','), currPath.end());
     currPath.erase(std::remove(currPath.begin(), currPath.end(), ' '), currPath.end());
     currBoxIdx = currBoxIdx + currPath.length();
+    //Rcpp::Rcout << "currBoxIdx=" << currBoxIdx << ", currPath=" << currPath << ", currPath.length=" << currPath.length() << std::endl;
   }
   return (res_mat);
 }
+
 #endif

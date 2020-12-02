@@ -58,7 +58,7 @@ void updateCreditMatrix(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std
 }
 
 // [[Rcpp::export()]]
-std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2, int sim, int model)
+std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2, int sim)
 {
 
   if (sim != 1)
@@ -94,7 +94,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
   //Rcpp::Rcout <<"rootS1.turn ="<<rootS1->turn<<std::endl;
   //Rcpp::Rcout <<"rootS2.turn ="<<rootS2->turn<<std::endl;
 
-  for (unsigned int session = 0; session < (uniqSessIdx.n_elem - 1); session++)
+  for (unsigned int session = 0; session < uniqSessIdx.n_elem; session++)
   {
 
     int sessId = uniqSessIdx(session);
@@ -131,7 +131,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
         resetVector = false;
       }
 
-      int R = allpaths(i, 2);
+      int R = rewards_sess(i);
 
       if (R > 0)
       {
@@ -140,21 +140,21 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
       if (sim == 1)
       {
-        A = allpaths(i, 0);
+        A = actions_sess(i);
       }
       else
       {
-        A = allpaths(i, 0) - 1;
+        A = actions_sess(i) - 1;
       }
 
       int S_prime = 0;
       if (sim == 1)
       {
-        S_prime = allpaths((i + 1), 1);
+        S_prime = states_sess(i + 1);
       }
       else
       {
-        S_prime = allpaths((i + 1), 1) - 1;
+        S_prime = states_sess(i + 1) - 1;
       }
 
       if (S_prime != initState)
@@ -236,27 +236,10 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
         changeState = false;
         returnToInitState = false;
 
-        arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
-        arma::vec allpath_actions = allpaths.col(0);
-        arma::vec actions = allpath_actions.elem(episodeIdx);
-
-        arma::vec allpath_states = allpaths.col(1);
-        arma::vec states = allpath_states.elem(episodeIdx);
-
-        arma::vec allpath_times = allpaths.col(3);
-        arma::vec time_taken_for_trial = allpath_times.elem(episodeIdx);
-
-        if (sim != 1)
-        {
-          actions = actions - 1;
-          allpath_actions = allpath_actions - 1;
-          states = states - 1;
-          allpath_states = allpath_states - 1;
-        }
-
         avg_score = avg_score + (score_episode - avg_score) / episode;
 
-        updateCreditMatrix(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode, avg_score,  model);
+        //updateCreditMatrix(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode, avg_score,  model);
+        Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode);
         //Rcpp::Rcout <<  "H="<<H<<std::endl;
         score_episode = 0;
         episode = episode + 1;
@@ -315,7 +298,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
   //Rcpp::Rcout <<"rootS1.turn ="<<rootS1->turn<<std::endl;
   //Rcpp::Rcout <<"rootS2.turn ="<<rootS2->turn<<std::endl;
 
-  for (unsigned int session = 0; session < (uniqSessIdx.n_elem - 1); session++)
+  for (unsigned int session = 0; session < uniqSessIdx.n_elem; session++)
   {
 
     int sessId = uniqSessIdx(session);
@@ -352,7 +335,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
         resetVector = false;
       }
 
-      int R = allpaths(i, 2);
+      int R = rewards_sess(i);
 
       if (R > 0)
       {
@@ -361,21 +344,21 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
 
       if (sim == 1)
       {
-        A = allpaths(i, 0);
+        A = actions_sess(i);
       }
       else
       {
-        A = allpaths(i, 0) - 1;
+        A = actions_sess(i) - 1;
       }
 
       int S_prime = 0;
       if (sim == 1)
       {
-        S_prime = allpaths((i + 1), 1);
+        S_prime = states_sess(i + 1);
       }
       else
       {
-        S_prime = allpaths((i + 1), 1) - 1;
+        S_prime = states_sess(i + 1) - 1;
       }
 
       if (S_prime != initState)
@@ -466,24 +449,6 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
         //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
         changeState = false;
         returnToInitState = false;
-
-        arma::uvec episodeIdx = arma::find(allpaths.col(4) == (episode));
-        arma::vec allpath_actions = allpaths.col(0);
-        arma::vec actions = allpath_actions.elem(episodeIdx);
-
-        arma::vec allpath_states = allpaths.col(1);
-        arma::vec states = allpath_states.elem(episodeIdx);
-
-        arma::vec allpath_times = allpaths.col(3);
-        arma::vec time_taken_for_trial = allpath_times.elem(episodeIdx);
-
-        if (sim != 1)
-        {
-          actions = actions - 1;
-          allpath_actions = allpath_actions - 1;
-          states = states - 1;
-          allpath_states = allpath_states - 1;
-        }
 
         avg_score = avg_score + (score_episode - avg_score) / episode;
 

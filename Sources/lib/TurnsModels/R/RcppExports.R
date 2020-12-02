@@ -57,7 +57,7 @@ getTurnIdx <- function(turn, state) {
     .Call(`_TurnsModels_getTurnIdx`, turn, state)
 }
 
-getTurnTimes <- function(allpaths, boxTimes) {
-    .Call(`_TurnsModels_getTurnTimes`, allpaths, boxTimes)
+getTurnTimes <- function(allpaths, boxTimes, sim) {
+    .Call(`_TurnsModels_getTurnTimes`, allpaths, boxTimes, sim)
 }
 

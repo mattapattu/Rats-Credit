@@ -71,8 +71,10 @@ compareTurnModels=function(enreg,rat, window){
   #debug(getModelData)
   
   models = c(1,2,5,6)
-  turnTimes = baseModels::getTurnTimes(allpaths,boxTimes)
+  turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
+  colnames(turnTimes) = c("Idx", "Path","State","TurnIdx","SessionNb","TurnTime1","TurnTime2","TurnTime3")
   #TurnsModels::getProbMatrix(allpaths_num,turnTimes,turnMethod = 0,alpha=0.1,sim=2,model=1)
+  #debug(getTurnModelData)
   res = getTurnModelData(generated_data, turnTimes, models, window = window, sim=2)
 
   min_index = 0
@@ -96,6 +98,6 @@ compareTurnModels=function(enreg,rat, window){
   #debug(plotData)
   #plotData2(res,rat,ranges)
   #empProbMat = baseModels::empiricalProbMat(generated_data, window = window)
-  debug(generatePlots)
-  generatePlots(rat,window, res$acamse@ProbMatrix, res$gbmse@ProbMatrix, res$sarsa@ProbMatrix, res$aca3mse@ProbMatrix, allpaths_num)
+  #debug(generateTurnPlots)
+  generateTurnPlots(rat,window, res$acaTurnData@ProbMatrix, res$gbTurnData@ProbMatrix, res$aca3TurnData@ProbMatrix, res$sarsaTurnData@ProbMatrix, turnTimes)
 }

@@ -76,7 +76,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
   //Rcpp::Rcout <<"rootS1.turn ="<<rootS1->turn<<std::endl;
   //Rcpp::Rcout <<"rootS2.turn ="<<rootS2->turn<<std::endl;
 
-  for (unsigned int session = 0; session < (uniqSessIdx.n_elem - 1); session++)
+  for (unsigned int session = 0; session < uniqSessIdx.n_elem; session++)
   {
 
     int sessId = uniqSessIdx(session);
@@ -95,6 +95,16 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
     int nrow = actions_sess.n_rows;
     int S = 0;
     int A = 0;
+    if (sim == 1)
+    {
+      S = states_sess(0);
+      A = actions_sess(0);
+    }
+    else
+    {
+      S = states_sess(0) - 1;
+      A = actions_sess(0) - 1;
+    }
     std::vector<std::shared_ptr<TreeNode>> episodeTurns;
     std::vector<int> episodeTurnStates;
 
@@ -108,26 +118,20 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
         resetVector = false;
       }
 
-      int R = allpaths(i, 2);
-
-
-      if (sim == 1)
-      {
-        A = allpaths(i, 0);
-      }
-      else
-      {
-        A = allpaths(i, 0) - 1;
-      }
+     int R = rewards_sess(i);
 
       int S_prime = 0;
+      int A_prime = 0;
+
       if (sim == 1)
       {
-        S_prime = allpaths((i + 1), 1);
+        A_prime = actions_sess(i+1);
+        S_prime = states_sess(i+1);
       }
       else
       {
-        S_prime = allpaths((i + 1), 1) - 1;
+        A_prime = actions_sess(i+1) - 1;
+        S_prime = states_sess(i+1) - 1;
       }
 
       if (S_prime != initState)
@@ -229,6 +233,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
       }
 
       S = S_prime;
+      A = A_prime;
       //trial=trial+1;
     }
   }
@@ -266,7 +271,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
   //Rcpp::Rcout <<"rootS1.turn ="<<rootS1->turn<<std::endl;
   //Rcpp::Rcout <<"rootS2.turn ="<<rootS2->turn<<std::endl;
 
-  for (unsigned int session = 0; session < (uniqSessIdx.n_elem - 1); session++)
+  for (unsigned int session = 0; session < uniqSessIdx.n_elem; session++)
   {
 
     int sessId = uniqSessIdx(session);
@@ -286,6 +291,16 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
     int nrow = actions_sess.n_rows;
     int S = 0;
     int A = 0;
+    if (sim == 1)
+    {
+      S = states_sess(0);
+      A = actions_sess(0);
+    }
+    else
+    {
+      S = states_sess(0) - 1;
+      A = actions_sess(0) - 1;
+    }
     std::vector<std::shared_ptr<TreeNode>> episodeTurns;
     std::vector<int> episodeTurnStates;
     std::vector<double> episodeTurnTimes;
@@ -300,30 +315,26 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
         resetVector = false;
       }
 
-      int R = allpaths(i, 2);
+      int R = rewards_sess(i);
 
       if (R > 0)
       {
         score_episode = score_episode + 1;
       }
 
-      if (sim == 1)
-      {
-        A = allpaths(i, 0);
-      }
-      else
-      {
-        A = allpaths(i, 0) - 1;
-      }
-
+      
       int S_prime = 0;
+      int A_prime = 0;
+
       if (sim == 1)
       {
-        S_prime = allpaths((i + 1), 1);
+        A_prime = actions_sess(i+1);
+        S_prime = states_sess(i+1);
       }
       else
       {
-        S_prime = allpaths((i + 1), 1) - 1;
+        A_prime = actions_sess(i+1) - 1;
+        S_prime = states_sess(i+1) - 1;
       }
 
       if (S_prime != initState)
@@ -430,6 +441,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
         
       }
       S = S_prime;
+      A = A_prime;
       //trial=trial+1;
     }
   }

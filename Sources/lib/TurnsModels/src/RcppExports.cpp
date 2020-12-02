@@ -180,14 +180,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // getTurnTimes
-arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes);
-RcppExport SEXP _TurnsModels_getTurnTimes(SEXP allpathsSEXP, SEXP boxTimesSEXP) {
+arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes, int sim);
+RcppExport SEXP _TurnsModels_getTurnTimes(SEXP allpathsSEXP, SEXP boxTimesSEXP, SEXP simSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterMatrix >::type allpaths(allpathsSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type boxTimes(boxTimesSEXP);
-    rcpp_result_gen = Rcpp::wrap(getTurnTimes(allpaths, boxTimes));
+    Rcpp::traits::input_parameter< int >::type sim(simSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnTimes(allpaths, boxTimes, sim));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -207,7 +208,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TurnsModels_getTurnsFromPaths", (DL_FUNC) &_TurnsModels_getTurnsFromPaths, 2},
     {"_TurnsModels_getTurnString", (DL_FUNC) &_TurnsModels_getTurnString, 1},
     {"_TurnsModels_getTurnIdx", (DL_FUNC) &_TurnsModels_getTurnIdx, 2},
-    {"_TurnsModels_getTurnTimes", (DL_FUNC) &_TurnsModels_getTurnTimes, 2},
+    {"_TurnsModels_getTurnTimes", (DL_FUNC) &_TurnsModels_getTurnTimes, 3},
     {NULL, NULL, 0}
 };
 

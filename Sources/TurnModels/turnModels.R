@@ -61,7 +61,7 @@ aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
 }
 
 sarsaTurnData=function(generated_data, sim, half_index, end_index, window){
-  SARSA <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = matrix(0,2,6), allpaths = generated_data[1:half_index,], turnTimes = 0, turnMethod = 0, model = 6, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0), upper = c(1,1,1), allpaths = generated_data[1:half_index,], turnTimes = 0, turnMethod = 0, model = 6, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   alpha_SARSA = SARSA$optim$bestmem[1]
   gamma_SARSA = SARSA$optim$bestmem[2]
   lambda_SARSA = SARSA$optim$bestmem[3]
@@ -92,7 +92,7 @@ negLogLikFunc=function(par,allpaths,turnTimes,turnMethod,model,sim) {
   else if(model == 6){
     gamma = par[2]
     lambda = par[3]
-    turnlik=Aca3Turns::getTurnsLikelihood(allpaths,alpha,gamma,lambda,sim,model)
+    turnlik=SarsaTurns::getTurnsLikelihood(allpaths,alpha,gamma,lambda,sim)
   }
   
   negLogLik = (-1) *sum(turnlik)

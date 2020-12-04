@@ -63,7 +63,7 @@ void updateCreditMatrix(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std
 }
 
 // [[Rcpp::export()]]
-std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, int sim, int model)
+std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double rewardVal, int sim, int model)
 {
 
   if (sim != 1)
@@ -145,7 +145,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
       if (R > 0)
       {
-        score_episode = score_episode + 1;
+        score_episode = score_episode + rewardVal;
       }
 
       if (sim == 1)
@@ -264,7 +264,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 }
 
 // [[Rcpp::export()]]
-arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, int sim, int model)
+arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double rewardVal, int sim, int model)
 {
 
   if (sim != 1)
@@ -349,7 +349,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
 
       if (R > 0)
       {
-        score_episode = score_episode + 1;
+        score_episode = score_episode + rewardVal;
       }
 
       if (sim == 1)

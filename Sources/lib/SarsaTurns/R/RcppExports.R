@@ -17,12 +17,12 @@ rcpparma_bothproducts <- function(x) {
     .Call(`_SarsaTurns_rcpparma_bothproducts`, x)
 }
 
-getTurnsLikelihood <- function(allpaths, alpha, gamma, lambda, sim) {
-    .Call(`_SarsaTurns_getTurnsLikelihood`, allpaths, alpha, gamma, lambda, sim)
+getTurnsLikelihood <- function(allpaths, alpha, gamma, lambda, rewardVal, sim) {
+    .Call(`_SarsaTurns_getTurnsLikelihood`, allpaths, alpha, gamma, lambda, rewardVal, sim)
 }
 
-getProbMatrix <- function(allpaths, alpha, gamma, lambda, sim) {
-    .Call(`_SarsaTurns_getProbMatrix`, allpaths, alpha, gamma, lambda, sim)
+getProbMatrix <- function(allpaths, alpha, gamma, lambda, rewardVal, sim) {
+    .Call(`_SarsaTurns_getProbMatrix`, allpaths, alpha, gamma, lambda, rewardVal, sim)
 }
 
 getTrialTimes <- function(allpaths, enreg_pos) {
@@ -55,9 +55,5 @@ getTurnString <- function(turnNb) {
 
 getTurnIdx <- function(turn, state) {
     .Call(`_SarsaTurns_getTurnIdx`, turn, state)
-}
-
-getTurnTimes <- function(allpaths, boxTimes) {
-    .Call(`_SarsaTurns_getTurnTimes`, allpaths, boxTimes)
 }
 

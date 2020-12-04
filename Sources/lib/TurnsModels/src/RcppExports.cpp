@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // getTurnsLikelihood
-std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, int sim, int model);
-RcppExport SEXP _TurnsModels_getTurnsLikelihood(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP simSEXP, SEXP modelSEXP) {
+std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double rewardVal, int sim, int model);
+RcppExport SEXP _TurnsModels_getTurnsLikelihood(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP rewardValSEXP, SEXP simSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -16,15 +16,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
     Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type rewardVal(rewardValSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(getTurnsLikelihood(allpaths, turnTimes, turnMethod, alpha, sim, model));
+    rcpp_result_gen = Rcpp::wrap(getTurnsLikelihood(allpaths, turnTimes, turnMethod, alpha, rewardVal, sim, model));
     return rcpp_result_gen;
 END_RCPP
 }
 // getProbMatrix
-arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, int sim, int model);
-RcppExport SEXP _TurnsModels_getProbMatrix(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP simSEXP, SEXP modelSEXP) {
+arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double rewardVal, int sim, int model);
+RcppExport SEXP _TurnsModels_getProbMatrix(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP rewardValSEXP, SEXP simSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -32,9 +33,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
     Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type rewardVal(rewardValSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, turnTimes, turnMethod, alpha, sim, model));
+    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, turnTimes, turnMethod, alpha, rewardVal, sim, model));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -194,8 +196,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_TurnsModels_getTurnsLikelihood", (DL_FUNC) &_TurnsModels_getTurnsLikelihood, 6},
-    {"_TurnsModels_getProbMatrix", (DL_FUNC) &_TurnsModels_getProbMatrix, 6},
+    {"_TurnsModels_getTurnsLikelihood", (DL_FUNC) &_TurnsModels_getTurnsLikelihood, 7},
+    {"_TurnsModels_getProbMatrix", (DL_FUNC) &_TurnsModels_getProbMatrix, 7},
     {"_TurnsModels_rcpparma_hello_world", (DL_FUNC) &_TurnsModels_rcpparma_hello_world, 0},
     {"_TurnsModels_rcpparma_outerproduct", (DL_FUNC) &_TurnsModels_rcpparma_outerproduct, 1},
     {"_TurnsModels_rcpparma_innerproduct", (DL_FUNC) &_TurnsModels_rcpparma_innerproduct, 1},

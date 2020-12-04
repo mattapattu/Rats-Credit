@@ -62,6 +62,7 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
     gbTurn = gbTurnData(generated_data, turnTimes, turnMethod= 0, sim=sim, start_index, end_index, window)
   }
   if(5 %in% models){        
+    debug(aca3TurnData)
     aca3Turn0 = aca3TurnData(generated_data, turnTimes, turnMethod = 0, sim=sim, start_index, end_index, window)
     aca3Turn1 = aca3TurnData(generated_data, turnTimes, turnMethod = 1, sim=sim, start_index, end_index, window)
     aca3Turn2 = aca3TurnData(generated_data, turnTimes, turnMethod = 2, sim=sim, start_index, end_index, window)
@@ -77,6 +78,7 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
     }
   }
   if(6 %in% models){
+    #debug(sarsaTurnData)
     sarsaTurn = sarsaTurnData(generated_data, sim=sim, start_index, end_index, window)
   }
   

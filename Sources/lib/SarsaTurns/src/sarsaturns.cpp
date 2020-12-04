@@ -47,9 +47,8 @@ int softmax_action_sel(arma::vec H)
   return (action_selected);
 }
 
-
 // [[Rcpp::export()]]
-std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, int sim)
+std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, double rewardVal, int sim)
 {
 
   if (sim != 1)
@@ -118,20 +117,20 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
         resetVector = false;
       }
 
-     int R = rewards_sess(i);
+      int R = rewards_sess(i);
 
       int S_prime = 0;
       int A_prime = 0;
 
       if (sim == 1)
       {
-        A_prime = actions_sess(i+1);
-        S_prime = states_sess(i+1);
+        A_prime = actions_sess(i + 1);
+        S_prime = states_sess(i + 1);
       }
       else
       {
-        A_prime = actions_sess(i+1) - 1;
-        S_prime = states_sess(i+1) - 1;
+        A_prime = actions_sess(i + 1) - 1;
+        S_prime = states_sess(i + 1) - 1;
       }
 
       if (S_prime != initState)
@@ -143,7 +142,6 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
         returnToInitState = true;
       }
 
-      
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
 
       Rcpp::StringVector turns;
@@ -159,11 +157,11 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
         {
           if (S == 0)
           {
-            currNode = getChildNode(rootS1, currTurn);            
+            currNode = getChildNode(rootS1, currTurn);
             if (!currNode)
             {
               //Rcpp::Rcout <<"currTurn="<< currTurn <<" is not child of "<< rootS1->turn <<std::endl;
-            }            
+            }
           }
           else
           {
@@ -171,50 +169,75 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
             if (!currNode)
             {
               //Rcpp::Rcout <<"currTurn="<< currTurn <<" is not child of "<< rootS2->turn <<std::endl;
-            }  
+            }
           }
         }
         else
         {
           currNode = getChildNode(currNode, currTurn);
           if (!currNode)
-            {
-              //Rcpp::Rcout <<"currNode is null"<<std::endl;
-            }  
+          {
+            //Rcpp::Rcout <<"currNode is null"<<std::endl;
+          }
         }
 
         if (!currNode)
         {
-          //Rcpp::Rcout <<"currNode is null"<<std::endl;
-        }  
+          Rcpp::Rcout <<"currNode is null"<<std::endl;
+        }
         //Rcpp::Rcout <<"currNode.turn="<< currNode->turn<<std::endl;
 
-        
         //Change softmax function - input row of credits, first element is always the selected turn, return prob of turn
-        
+
         double prob_a = softmax(currNode);
         //Rcpp::Rcout <<"prob_a="<< prob_a<<std::endl;
         double logProb = log(prob_a);
         mseMatrix.push_back(logProb);
 
         double prediction = 0;
-        if(j<nbOfTurns-1)
+        if (j < nbOfTurns - 1)
         {
-          std::string nextTurn = Rcpp::as<std::string>(turns(j+1));
+          std::string nextTurn = Rcpp::as<std::string>(turns(j + 1));
           std::shared_ptr<TreeNode> nextNode = getChildNode(currNode, nextTurn);
           prediction = gamma * nextNode->qval;
         }
-        int turn_reward= 0;
-        if(j==(nbOfTurns-1) && (R==1))
+        else if(j == (nbOfTurns - 1))
         {
-          turn_reward = 1;
+          //Rcpp::Rcout <<"A_prime=" << A_prime << ", S_prime=" <<S_prime<< std::endl;
+          if(A_prime == 5)
+          {
+            prediction = 0;
+          }
+          else
+          {
+            Rcpp::StringVector next_turns = getTurnsFromPaths(A_prime, S_prime);
+            std::string nextTurn_prime = Rcpp::as<std::string>(next_turns(0));
+            //Rcpp::Rcout <<"nextTurn_prime="<< nextTurn_prime << std::endl;
+            std::shared_ptr<TreeNode> nextNode_prime;
+            if(S_prime == 0)
+            {
+              nextNode_prime = getChildNode(rootS1, nextTurn_prime);
+            }
+            else
+            {
+              nextNode_prime = getChildNode(rootS2, nextTurn_prime);
+            }
+            //Rcpp::Rcout <<"nextTurn_prime="<< nextTurn_prime << ", nextNode_prime=" << nextNode_prime->turn<<std::endl;
+            prediction = gamma * nextNode_prime->qval;
+          }              
+        }
+
+        int turn_reward = 0;
+        if (j == (nbOfTurns - 1) && (R > 0))
+        {
+          turn_reward = rewardVal;
         }
         double td_err = turn_reward + prediction - currNode->qval;
         currNode->etrace = currNode->etrace + 1;
-        
-        updateQvals(rootS1, alpha, td_err, gamma);
-        updateQvals(rootS2, alpha, td_err, gamma);
-        
+
+        updateQvals(rootS1, alpha, td_err, gamma, lambda);
+        updateQvals(rootS2, alpha, td_err, gamma, lambda);
+    
         session_turn_count++;
       }
 
@@ -229,7 +252,6 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
 
         episode = episode + 1;
         resetVector = true;
-        
       }
 
       S = S_prime;
@@ -241,9 +263,8 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
   return (mseMatrix);
 }
 
-
 // [[Rcpp::export()]]
-arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double lambda, int sim)
+arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double lambda, double rewardVal, int sim)
 {
 
   if (sim != 1)
@@ -262,7 +283,6 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
   arma::vec sessionVec = allpaths.col(4);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
 
-  
   int episode = 1;
 
   std::shared_ptr<TreeNode> rootS1 = initS1();
@@ -319,22 +339,21 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
 
       if (R > 0)
       {
-        score_episode = score_episode + 1;
+        score_episode = score_episode + rewardVal;
       }
 
-      
       int S_prime = 0;
       int A_prime = 0;
 
       if (sim == 1)
       {
-        A_prime = actions_sess(i+1);
-        S_prime = states_sess(i+1);
+        A_prime = actions_sess(i + 1);
+        S_prime = states_sess(i + 1);
       }
       else
       {
-        A_prime = actions_sess(i+1) - 1;
-        S_prime = states_sess(i+1) - 1;
+        A_prime = actions_sess(i + 1) - 1;
+        S_prime = states_sess(i + 1) - 1;
       }
 
       if (S_prime != initState)
@@ -346,9 +365,8 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
         returnToInitState = true;
       }
 
-      
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
-
+      //Rcpp::Rcout <<"A_prime=" << A_prime << ", S_prime=" <<S_prime<< std::endl;
       Rcpp::StringVector turns;
       turns = getTurnsFromPaths(A, S);
       int nbOfTurns = turns.length();
@@ -362,11 +380,11 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
         {
           if (S == 0)
           {
-            currNode = getChildNode(rootS1, currTurn);            
+            currNode = getChildNode(rootS1, currTurn);
             if (!currNode)
             {
               //Rcpp::Rcout <<"currTurn="<< currTurn <<" is not child of "<< rootS1->turn <<std::endl;
-            }            
+            }
           }
           else
           {
@@ -374,63 +392,101 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
             if (!currNode)
             {
               //Rcpp::Rcout <<"currTurn="<< currTurn <<" is not child of "<< rootS2->turn <<std::endl;
-            }  
+            }
           }
         }
         else
         {
           currNode = getChildNode(currNode, currTurn);
           if (!currNode)
-            {
-              //Rcpp::Rcout <<"currNode is null"<<std::endl;
-            }  
+          {
+            //Rcpp::Rcout <<"currNode is null"<<std::endl;
+          }
         }
 
         if (!currNode)
         {
           //Rcpp::Rcout <<"currNode is null"<<std::endl;
-        }  
+        }
         //Change softmax function - input row of credits, first element is always the selected turn, return prob of turn
-        
-         arma::rowvec probRow(16);
+
+        arma::rowvec probRow(16);
         probRow.fill(-1);
         double prob_a = softmax(currNode);
         unsigned int idx = getTurnIdx(currNode->turn, S);
         probRow(idx) = prob_a;
         for (auto sibling = currNode->siblings.begin(); sibling != currNode->siblings.end(); sibling++)
         {
-            unsigned int idx = getTurnIdx((*sibling)->turn, S);
-            probRow(idx) = softmax((*sibling));
+          unsigned int idx = getTurnIdx((*sibling)->turn, S);
+          probRow(idx) = softmax((*sibling));
         }
-        
+
         //Rcpp::Rcout <<"prob_a="<< prob_a<<std::endl;
         mseMatrix = arma::join_vert(mseMatrix, probRow);
 
         double prediction = 0;
-        if(j<nbOfTurns-1)
+        if (j < nbOfTurns - 1)
         {
-          std::string nextTurn = Rcpp::as<std::string>(turns(j+1));
+          std::string nextTurn = Rcpp::as<std::string>(turns(j + 1));
           std::shared_ptr<TreeNode> nextNode = getChildNode(currNode, nextTurn);
           prediction = gamma * nextNode->qval;
         }
-        int turn_reward= 0;
-        if(j==(nbOfTurns-1) && (R==1))
+        else if(j == (nbOfTurns - 1))
         {
-          turn_reward = 1;
+          //Rcpp::Rcout <<"A_prime=" << A_prime << ", S_prime=" <<S_prime<< std::endl;
+          if(A_prime == 5)
+          {
+            prediction = 0;
+          }
+          else
+          {
+            Rcpp::StringVector next_turns = getTurnsFromPaths(A_prime, S_prime);
+            std::string nextTurn_prime = Rcpp::as<std::string>(next_turns(0));
+            //Rcpp::Rcout <<"nextTurn_prime="<< nextTurn_prime << std::endl;
+            std::shared_ptr<TreeNode> nextNode_prime;
+            if(S_prime == 0)
+            {
+              nextNode_prime = getChildNode(rootS1, nextTurn_prime);
+            }
+            else
+            {
+              nextNode_prime = getChildNode(rootS2, nextTurn_prime);
+            }
+            //Rcpp::Rcout <<"nextTurn_prime="<< nextTurn_prime << ", nextNode_prime=" << nextNode_prime->turn<<std::endl;
+            prediction = gamma * nextNode_prime->qval;
+          }              
         }
+        int turn_reward = 0;
+        if (j == (nbOfTurns - 1) && (R > 0))
+        {
+          turn_reward = rewardVal;
+        }
+        //Rcpp::Rcout <<"turn=" <<currNode->turn << ", turn_reward="<< turn_reward << ", A=" << A << ", S=" << S<<std::endl;  
+        
         double td_err = turn_reward + prediction - currNode->qval;
         currNode->etrace = currNode->etrace + 1;
         
-        updateQvals(rootS1, alpha, td_err, gamma);
-        updateQvals(rootS2, alpha, td_err, gamma);
+        // if(idx == 7 || idx ==8)
+        // {
+        //   Rcpp::Rcout <<"turn=" << currNode->turn << ", td_error="<< td_err << ", qval=" << currNode->qval<<std::endl;
+        // }
         
+        
+        updateQvals(rootS1, alpha, td_err, gamma, lambda);
+        updateQvals(rootS2, alpha, td_err, gamma, lambda);
+
+        // if(idx == 7 || idx ==8)
+        // {
+        //   Rcpp::Rcout <<"turn=" << currNode->turn <<", qval after update=" << currNode->qval<<std::endl;
+        // }
+                
         session_turn_count++;
       }
 
       //log_lik=log_lik+ logProb;
 
       //Check if episode ended
-       if (returnToInitState)
+      if (returnToInitState)
       {
         //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
         changeState = false;
@@ -438,7 +494,6 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
 
         episode = episode + 1;
         resetVector = true;
-        
       }
       S = S_prime;
       A = A_prime;

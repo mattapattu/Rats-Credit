@@ -354,7 +354,7 @@ generateTurnPlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  ACA3probMat
     }
     par(mai=c(0,0,0,0))
     plot.new()
-    legend("center", legend=c("Prob. of GB", "Prob. of ACA","Prob. of SARSA","Prob. of ACA3"),col=c("black","green","red", "blue"),cex=0.8,lty = c(1,1,1,1), ncol=4)
+    legend("center", legend=c("Prob. of GB", "Prob. of ACA","Prob. of SARSA","Prob. of ACA3"),col=c("black","green","blue", "red"),cex=0.8,lty = c(1,1,1,1), ncol=4)
     dev.off()
     
     

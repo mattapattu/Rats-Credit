@@ -42,7 +42,7 @@ void GbCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::ve
 
     for(auto curr_turn = std::begin(turns); curr_turn != std::end(turns); ++curr_turn) {
       //Rcpp::Rcout << "curr_turn=" <<*curr_turn << " in state=" << state<<std::endl;
-      arma::uvec turnIdx; // to store the indices of all instances of curr_turn 
+      //Rcpp::IntegerVector turnIdx; // to store the indices of all instances of curr_turn 
       unsigned int turnIndex = 0;
       std::shared_ptr<TreeNode> currNode;
       
@@ -55,7 +55,7 @@ void GbCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::ve
           if ((*node)->turn == *curr_turn)
           {
             //Rcpp::Rcout <<  "Turn="<< *curr_turn  << " is found in episodeTurns" <<std::endl;
-            turnIdx.insert_rows(turnIdx.n_rows, turnIndex);
+            //turnIdx.push_back(turnIndex);
             currNode = *node;
    
           }

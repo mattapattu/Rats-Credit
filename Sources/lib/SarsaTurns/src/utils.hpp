@@ -440,148 +440,23 @@ unsigned int getTurnIdx(std::string turn, int state)
   return (turnNb-1);
 }
 
-// [[Rcpp::export]]
-arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes)
+
+void updateQvals(std::shared_ptr<TreeNode> root, double alpha, double td_error, double gamma, double lambda)
 {
-
-  int totalPaths = allpaths.nrow();
-  int currBoxIdx = -1; // Since index starts from 0
-  arma::mat res_mat;
-  //Rcpp::Rcout <<  "totalPaths="<< totalPaths<<std::endl;
-  for (int i = 0; i < totalPaths; i++)
-  {
-    std::string path_string = Rcpp::as<std::string>(allpaths(i, 2));
-    std::string state_string = Rcpp::as<std::string>(allpaths(i, 4));
-    //Rcpp::Rcout << "i=" << i << ", path_string =" << path_string << " ,state_string=" <<state_string <<std::endl;
-    int path = std::stoi(path_string);
-    int state = std::stoi(state_string);
-    Rcpp::StringVector turns;
-    turns = getTurnsFromPaths(path, state);
-    int nbOfTurns = turns.length();
-    //Rcpp::Rcout << "i=" << i << ", path =" << path << " ,state=" <<state <<std::endl;
-    //Rcpp::Rcout << "turns=" << turns << std::endl;
-
-    for (int j = 0; j < nbOfTurns; j++)
-    {
-
-      std::string currTurn = Rcpp::as<std::string>(turns(j));
-      // currTurn.erase(std::remove(turns(j).begin(), currTurn.end(), ','), currTurn.end());
-      // currTurn.erase(std::remove(turns(j).begin(), currTurn.end(), ' '), currTurn.end());
-      unsigned int turnIdx = getTurnIdx(currTurn, state);
-
-      arma::rowvec new_row = {static_cast<double>(i + 1), static_cast<double>(path), static_cast<double>(state), static_cast<double>(turnIdx), 0, 0, 0, 0};
-
-      for (int method = 0; method < 4; method++)
-      {
-        //Rcpp::Rcout <<  "method="<< method<<std::endl;
-        if (method == 0)
-        {
-          std::string s = Rcpp::as<std::string>(allpaths(i, 0));
-          s.erase(std::remove(s.begin(), s.end(), ','), s.end());
-          s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
-
-          std::smatch m;
-          std::string pattern = ".*(";
-          pattern.push_back(currTurn.at(0));
-          pattern += ".*?";
-          pattern.push_back(currTurn.at(2));
-          pattern.push_back(')');
-          std::regex e(pattern);
-          std::regex_search(s, m, e);
-
-          int turnStartIdx = currBoxIdx + m.position(1) + 1;
-          int turnEndIdx = currBoxIdx + m.position(1) + m[1].length(); //m[1].length() counts turnStartIdx also
-          arma::uvec ids = arma::conv_to<arma::uvec>::from(arma::regspace(turnStartIdx, turnEndIdx));
-          double turnTime = arma::accu(boxTimes.elem(ids));
-
-          new_row(4 + method) = turnTime;
-        }
-        else if (method == 1)
-        {
-          std::string s = Rcpp::as<std::string>(allpaths(i, 0));
-          s.erase(std::remove(s.begin(), s.end(), ','), s.end());
-          s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
-          std::smatch m;
-          std::string pattern = ".*(";
-          pattern.push_back(currTurn.at(0));
-          pattern += ".*?";
-          pattern.push_back(currTurn.at(1));
-          pattern.push_back(')');
-          std::regex e(pattern);
-          std::regex_search(s, m, e);
-
-          int turnStartIdx = currBoxIdx + m.position(1) + 1;
-          int turnEndIdx = currBoxIdx + m.position(1) + m[1].length(); //m[1].length() counts turnStartIdx also
-          arma::uvec ids = arma::conv_to<arma::uvec>::from(arma::regspace(turnStartIdx, turnEndIdx));
-          double turnTime = arma::accu(boxTimes.elem(ids));
-
-          new_row(4 + method) = turnTime;
-        }
-        else if (method == 2)
-        {
-          std::string s = Rcpp::as<std::string>(allpaths(i, 0));
-          s.erase(std::remove(s.begin(), s.end(), ','), s.end());
-          s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
-          std::smatch m;
-          std::string pattern = ".*(";
-          pattern.push_back(currTurn.at(1));
-          pattern += ".*?";
-          pattern.push_back(currTurn.at(2));
-          pattern.push_back(')');
-          std::regex e(pattern);
-          std::regex_search(s, m, e);
-
-          int turnStartIdx = currBoxIdx + m.position(1) + 1;
-          int turnEndIdx = currBoxIdx + m.position(1) + m[1].length(); //m[1].length() counts turnStartIdx also
-          arma::uvec ids = arma::conv_to<arma::uvec>::from(arma::regspace(turnStartIdx, turnEndIdx));
-          double turnTime = arma::accu(boxTimes.elem(ids));
-
-          new_row(4 + method) = turnTime;
-        }
-        else if (method == 3)
-        {
-          std::string s = Rcpp::as<std::string>(allpaths(i, 0));
-          s.erase(std::remove(s.begin(), s.end(), ','), s.end());
-          s.erase(std::remove(s.begin(), s.end(), ' '), s.end());
-          std::smatch m;
-          std::string pattern = ".*(";
-          pattern.push_back(currTurn.at(1));
-          pattern.push_back(')');
-          std::regex e(pattern);
-          std::regex_search(s, m, e);
-
-          int turnStartIdx = currBoxIdx + m.position(1) + 1;
-          arma::uvec ids(1);
-          ids = turnStartIdx;
-          double turnTime = arma::accu(boxTimes.elem(ids));
-
-          new_row(4 + method) = turnTime;
-        }
-      }
-      res_mat = arma::join_vert(res_mat, new_row);
-    }
-
-    std::string currPath = Rcpp::as<std::string>(allpaths(i, 0));
-    currPath.erase(std::remove(currPath.begin(), currPath.end(), ','), currPath.end());
-    currPath.erase(std::remove(currPath.begin(), currPath.end(), ' '), currPath.end());
-    currBoxIdx = currBoxIdx + currPath.length();
-  }
-  return (res_mat);
-}
-
-void updateQvals(std::shared_ptr<TreeNode> root, double alpha, double td_error, double gamma)
-{
+    //Rcpp::Rcout << "td_error="<< td_error <<std::endl;  
     for (auto i = root->child.begin(); i != root->child.end(); i++)
     {
         (*i)->qval = (*i)->qval + (*i)->etrace * alpha* td_error;
-        (*i)->etrace = gamma * (*i)->etrace;
+        (*i)->etrace = lambda * gamma * (*i)->etrace;
+        //Rcpp::Rcout <<  "turn="<< (*i)->turn << ", qval=" << (*i)->qval << ", etrace=" << (*i)->etrace<<std::endl;  
         std::vector<std::shared_ptr<TreeNode>> childNodes = (*i)->child;
         if (!childNodes.empty())
         {
              for (auto child = childNodes.begin(); child != childNodes.end(); child++)
              {
                 (*child)->qval = (*child)->qval + (*child)->etrace * alpha* td_error;
-                (*child)->etrace = gamma * (*child)->etrace;
+                (*child)->etrace = lambda * gamma * (*child)->etrace;
+                //Rcpp::Rcout <<  "turn="<< (*child)->turn << ", qval=" << (*child)->qval << ", etrace=" << (*child)->etrace<<std::endl;
              }
         }  
     }

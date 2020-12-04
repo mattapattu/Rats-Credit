@@ -48,17 +48,8 @@ int softmax_action_sel(arma::vec H)
   return (action_selected);
 }
 
-void updateCreditMatrix(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::vector<int> episodeTurnStates, std::vector<double> episodeTurnTimes, double alpha, float score_episode, double avg_score, int model)
-{
-  if (model == 5)
-  {
-    Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode);
-  }
-  return;
-}
-
 // [[Rcpp::export()]]
-std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2, int sim)
+std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2, double rewardVal, int sim)
 {
 
   if (sim != 1)
@@ -79,11 +70,11 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
   arma::vec turnTime_method; 
   if(turnMethod==0){
-    turnTime_method = turnTimes.col(4);
-  }else if(turnMethod==1){
     turnTime_method = turnTimes.col(5);
-  }else if(turnMethod==2){
+  }else if(turnMethod==1){
     turnTime_method = turnTimes.col(6);
+  }else if(turnMethod==2){
+    turnTime_method = turnTimes.col(7);
   }
 
   int episode = 1;
@@ -135,7 +126,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
       if (R > 0)
       {
-        score_episode = score_episode + 1;
+        score_episode = score_episode + rewardVal;
       }
 
       if (sim == 1)
@@ -214,7 +205,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
         episodeTurns.push_back(currNode);
         episodeTurnStates.push_back(S); 
         //Rcpp::Rcout <<"session_turn_count="<< session_turn_count<<std::endl;
-        //Rcpp::Rcout <<"turn_time=" << turn_times_session(session_turn_count) <<std::endl;
+        //Rcpp::Rcout <<"session_turn_count="<< session_turn_count <<", turn_time=" << turn_times_session(session_turn_count) <<std::endl;
         episodeTurnTimes.push_back(turn_times_session(session_turn_count));
 
         
@@ -237,8 +228,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
         returnToInitState = false;
 
         avg_score = avg_score + (score_episode - avg_score) / episode;
-
-        //updateCreditMatrix(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode, avg_score,  model);
+        //Rcpp::Rcout <<  "score_episode=" << score_episode<<std::endl;
         Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode);
         //Rcpp::Rcout <<  "H="<<H<<std::endl;
         score_episode = 0;
@@ -262,7 +252,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
 
 // [[Rcpp::export()]]
-arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2,  int sim, int model)
+arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2, double rewardVal, int sim)
 {
 
   if (sim != 1)
@@ -339,7 +329,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
 
       if (R > 0)
       {
-        score_episode = score_episode + 1;
+        score_episode = score_episode + rewardVal;
       }
 
       if (sim == 1)
@@ -452,7 +442,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
 
         avg_score = avg_score + (score_episode - avg_score) / episode;
 
-        updateCreditMatrix(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode, avg_score,  model);
+        Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode);
         //Rcpp::Rcout <<  "H="<<H<<std::endl;
         score_episode = 0;
         episode = episode + 1;

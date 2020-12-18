@@ -2,7 +2,7 @@
 #define __UTILS__
 
 #include <vector>
-#include<set>
+#include <set>
 #include <algorithm>
 #include <string>
 #include <regex>
@@ -367,79 +367,78 @@ std::string getTurnString(int turnNb)
 unsigned int getTurnIdx(std::string turn, int state)
 {
   unsigned int turnNb = 100;
-  if(state==0)
+  if (state == 0)
   {
-    if (turn.compare("dcb") == 0)
+    if (turn == "dcb")
+    {
+      turnNb = 0;
+    }
+    else if (turn == "dch")
     {
       turnNb = 1;
     }
-    else if (turn.compare("dch") == 0)
+    else if (turn == "gak")
     {
       turnNb = 2;
     }
-    else if (turn.compare("gak") == 0)
+    else if (turn == "gab")
     {
       turnNb = 3;
     }
-    else if (turn.compare("gab") == 0)
+    else if (turn == "bak")
     {
       turnNb = 4;
     }
-    else if (turn.compare("bak") == 0)
+    else if (turn == "bag")
     {
       turnNb = 5;
     }
-    else if (turn.compare("bag") == 0)
+    else if (turn == "bcd")
     {
       turnNb = 6;
     }
-    else if (turn.compare("bcd") == 0)
+    else if (turn == "bch")
     {
       turnNb = 7;
     }
-    else if (turn.compare("bch") == 0)
+  }
+  else if (state == 1)
+  {
+    if (turn == "hcb")
     {
       turnNb = 8;
     }
-  }
-  else if(state==1)
-  {
-    if (turn.compare("hcb") == 0)
+    else if (turn == "hcd")
     {
       turnNb = 9;
     }
-    else if (turn.compare("hcd") == 0)
+    else if (turn == "kag")
     {
       turnNb = 10;
     }
-    else if (turn.compare("kag") == 0)
+    else if (turn == "kab")
     {
       turnNb = 11;
     }
-    else if (turn.compare("kab") == 0)
+    else if (turn == "bak")
     {
       turnNb = 12;
     }
-    else if (turn.compare("bak") == 0)
+    else if (turn == "bag")
     {
       turnNb = 13;
     }
-    else if (turn.compare("bag") == 0)
+    else if (turn == "bcd")
     {
       turnNb = 14;
     }
-    else if (turn.compare("bcd") == 0)
+    else if (turn == "bch")
     {
       turnNb = 15;
     }
-    else if (turn.compare("bch") == 0)
-    {
-      turnNb = 16;
-    }
   }
-  
-  
-  return (turnNb-1);
+
+  return turnNb;
 }
 
 // [[Rcpp::export]]
@@ -458,10 +457,10 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes, int s
     //Rcpp::Rcout << "i=" << i << ", path_string =" << path_string <<std::endl;
     int path = std::stoi(path_string);
     int state = std::stoi(state_string);
-    if(sim == 2)
+    if (sim == 2)
     {
-      path = path-1;
-      state = state-1;
+      path = path - 1;
+      state = state - 1;
     }
     int sessionNb = std::stoi(sessionNb_string);
     Rcpp::StringVector turns;
@@ -577,4 +576,71 @@ arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes, int s
   return (res_mat);
 }
 
+bool elementFound(Rcpp::StringVector turns, std::string turn)
+{
+  bool elementFound = false;
+  for(int i=0; i<turns.size(); i++)
+  {
+    if(turns[i] == turn)
+    {
+      elementFound = true;
+      break;
+    }
+  }
+  return(elementFound);
+}
+// [[Rcpp::export]]
+int getPathFromTurns(Rcpp::StringVector turns, int state)
+{
+  //Rcpp::Rcout << "turns=" << turns << ", state=" << state << std::endl;
+  int path = 5;
+  if (state == 0)
+  {
+    if (elementFound(turns,"dch"))
+    {
+      path = 0;
+    }
+    else if (elementFound(turns,"gak"))
+    {
+      path = 1;
+    }
+    else if (elementFound(turns,"dcb") && elementFound(turns,"bak"))
+    {
+      path = 2;
+    }
+    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
+    {
+      path = 3;
+    }
+    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
+    {
+      path = 4;
+    }
+  }
+  else if (state == 1)
+  {
+    if (elementFound(turns,"hcd"))
+    {
+      path = 0;
+    }
+    else if (elementFound(turns,"kag"))
+    {
+      path = 1;
+    }
+    else if (elementFound(turns,"hcb") && elementFound(turns,"bag"))
+    {
+      path = 2;
+    }
+    else if (elementFound(turns,"kab") && elementFound(turns,"bcd"))
+    {
+      path = 3;
+    }
+    else if (elementFound(turns,"kab") && elementFound(turns,"bch"))
+    {
+      path = 4;
+    }
+  }
+
+  return (path);
+}
 #endif

@@ -45,7 +45,9 @@ compareTurnModels=function(enreg,rat, window){
   l = cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
   y = baseModels::getPathTimes(as.numeric(allpaths[,2]),l)
   allpaths = cbind(allpaths,y)
+  allpaths = cbind(allpaths,c(1:length(allpaths[,1])))
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
+  allpaths_num = cbind(allpaths_num,c(1:length(allpaths_num[,1])))
   
   # empprob2 = baseModels::empiricalProbMat2(allpaths_num,window)
   # endLearningStage = getEndIndex(allpaths_num,sim=2)
@@ -73,6 +75,7 @@ compareTurnModels=function(enreg,rat, window){
   models = c(1,2,5,6)
   turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
   colnames(turnTimes) = c("Idx", "Path","State","TurnIdx","SessionNb","TurnTime1","TurnTime2","TurnTime3")
+  TurnsModels::simulateTurnsModels(allpaths_num,turnTimes,0.1,model=1,turnMethod = 1)
   #TurnsModels::getProbMatrix(allpaths_num,turnTimes,turnMethod = 0,alpha=0.1,sim=2,model=1)
   #debug(getTurnModelData)
   res = getTurnModelData(generated_data, turnTimes, models, window = window, sim=2)

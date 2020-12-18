@@ -49,6 +49,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// simulateSarsa
+Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma, double lambda, int turnMethod);
+RcppExport SEXP _SarsaTurns_simulateSarsa(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP turnMethodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateSarsa(allpaths, turnTimes, alpha, gamma, lambda, turnMethod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getTurnsLikelihood
 std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, double rewardVal, int sim);
 RcppExport SEXP _SarsaTurns_getTurnsLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP rewardValSEXP, SEXP simSEXP) {
@@ -156,6 +172,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getPathFromTurns
+int getPathFromTurns(Rcpp::StringVector turns, int state);
+RcppExport SEXP _SarsaTurns_getPathFromTurns(SEXP turnsSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type turns(turnsSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPathFromTurns(turns, state));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getTurnString
 std::string getTurnString(int turnNb);
 RcppExport SEXP _SarsaTurns_getTurnString(SEXP turnNbSEXP) {
@@ -185,6 +213,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SarsaTurns_rcpparma_outerproduct", (DL_FUNC) &_SarsaTurns_rcpparma_outerproduct, 1},
     {"_SarsaTurns_rcpparma_innerproduct", (DL_FUNC) &_SarsaTurns_rcpparma_innerproduct, 1},
     {"_SarsaTurns_rcpparma_bothproducts", (DL_FUNC) &_SarsaTurns_rcpparma_bothproducts, 1},
+    {"_SarsaTurns_simulateSarsa", (DL_FUNC) &_SarsaTurns_simulateSarsa, 6},
     {"_SarsaTurns_getTurnsLikelihood", (DL_FUNC) &_SarsaTurns_getTurnsLikelihood, 6},
     {"_SarsaTurns_getProbMatrix", (DL_FUNC) &_SarsaTurns_getProbMatrix, 6},
     {"_SarsaTurns_getTrialTimes", (DL_FUNC) &_SarsaTurns_getTrialTimes, 2},
@@ -193,6 +222,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SarsaTurns_pathProbability", (DL_FUNC) &_SarsaTurns_pathProbability, 3},
     {"_SarsaTurns_getBoxTimes", (DL_FUNC) &_SarsaTurns_getBoxTimes, 2},
     {"_SarsaTurns_getTurnsFromPaths", (DL_FUNC) &_SarsaTurns_getTurnsFromPaths, 2},
+    {"_SarsaTurns_getPathFromTurns", (DL_FUNC) &_SarsaTurns_getPathFromTurns, 2},
     {"_SarsaTurns_getTurnString", (DL_FUNC) &_SarsaTurns_getTurnString, 1},
     {"_SarsaTurns_getTurnIdx", (DL_FUNC) &_SarsaTurns_getTurnIdx, 2},
     {NULL, NULL, 0}

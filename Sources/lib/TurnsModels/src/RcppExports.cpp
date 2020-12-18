@@ -6,6 +6,21 @@
 
 using namespace Rcpp;
 
+// simulateTurnsModels
+Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, int model, int turnMethod);
+RcppExport SEXP _TurnsModels_simulateTurnsModels(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP modelSEXP, SEXP turnMethodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< int >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateTurnsModels(allpaths, turnTimes, alpha, model, turnMethod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getTurnsLikelihood
 std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double rewardVal, int sim, int model);
 RcppExport SEXP _TurnsModels_getTurnsLikelihood(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP rewardValSEXP, SEXP simSEXP, SEXP modelSEXP) {
@@ -194,8 +209,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getPathFromTurns
+int getPathFromTurns(Rcpp::StringVector turns, int state);
+RcppExport SEXP _TurnsModels_getPathFromTurns(SEXP turnsSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type turns(turnsSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPathFromTurns(turns, state));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_TurnsModels_simulateTurnsModels", (DL_FUNC) &_TurnsModels_simulateTurnsModels, 5},
     {"_TurnsModels_getTurnsLikelihood", (DL_FUNC) &_TurnsModels_getTurnsLikelihood, 7},
     {"_TurnsModels_getProbMatrix", (DL_FUNC) &_TurnsModels_getProbMatrix, 7},
     {"_TurnsModels_rcpparma_hello_world", (DL_FUNC) &_TurnsModels_rcpparma_hello_world, 0},
@@ -211,6 +239,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TurnsModels_getTurnString", (DL_FUNC) &_TurnsModels_getTurnString, 1},
     {"_TurnsModels_getTurnIdx", (DL_FUNC) &_TurnsModels_getTurnIdx, 2},
     {"_TurnsModels_getTurnTimes", (DL_FUNC) &_TurnsModels_getTurnTimes, 3},
+    {"_TurnsModels_getPathFromTurns", (DL_FUNC) &_TurnsModels_getPathFromTurns, 2},
     {NULL, NULL, 0}
 };
 

@@ -292,6 +292,62 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
   return (turns);
 }
 
+
+// [[Rcpp::export]]
+int getPathFromTurns(Rcpp::StringVector turns, int state)
+{
+
+int path=-1;
+  if (state == 0)
+  {
+    if (turns.containsElementNamed("dch"))
+    {
+      path=0;
+    }
+    else if (turns.containsElementNamed("gak"))
+    {
+      path=1;
+    }
+    else if (turns.containsElementNamed("dcb") && turns.containsElementNamed("bak"))
+    {
+      path=2;
+    }
+    else if (turns.containsElementNamed("gab") && turns.containsElementNamed("bch"))
+    {
+      path=3;
+    }
+    else if (turns.containsElementNamed("gab") && turns.containsElementNamed("bch"))
+    {
+      path=4;
+    }
+  }
+  else if (state == 1)
+  {
+    if (turns.containsElementNamed("hcd"))
+    {
+      path=0;
+    }
+    else if (turns.containsElementNamed("kag"))
+    {
+      path=1;
+    }
+    else if (turns.containsElementNamed("hcb") && turns.containsElementNamed("bag"))
+    {
+      path=2;
+    }
+    else if (turns.containsElementNamed("kab") && turns.containsElementNamed("bcd"))
+    {
+      path=3;
+    }
+    else if (turns.containsElementNamed("kab") && turns.containsElementNamed("bch"))
+    {
+      path=4;
+    }
+  }
+  
+  return (path);
+}
+
 // [[Rcpp::export]]
 std::string getTurnString(int turnNb)
 {

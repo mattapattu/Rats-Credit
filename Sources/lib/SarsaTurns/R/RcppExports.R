@@ -17,6 +17,10 @@ rcpparma_bothproducts <- function(x) {
     .Call(`_SarsaTurns_rcpparma_bothproducts`, x)
 }
 
+simulateSarsa <- function(allpaths, turnTimes, alpha, gamma, lambda, turnMethod) {
+    .Call(`_SarsaTurns_simulateSarsa`, allpaths, turnTimes, alpha, gamma, lambda, turnMethod)
+}
+
 getTurnsLikelihood <- function(allpaths, alpha, gamma, lambda, rewardVal, sim) {
     .Call(`_SarsaTurns_getTurnsLikelihood`, allpaths, alpha, gamma, lambda, rewardVal, sim)
 }
@@ -47,6 +51,10 @@ getBoxTimes <- function(enregPosTimes, rleLengths) {
 
 getTurnsFromPaths <- function(path, state) {
     .Call(`_SarsaTurns_getTurnsFromPaths`, path, state)
+}
+
+getPathFromTurns <- function(turns, state) {
+    .Call(`_SarsaTurns_getPathFromTurns`, turns, state)
 }
 
 getTurnString <- function(turnNb) {

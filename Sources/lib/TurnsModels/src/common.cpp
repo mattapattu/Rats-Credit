@@ -14,19 +14,19 @@ using namespace Rcpp;
 
 int aca_getNextState(int curr_state, int action, int last_turn)
 {
-  Rcpp::Rcout <<"curr_state="<<curr_state << ", action=" <<action << ", last_turn=" <<last_turn <<std::endl;
+  //Rcpp::Rcout << "curr_state=" << curr_state << ", action=" << action << ", last_turn=" << last_turn << std::endl;
   int new_state = -1;
   if (action == 4)
   {
     new_state = curr_state;
   }
-  else if(action == 5)
+  else if (action == 5)
   {
-    if(last_turn == 4 || last_turn == 7 || last_turn == 12 || last_turn == 15)
+    if (last_turn == 4 || last_turn == 7 || last_turn == 12 || last_turn == 15)
     {
       new_state = 1;
     }
-    else if(last_turn == 5|| last_turn == 6|| last_turn == 13 || last_turn == 14)
+    else if (last_turn == 5 || last_turn == 6 || last_turn == 13 || last_turn == 14)
     {
       new_state = 0;
     }
@@ -40,7 +40,7 @@ int aca_getNextState(int curr_state, int action, int last_turn)
     new_state = 0;
   }
 
-  Rcpp::Rcout <<"new_state="<<new_state <<std::endl;
+  //Rcpp::Rcout << "new_state=" << new_state << std::endl;
 
   return (new_state);
 }
@@ -114,7 +114,7 @@ double getPathIndex(arma::mat allpaths, int action, int state, int sessId, unsig
     }
     else if (!idx_before_sess.empty())
     {
-      arma::mat X_before = X.rows(idx_after_sess);
+      arma::mat X_before = X.rows(idx_before_sess);
       pathIndex = X_before(0, 5);
       //Rcpp::Rcout << "X_before=" << X_before << std::endl;
     }
@@ -146,12 +146,14 @@ double getPathTime(arma::mat allpaths, int action, int state, int sessId, unsign
   arma::vec allpath_states = allpaths.col(1);
   arma::vec allpath_times = allpaths.col(3);
 
+  //Rcpp::Rcout << "sessionIdx=" << sessionIdx << std::endl;
   arma::vec actions_sess = allpath_actions.elem(sessionIdx);
   arma::vec states_sess = allpath_states.elem(sessionIdx);
   arma::vec trialTimes_sess = allpath_times.elem(sessionIdx);
 
+  //Rcpp::Rcout << "pathCount=" << pathCount << std::endl;
   arma::uvec act_idx = arma::find(actions_sess == (action + 1) && states_sess == (state + 1));
-
+  //Rcpp::Rcout << "act_idx.n_elem=" << act_idx.n_elem << std::endl;
   double pathTime = 0;
 
   if (act_idx.n_elem == 0)
@@ -162,15 +164,18 @@ double getPathTime(arma::mat allpaths, int action, int state, int sessId, unsign
     //Rcpp::Rcout << "X=" << X << std::endl;
     arma::uvec idx_after_sess = arma::find(X.col(4) > sessId);
     arma::uvec idx_before_sess = arma::find(X.col(4) < sessId);
+    //Rcpp::Rcout <<"idx_after_sess=" <<idx_after_sess.empty() << ", idx_before_sess=" <<idx_before_sess.empty()<< std::endl;
     if (!idx_after_sess.empty())
     {
       arma::mat X_after = allpaths.rows(idx_after_sess);
       pathTime = X_after(0, 3);
+      //Rcpp::Rcout <<"pathTime=" <<pathTime << ", X_after=" << X_after << std::endl;
     }
     else if (!idx_before_sess.empty())
     {
-      arma::mat X_before = allpaths.rows(idx_after_sess);
+      arma::mat X_before = allpaths.rows(idx_before_sess);
       pathTime = X_before(0, 3);
+      //Rcpp::Rcout <<"pathTime=" <<pathTime << ", X_before=" << X_before << std::endl;
     }
     else
     {
@@ -245,7 +250,7 @@ arma::mat updateTurnTime(arma::mat turnTimes, int pathIndex, arma::mat generated
 Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, int model, int turnMethod)
 {
 
-  Rcpp::Rcout << "model=" << model << ", turnMethod=" << turnMethod << std::endl;
+  //Rcpp::Rcout << "model=" << model << ", turnMethod=" << turnMethod << std::endl;
   arma::mat R = arma::zeros(2, 6);
   R(0, 3) = 1;
   R(1, 3) = 1;
@@ -270,7 +275,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
   {
 
     int sessId = uniqSessIdx(session);
-    Rcpp::Rcout << "session=" << session << ", sessId=" << sessId << std::endl;
+    //Rcpp::Rcout << "session=" << session << ", sessId=" << sessId << std::endl;
     arma::uvec sessionIdx = arma::find(sessionVec == (sessId));
     arma::vec actions_sess = allpath_actions.elem(sessionIdx);
     arma::vec states_sess = allpath_states.elem(sessionIdx);
@@ -326,7 +331,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       {
         std::shared_ptr<TreeNode> turnSelected = softmax_action_sel(childNodes);
         int turnNb = getTurnIdx(turnSelected->turn, S);
-        Rcpp::Rcout << "turnSelected=" << turnSelected->turn << ", S=" << S  << ", turnNb=" <<turnNb<< std::endl;
+        //Rcpp::Rcout << "turnSelected=" << turnSelected->turn << ", S=" << S << ", turnNb=" << turnNb << std::endl;
         generated_TurnsData_sess(turnIdx, 0) = turnNb;
         generated_TurnsData_sess(turnIdx, 1) = S;
         generated_TurnsData_sess(turnIdx, 2) = 0;
@@ -342,15 +347,16 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       }
 
       int A = getPathFromTurns(turnNames, S);
-      Rcpp::Rcout << "Next Path=" << A << ", S=" << S << std::endl;
+      //Rcpp::Rcout << "Path=" << A << ", S=" << S << std::endl;
       generated_PathData_sess(i, 0) = A;
       generated_PathData_sess(i, 1) = S;
       generated_PathData_sess(i, 2) = R(S, A);
       generated_PathData_sess(i, 4) = sessId;
 
+      //Rcpp::Rcout << "turnIdx=" << turnIdx << std::endl;
       if (R(S, A) == 1)
       {
-        generated_TurnsData_sess((turnIdx-1), 2) = 1;
+        generated_TurnsData_sess((turnIdx - 1), 2) = 1;
         score_episode = score_episode + 1;
       }
 
@@ -358,28 +364,34 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       {
         arma::uvec act_idx = arma::find(generated_PathData_sess.col(0) == A && generated_PathData_sess.col(1) == S);
         int pathCount = act_idx.n_elem;
-        //Rcpp::Rcout << "pathCount=" << pathCount << std::endl;
         double pathTime = getPathTime(allpaths, A, S, sessId, pathCount);
-        //Rcpp::Rcout << "pathTime=" << pathTime << std::endl;
         generated_PathData_sess(i, 3) = pathTime;
         int pathIndex = getPathIndex(allpaths, A, S, sessId, pathCount);
-        //Rcpp::Rcout << "pathIndex=" << pathIndex << std::endl;
 
         generated_TurnsData_sess = updateTurnTime(turnTimes, pathIndex, generated_TurnsData_sess, turns_index, turnMethod);
+      }
 
-        for (int k = 0; k < turns_index.size(); k++)
+      for (int k = 0; k < turns_index.size(); k++)
+      {
+        //Rcpp::Rcout << "k=" <<k << ", turns_index=" <<turns_index(k) << std::endl;
+        arma::rowvec row = generated_TurnsData_sess.row(turns_index(k));
+        //Rcpp::Rcout << "row=" << row << std::endl;
+        if (A == 5)
         {
-          //Rcpp::Rcout << "k=" <<k << ", turns_index=" <<turns_index(k) << std::endl;
-          arma::rowvec row = generated_TurnsData_sess.row(turns_index(k));
-          //Rcpp::Rcout << "row=" << row << std::endl;
+          episodeTurnTimes.push_back(0);
+        }
+        else
+        {
           episodeTurnTimes.push_back(row(3));
         }
+       
       }
 
       //arma::vec episodeTurnTimes_arm(episodeTurnTimes);
       //Rcpp::Rcout << "episodeTurnTimes=" <<episodeTurnTimes_arm << std::endl;
 
-      int last_turn = generated_TurnsData_sess((turnIdx-1), 0);
+      
+      int last_turn = generated_TurnsData_sess((turnIdx - 1), 0);
       //Rcpp::Rcout << "last_turn=" << last_turn << std::endl;
       int S_prime = aca_getNextState(S, A, last_turn);
 
@@ -394,7 +406,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 
       if (returnToInitState)
       {
-        Rcpp::Rcout << "Inside end episode" << std::endl;
+        //Rcpp::Rcout << "Inside end episode" << std::endl;
         changeState = false;
         returnToInitState = false;
 
@@ -674,7 +686,6 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
 
   for (unsigned int session = 0; session < uniqSessIdx.n_elem; session++)
   {
-
     int sessId = uniqSessIdx(session);
     //Rcpp::Rcout <<"sessId="<<sessId<<std::endl;
     arma::uvec sessionIdx = arma::find(sessionVec == sessId);

@@ -13,7 +13,7 @@ inline void AcaCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns,
 {
 
   arma::vec episodeTurnStates_arma = arma::conv_to<arma::vec>::from(episodeTurnStates);
-  //Rcpp::Rcout <<  "episodeTurnStates=" << episodeTurnStates_arma <<std::endl;
+  //Rcpp::Rcout <<  "Sizes of episodeTurns = " << episodeTurns.size() <<", episodeTurnStates=" << episodeTurnStates_arma.n_elem << ", episodeTurnTimes=" << episodeTurnTimes.size()  <<std::endl;
 
   arma::vec episodeTurnTimes_arma(episodeTurnTimes);
   for (int state = 0; state < 2; state++)
@@ -32,10 +32,10 @@ inline void AcaCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns,
         //turnTimes.push_back(episodeTurnTimes[index]);
       }
     }
-    // std::ostringstream stream;
-    // std::copy(turns.begin(), turns.end(), std::ostream_iterator<std::string>(stream, ","));
-    // std::string result = stream.str();
-
+    
+    std::ostringstream stream;
+    std::copy(turns.begin(), turns.end(), std::ostream_iterator<std::string>(stream, ","));
+    std::string result = stream.str();
     //Rcpp::Rcout << "curr_state=" <<state << ", turns= " <<result <<std::endl;
 
     //turns - contains all unique turns in an episode corresponding to one state
@@ -73,12 +73,15 @@ inline void AcaCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns,
         Rcpp::Rcout <<"state=" <<state <<  ", turn="<< *curr_turn  << " not found in episodeTurns" <<std::endl;
       }
       arma::uvec ids = Rcpp::as<arma::uvec>(turnIdx);
+      //Rcpp::Rcout <<  "turnIdx="<< arma::conv_to<arma::rowvec>::from(ids) <<std::endl;
       double turnTime = arma::accu(episodeTurnTimes_arma.elem(ids));
+      //Rcpp::Rcout <<  "turnTime="<< turnTime <<std::endl;
       double activity = turnTime / arma::accu(episodeTurnTimes_arma);
       currNode->credit = currNode->credit + (alpha * score_episode * activity);
-      //double partialCredit = score_episode * activity;
-      //Rcpp::Rcout <<  "Turn="<< currNode->turn  << ", credit received=" << partialCredit <<std::endl;
-      //Rcpp::Rcout <<  "turnIdx="<< arma::conv_to<arma::rowvec>::from(ids) <<std::endl;
+      
+      double partialCredit = score_episode * activity;
+      Rcpp::Rcout <<  "Turn="<< currNode->turn  << ", credit received=" << partialCredit <<std::endl;
+      
     }
   }
 }

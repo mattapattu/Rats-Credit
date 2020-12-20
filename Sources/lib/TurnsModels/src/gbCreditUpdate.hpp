@@ -13,7 +13,7 @@ void GbCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::ve
  
   
   arma::vec episodeTurnStates_arma = arma::conv_to<arma::vec>::from(episodeTurnStates);
-  //Rcpp::Rcout <<  "episodeTurnStates=" << episodeTurnStates_arma <<std::endl;
+  Rcpp::Rcout <<  "score_episode=" << score_episode << ", avg_score=" <<avg_score <<std::endl;
 
   for (int state = 0; state < 2; state++)
   {

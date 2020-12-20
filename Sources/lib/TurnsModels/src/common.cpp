@@ -90,12 +90,14 @@ double getPathIndex(arma::mat allpaths, int action, int state, int sessId, unsig
   arma::uvec sessionIdx = arma::find(sessionVec == (sessId));
   arma::vec allpath_actions = allpaths.col(0);
   arma::vec allpath_states = allpaths.col(1);
+  arma::vec pathNb = allpaths.col(5);
   arma::vec actions_sess = allpath_actions.elem(sessionIdx);
   arma::vec states_sess = allpath_states.elem(sessionIdx);
-  arma::vec pathNb = allpaths.col(5);
+  arma::vec pathNb_sess = pathNb.elem(sessionIdx);
 
   arma::uvec act_idx = arma::find(actions_sess == (action + 1) && states_sess == (state + 1));
 
+  //Rcpp::Rcout << "pathCount=" << pathCount << std::endl;
   //Rcpp::Rcout << "act_idx=" << act_idx << std::endl;
   double pathIndex = -1;
 
@@ -125,12 +127,16 @@ double getPathIndex(arma::mat allpaths, int action, int state, int sessId, unsig
   }
   else if (act_idx.n_elem >= pathCount)
   {
-    pathIndex = pathNb(act_idx(pathCount - 1));
+    pathIndex = pathNb_sess(act_idx(pathCount - 1));
   }
   else if (act_idx.n_elem <= pathCount)
   {
-    pathIndex = pathNb(act_idx(act_idx.n_elem - 1));
+    pathIndex = pathNb_sess(act_idx(act_idx.n_elem - 1));
   }
+
+  arma::uvec rowid = arma::find(pathNb == pathIndex);
+  arma::rowvec row = allpaths.row(rowid(0));
+  //Rcpp::Rcout << "row=" << row << std::endl;
 
   return (pathIndex);
 }
@@ -195,13 +201,16 @@ double getPathTime(arma::mat allpaths, int action, int state, int sessId, unsign
 }
 
 //updateTurnTime(turnTimes, pathIndex, generated_TurnsData_sess, turns_index, turnMethod);
-arma::mat updateTurnTime(arma::mat turnTimes, int pathIndex, arma::mat generated_TurnsData_sess, Rcpp::IntegerVector generatedTurnIds, int turnMethod)
+arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat generated_TurnsData_sess, Rcpp::IntegerVector generatedTurnIds, int turnMethod)
 {
   arma::vec pathIds = turnTimes.col(0);
-  arma::uvec turnIdx_currpath = arma::find(pathIds == pathIndex);
+  arma::uvec turnTimes_idx = arma::find(pathIds == allpaths_idx);
   arma::vec turns = turnTimes.col(3);
   arma::vec turn_states = turnTimes.col(2);
   arma::vec turnTime_method;
+
+  //Rcpp::Rcout << "allpaths_idx=" << allpaths_idx << std::endl;
+  //Rcpp::Rcout << "turnTimes_idx=" << turnTimes_idx << std::endl;
   if (turnMethod == 0)
   {
     turnTime_method = turnTimes.col(5);
@@ -215,26 +224,27 @@ arma::mat updateTurnTime(arma::mat turnTimes, int pathIndex, arma::mat generated
     turnTime_method = turnTimes.col(7);
   }
 
-  arma::vec turns_currPath = turns.elem(turnIdx_currpath);
-  arma::vec turnTime_currPath = turnTime_method.elem(turnIdx_currpath);
+  arma::vec turns_currPath = turns.elem(turnTimes_idx);
+  arma::vec turnTime_currPath = turnTime_method.elem(turnTimes_idx);
 
-  //Rcpp::Rcout << "turnIdx_currpath=" << turnIdx_currpath << ", turns_currPath=" << turns_currPath << std::endl;
-  //Rcpp::Rcout << "generatedTurnIds=" << generatedTurnIds << std::endl;
+ 
 
   for (unsigned int i = 0; i < generatedTurnIds.length(); i++)
   {
     //Rcpp::Rcout << "i=" << i << ", generatedTurnIds=" << generatedTurnIds[i] << std::endl;
+    std::string turnName = getTurnString(generated_TurnsData_sess(generatedTurnIds[i], 0));
     int curr_turn = generated_TurnsData_sess(generatedTurnIds[i], 0);
-    //Rcpp::Rcout << "curr_turn=" << curr_turn << std::endl;
+    //Rcpp::Rcout << "turn to update=" << turnName << std::endl;
 
     for (unsigned int j = 0; j < turns_currPath.n_elem; j++)
     {
-
-      //Rcpp::Rcout << "turns_currPath=" << turns_currPath(j) << std::endl;
+      std::string turnName = getTurnString(turns_currPath(j));
+      //Rcpp::Rcout << "turns from rat data=" << turns_currPath(j) << std::endl;
 
       if (turns_currPath(j) == curr_turn)
       {
-        //Rcpp::Rcout << "Match: j=" << j << std::endl;
+        
+        //Rcpp::Rcout << "Turn=" << turnName << ", index=" <<  generatedTurnIds[i] << ", turntime=" <<turnTime_currPath(j) << std::endl;
         generated_TurnsData_sess(generatedTurnIds[i], 3) = turnTime_currPath(j);
         //Rcpp::Rcout << "turnTime_currPath=" << turnTime_currPath(j) << std::endl;
         break;
@@ -261,7 +271,8 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
   //arma::vec allpath_rewards = allpaths.col(2);
   arma::vec sessionVec = allpaths.col(4);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
-
+  arma::vec pathNb = allpaths.col(5);
+ 
   arma::vec all_turns = turnTimes.col(3);
   arma::vec turns_sessions = turnTimes.col(4);
 
@@ -290,7 +301,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     int nrow = actions_sess.n_rows;
     double avg_score = 0;
     double score_episode = 0;
-    int episode = 0;
+    int episode = 1;
 
     int S = states_sess(0) - 1;
     std::vector<std::shared_ptr<TreeNode>> episodeTurns;
@@ -307,7 +318,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     for (int i = 0; i < nrow; i++)
     {
       std::shared_ptr<TreeNode> rootNode;
-      Rcpp::StringVector turnNames;
+      
 
       if (resetVector)
       {
@@ -327,6 +338,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       std::vector<std::shared_ptr<TreeNode>> childNodes = rootNode->child;
 
       Rcpp::IntegerVector turns_index;
+      Rcpp::StringVector turnNames;
       while (!childNodes.empty())
       {
         std::shared_ptr<TreeNode> turnSelected = softmax_action_sel(childNodes);
@@ -335,12 +347,13 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         generated_TurnsData_sess(turnIdx, 0) = turnNb;
         generated_TurnsData_sess(turnIdx, 1) = S;
         generated_TurnsData_sess(turnIdx, 2) = 0;
-
+        generated_TurnsData_sess(turnIdx, 3) = 0;
+        generated_TurnsData_sess(turnIdx, 4) = sessId;
         episodeTurns.push_back(turnSelected);
         turnNames.push_back(turnSelected->turn);
         episodeTurnStates.push_back(S);
         //Rcpp::Rcout << "selected turn=" << turnSelected->turn << std::endl;
-        generated_TurnsData_sess(turnIdx, 4) = sessId;
+        
         childNodes = turnSelected->child;
         turns_index.push_back(turnIdx);
         turnIdx++;
@@ -351,24 +364,26 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       generated_PathData_sess(i, 0) = A;
       generated_PathData_sess(i, 1) = S;
       generated_PathData_sess(i, 2) = R(S, A);
+      generated_PathData_sess(i, 3) = 0;
       generated_PathData_sess(i, 4) = sessId;
 
       //Rcpp::Rcout << "turnIdx=" << turnIdx << std::endl;
       if (R(S, A) == 1)
       {
+        //Rcpp::Rcout << "turnNb=" << generated_TurnsData_sess((turnIdx - 1), 0) << ", receives reward"<< std::endl;
         generated_TurnsData_sess((turnIdx - 1), 2) = 1;
         score_episode = score_episode + 1;
       }
-
+      //Rcpp::Rcout << "Path=" << A << ", S=" << S << std::endl;
       if (A != 5)
       {
         arma::uvec act_idx = arma::find(generated_PathData_sess.col(0) == A && generated_PathData_sess.col(1) == S);
         int pathCount = act_idx.n_elem;
         double pathTime = getPathTime(allpaths, A, S, sessId, pathCount);
         generated_PathData_sess(i, 3) = pathTime;
-        int pathIndex = getPathIndex(allpaths, A, S, sessId, pathCount);
-
-        generated_TurnsData_sess = updateTurnTime(turnTimes, pathIndex, generated_TurnsData_sess, turns_index, turnMethod);
+        int allpaths_idx = getPathIndex(allpaths, A, S, sessId, pathCount);
+        //Rcpp::Rcout << "Update turn times for turns=" << turnNames << ", A=" <<A << ", S=" << S << std::endl;
+        generated_TurnsData_sess = updateTurnTime(turnTimes, allpaths_idx, generated_TurnsData_sess, turns_index, turnMethod);
       }
 
       for (int k = 0; k < turns_index.size(); k++)
@@ -406,7 +421,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 
       if (returnToInitState)
       {
-        //Rcpp::Rcout << "Inside end episode" << std::endl;
+        Rcpp::Rcout << "Inside end episode" << std::endl;
         changeState = false;
         returnToInitState = false;
 

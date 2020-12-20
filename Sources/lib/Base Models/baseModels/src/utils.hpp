@@ -390,57 +390,57 @@ arma::vec getBoxTimes(arma::vec enregPosTimes, Rcpp::IntegerVector rleLengths)
 }
 
 // [[Rcpp::export]]
-Rcpp::StringVector getTurns(int path, int state)
+Rcpp::StringVector getTurnsFromPaths(int path, int state)
 {
 
   Rcpp::StringVector turns;
-  if (state == 1)
+  if (state == 0)
   {
-    if (path == 1)
+    if (path == 0)
     {
       turns.push_back("dch");
     }
-    else if (path == 2)
+    else if (path == 1)
     {
       turns.push_back("gak");
     }
-    else if (path == 3)
+    else if (path == 2)
     {
       turns.push_back("dcb");
       turns.push_back("bak");
     }
-    else if (path == 4)
+    else if (path == 3)
     {
       turns.push_back("gab");
       turns.push_back("bch");
     }
-    else if (path == 5)
+    else if (path == 4)
     {
       turns.push_back("gab");
       turns.push_back("bcd");
     }
   }
-  else if (state == 2)
+  else if (state == 1)
   {
-    if (path == 1)
+    if (path == 0)
     {
       turns.push_back("hcd");
     }
-    else if (path == 2)
+    else if (path == 1)
     {
       turns.push_back("kag");
     }
-    else if (path == 3)
+    else if (path == 2)
     {
       turns.push_back("hcb");
       turns.push_back("bag");
     }
-    else if (path == 4)
+    else if (path == 3)
     {
       turns.push_back("kab");
       turns.push_back("bcd");
     }
-    else if (path == 5)
+    else if (path == 4)
     {
       turns.push_back("kab");
       turns.push_back("bch");
@@ -454,7 +454,11 @@ Rcpp::StringVector getTurns(int path, int state)
 std::string getTurnString(int turnNb)
 {
   std::string turn;
-  if (turnNb == 1)
+  if (turnNb == 0)
+  {
+    turn = "dcb";
+  }
+  else if (turnNb == 1)
   {
     turn = "dch";
   }
@@ -464,7 +468,7 @@ std::string getTurnString(int turnNb)
   }
   else if (turnNb == 3)
   {
-    turn = "dcb";
+    turn = "gab";
   }
   else if (turnNb == 4)
   {
@@ -472,93 +476,129 @@ std::string getTurnString(int turnNb)
   }
   else if (turnNb == 5)
   {
-    turn = "gab";
+    turn = "bag";
   }
   else if (turnNb == 6)
   {
-    turn = "bch";
+    turn = "bcd";
   }
   else if (turnNb == 7)
   {
-    turn = "bcd";
+    turn = "bch";
   }
   else if (turnNb == 8)
   {
-    turn = "hcd";
+    turn = "hcb";
   }
   else if (turnNb == 9)
   {
-    turn = "kag";
+    turn = "hcd";
   }
   else if (turnNb == 10)
   {
-    turn = "hcb";
+    turn = "kag";
   }
   else if (turnNb == 11)
   {
-    turn = "bag";
+    turn = "kab";
   }
   else if (turnNb == 12)
   {
-    turn = "kab";
+    turn = "bak";
+  }
+  else if (turnNb == 13)
+  {
+    turn = "bag";
+  }
+  else if (turnNb == 14)
+  {
+    turn = "bcd";
+  }
+  else if (turnNb == 15)
+  {
+    turn = "bch";
   }
   return (turn);
 }
 
 // [[Rcpp::export]]
-int getTurnIdx(std::string turn)
+unsigned int getTurnIdx(std::string turn, int state)
 {
-  int turnNb = -1;
-  if (turn.compare("dch") == 0)
+  unsigned int turnNb = 100;
+  if (state == 0)
   {
-    turnNb = 1;
+    if (turn == "dcb")
+    {
+      turnNb = 0;
+    }
+    else if (turn == "dch")
+    {
+      turnNb = 1;
+    }
+    else if (turn == "gak")
+    {
+      turnNb = 2;
+    }
+    else if (turn == "gab")
+    {
+      turnNb = 3;
+    }
+    else if (turn == "bak")
+    {
+      turnNb = 4;
+    }
+    else if (turn == "bag")
+    {
+      turnNb = 5;
+    }
+    else if (turn == "bcd")
+    {
+      turnNb = 6;
+    }
+    else if (turn == "bch")
+    {
+      turnNb = 7;
+    }
   }
-  else if (turn.compare("gak") == 0)
+  else if (state == 1)
   {
-    turnNb = 2;
+    if (turn == "hcb")
+    {
+      turnNb = 8;
+    }
+    else if (turn == "hcd")
+    {
+      turnNb = 9;
+    }
+    else if (turn == "kag")
+    {
+      turnNb = 10;
+    }
+    else if (turn == "kab")
+    {
+      turnNb = 11;
+    }
+    else if (turn == "bak")
+    {
+      turnNb = 12;
+    }
+    else if (turn == "bag")
+    {
+      turnNb = 13;
+    }
+    else if (turn == "bcd")
+    {
+      turnNb = 14;
+    }
+    else if (turn == "bch")
+    {
+      turnNb = 15;
+    }
   }
-  else if (turn.compare("dcb") == 0)
-  {
-    turnNb = 3;
-  }
-  else if (turn.compare("bak") == 0)
-  {
-    turnNb = 4;
-  }
-  else if (turn.compare("gab") == 0)
-  {
-    turnNb = 5;
-  }
-  else if (turn.compare("bch") == 0)
-  {
-    turnNb = 6;
-  }
-  else if (turn.compare("bcd") == 0)
-  {
-    turnNb = 7;
-  }
-  else if (turn.compare("hcd") == 0)
-  {
-    turnNb = 8;
-  }
-  else if (turn.compare("kag") == 0)
-  {
-    turnNb = 9;
-  }
-  else if (turn.compare("hcb") == 0)
-  {
-    turnNb = 10;
-  }
-  else if (turn.compare("bag") == 0)
-  {
-    turnNb = 11;
-  }
-  else if (turn.compare("kab") == 0)
-  {
-    turnNb = 12;
-  }
-  return (turnNb);
+
+  return turnNb;
 }
+
 
 // [[Rcpp::export]]
 arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes, int sim)
@@ -720,5 +760,71 @@ arma::vec getComputationalActivity(arma::mat allpaths, arma::mat probabilityMatr
   }
   return (computationalActivity);
 }
+bool elementFound(Rcpp::StringVector turns, std::string turn)
+{
+  bool elementFound = false;
+  for(int i=0; i<turns.size(); i++)
+  {
+    if(turns[i] == turn)
+    {
+      elementFound = true;
+      break;
+    }
+  }
+  return(elementFound);
+}
+// [[Rcpp::export]]
+int getPathFromTurns(Rcpp::StringVector turns, int state)
+{
+  //Rcpp::Rcout << "turns=" << turns << ", state=" << state << std::endl;
+  int path = 5;
+  if (state == 0)
+  {
+    if (elementFound(turns,"dch"))
+    {
+      path = 0;
+    }
+    else if (elementFound(turns,"gak"))
+    {
+      path = 1;
+    }
+    else if (elementFound(turns,"dcb") && elementFound(turns,"bak"))
+    {
+      path = 2;
+    }
+    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
+    {
+      path = 3;
+    }
+    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
+    {
+      path = 4;
+    }
+  }
+  else if (state == 1)
+  {
+    if (elementFound(turns,"hcd"))
+    {
+      path = 0;
+    }
+    else if (elementFound(turns,"kag"))
+    {
+      path = 1;
+    }
+    else if (elementFound(turns,"hcb") && elementFound(turns,"bag"))
+    {
+      path = 2;
+    }
+    else if (elementFound(turns,"kab") && elementFound(turns,"bcd"))
+    {
+      path = 3;
+    }
+    else if (elementFound(turns,"kab") && elementFound(turns,"bch"))
+    {
+      path = 4;
+    }
+  }
 
+  return (path);
+}
 #endif

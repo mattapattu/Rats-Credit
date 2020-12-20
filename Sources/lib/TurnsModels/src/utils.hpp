@@ -296,67 +296,67 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
 std::string getTurnString(int turnNb)
 {
   std::string turn;
-  if (turnNb == 1)
+  if (turnNb == 0)
   {
     turn = "dcb";
   }
-  else if (turnNb == 2)
+  else if (turnNb == 1)
   {
     turn = "dch";
   }
-  else if (turnNb == 3)
+  else if (turnNb == 2)
   {
     turn = "gak";
   }
-  else if (turnNb == 4)
+  else if (turnNb == 3)
   {
     turn = "gab";
   }
-  else if (turnNb == 5)
+  else if (turnNb == 4)
   {
     turn = "bak";
+  }
+  else if (turnNb == 5)
+  {
+    turn = "bag";
   }
   else if (turnNb == 6)
   {
-    turn = "bag";
+    turn = "bcd";
   }
   else if (turnNb == 7)
   {
-    turn = "bcd";
+    turn = "bch";
   }
   else if (turnNb == 8)
   {
-    turn = "bch";
+    turn = "hcb";
   }
   else if (turnNb == 9)
   {
-    turn = "hcb";
+    turn = "hcd";
   }
   else if (turnNb == 10)
   {
-    turn = "hcd";
+    turn = "kag";
   }
   else if (turnNb == 11)
   {
-    turn = "kag";
+    turn = "kab";
   }
   else if (turnNb == 12)
   {
-    turn = "kab";
+    turn = "bak";
   }
   else if (turnNb == 13)
   {
-    turn = "bak";
+    turn = "bag";
   }
   else if (turnNb == 14)
   {
-    turn = "bag";
-  }
-  else if (turnNb == 15)
-  {
     turn = "bcd";
   }
-  else if (turnNb == 16)
+  else if (turnNb == 15)
   {
     turn = "bch";
   }

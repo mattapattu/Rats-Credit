@@ -110,5 +110,6 @@ compareTurnModels=function(enreg,rat, window){
 
 simTurns=function(allpaths_num,turnTimes,alpha,model,turnMethod)
 {
-  test = TurnsModels::simulateTurnsModels(allpaths_num,turnTimes,alpha,model,turnMethod)
+  test=baseModels::simulateTrials(allpaths_num,turnTimes,alpha,model,turnMethod)
+  #test = TurnsModels::simulateTurnsModels(allpaths_num,turnTimes,alpha,model,turnMethod)
 }

@@ -7,18 +7,17 @@
 using namespace Rcpp;
 
 // simulateTrials
-arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, int model, int policyMethod, double epsilon);
-RcppExport SEXP _baseModels_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
+Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha, int model, int turnMethod);
+RcppExport SEXP _baseModels_simulateTrials(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP modelSEXP, SEXP turnMethodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
-    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, model, policyMethod, epsilon));
+    Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, turnTimes, alpha, model, turnMethod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -187,15 +186,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getTurns
-Rcpp::StringVector getTurns(int path, int state);
-RcppExport SEXP _baseModels_getTurns(SEXP pathSEXP, SEXP stateSEXP) {
+// getTurnsFromPaths
+Rcpp::StringVector getTurnsFromPaths(int path, int state);
+RcppExport SEXP _baseModels_getTurnsFromPaths(SEXP pathSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type path(pathSEXP);
     Rcpp::traits::input_parameter< int >::type state(stateSEXP);
-    rcpp_result_gen = Rcpp::wrap(getTurns(path, state));
+    rcpp_result_gen = Rcpp::wrap(getTurnsFromPaths(path, state));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -211,13 +210,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // getTurnIdx
-int getTurnIdx(std::string turn);
-RcppExport SEXP _baseModels_getTurnIdx(SEXP turnSEXP) {
+unsigned int getTurnIdx(std::string turn, int state);
+RcppExport SEXP _baseModels_getTurnIdx(SEXP turnSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type turn(turnSEXP);
-    rcpp_result_gen = Rcpp::wrap(getTurnIdx(turn));
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnIdx(turn, state));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -246,9 +246,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getPathFromTurns
+int getPathFromTurns(Rcpp::StringVector turns, int state);
+RcppExport SEXP _baseModels_getPathFromTurns(SEXP turnsSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type turns(turnsSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPathFromTurns(turns, state));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_baseModels_simulateTrials", (DL_FUNC) &_baseModels_simulateTrials, 6},
+    {"_baseModels_simulateTrials", (DL_FUNC) &_baseModels_simulateTrials, 5},
     {"_baseModels_getPathLikelihood", (DL_FUNC) &_baseModels_getPathLikelihood, 8},
     {"_baseModels_getProbMatrix", (DL_FUNC) &_baseModels_getProbMatrix, 8},
     {"_baseModels_getEpisodes", (DL_FUNC) &_baseModels_getEpisodes, 1},
@@ -262,11 +274,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_baseModels_mseEmpirical", (DL_FUNC) &_baseModels_mseEmpirical, 4},
     {"_baseModels_pathProbability", (DL_FUNC) &_baseModels_pathProbability, 3},
     {"_baseModels_getBoxTimes", (DL_FUNC) &_baseModels_getBoxTimes, 2},
-    {"_baseModels_getTurns", (DL_FUNC) &_baseModels_getTurns, 2},
+    {"_baseModels_getTurnsFromPaths", (DL_FUNC) &_baseModels_getTurnsFromPaths, 2},
     {"_baseModels_getTurnString", (DL_FUNC) &_baseModels_getTurnString, 1},
-    {"_baseModels_getTurnIdx", (DL_FUNC) &_baseModels_getTurnIdx, 1},
+    {"_baseModels_getTurnIdx", (DL_FUNC) &_baseModels_getTurnIdx, 2},
     {"_baseModels_getTurnTimes", (DL_FUNC) &_baseModels_getTurnTimes, 3},
     {"_baseModels_getComputationalActivity", (DL_FUNC) &_baseModels_getComputationalActivity, 2},
+    {"_baseModels_getPathFromTurns", (DL_FUNC) &_baseModels_getPathFromTurns, 2},
     {NULL, NULL, 0}
 };
 

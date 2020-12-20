@@ -288,14 +288,16 @@ arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat genera
 }
 
 // [[Rcpp::export()]]
-arma::mat simulateTrials(arma::mat allpaths, arma::mat turnTimes, arma::mat H, double alpha, int model, int turnMethod)
+Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha, int model, int turnMethod)
 {
 
-  arma::mat R = arma::zeros(2, 6);
+  arma::mat H = arma::zeros(2,6);
+  arma::mat R = arma::zeros(2,6);
   R(0, 3) = 1;
   R(1, 3) = 1;
-  arma::mat generated_data;
-
+  arma::mat generated_PathData;
+  arma::mat generated_TurnData;
+  
   arma::vec allpath_actions = allpaths.col(0);
   arma::vec allpath_states = allpaths.col(1);
   arma::vec allpath_rewards = allpaths.col(2);
@@ -314,16 +316,12 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat turnTimes, arma::mat H, d
 
     int sessId = uniqSessIdx(session);
     arma::uvec sessionIdx = arma::find(sessionVec == sessId);
-    ;
     arma::vec actions_sess = allpath_actions.elem(sessionIdx);
-    ;
     arma::vec states_sess = allpath_states.elem(sessionIdx);
-    ;
     arma::vec rewards_sess = allpath_rewards.elem(sessionIdx);
-    ;
     arma::vec time_taken_for_trial_sess = allpath_times.elem(sessionIdx);
 
-    //Rcpp::Rcout << "session=" <<session <<", sessId=" << sessId << std::endl;
+    Rcpp::Rcout << "session=" <<session <<", sessId=" << sessId << std::endl;
 
     int initState = 0;
     bool changeState = false;
@@ -353,7 +351,7 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat turnTimes, arma::mat H, d
 
       A = softmax_action_sel(H,S);
       
-      // Rcpp::Rcout << "S=" << S << ", A=" << A << ", episode=" << episode <<std::endl;
+      Rcpp::Rcout << "S=" << S << ", A=" << A << ", episode=" << episode <<std::endl;
 
       score_episode = score_episode + R(S, A);
       generated_PathData_sess(act, 0) = A;
@@ -364,7 +362,7 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat turnTimes, arma::mat H, d
 
       Rcpp::StringVector turns = getTurnsFromPaths(A, S);
       int nbOfTurns = turns.length();
-      //Rcpp::Rcout <<"Path="<< A << ", nbOfTurns=" << nbOfTurns<<std::endl;
+      Rcpp::Rcout <<"Path="<< A << ", nbOfTurns=" << nbOfTurns<<std::endl;
       Rcpp::IntegerVector turns_index;
       for (int j = 0; j < nbOfTurns; j++)
       {
@@ -388,7 +386,7 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat turnTimes, arma::mat H, d
         arma::uvec act_idx = arma::find(generated_PathData_sess.col(0) == A && generated_PathData_sess.col(1) == S);
         int pathCount = act_idx.n_elem;
         double pathTime = getPathTime(allpaths, A, S, sessId, pathCount);
-        generated_PathData_sess(i, 3) = pathTime;
+        generated_PathData_sess(act, 3) = pathTime;
         int allpaths_idx = getPathIndex(allpaths, A, S, sessId, pathCount);
         //Rcpp::Rcout << "Update turn times for turns=" << turnNames << ", A=" <<A << ", S=" << S << std::endl;
         generated_TurnsData_sess = updateTurnTime(turnTimes, allpaths_idx, generated_TurnsData_sess, turns_index, turnMethod);
@@ -411,15 +409,15 @@ arma::mat simulateTrials(arma::mat allpaths, arma::mat turnTimes, arma::mat H, d
       //Check if episode ended
       if (returnToInitState)
       {
-        // Rcpp::Rcout <<  "Inside end episode"<<std::endl;
+        Rcpp::Rcout <<  "Inside end episode"<<std::endl;
         changeState = false;
         returnToInitState = false;
 
-        arma::vec action_sess = generated_data_sess.col(0);
-        arma::vec state_sess = generated_data_sess.col(1);
-        arma::vec time_taken_for_trial_sess = generated_data_sess.col(3);
+        arma::vec action_sess = generated_PathData_sess.col(0);
+        arma::vec state_sess = generated_PathData_sess.col(1);
+        arma::vec time_taken_for_trial_sess = generated_PathData_sess.col(3);
 
-        arma::uvec episodeIdx = arma::find(generated_data_sess.col(5) == episode);
+        arma::uvec episodeIdx = arma::find(generated_PathData_sess.col(5) == episode);
         arma::vec actions = action_sess.elem(episodeIdx);
         arma::vec states = state_sess.elem(episodeIdx);
         arma::vec time_taken_for_trial = time_taken_for_trial_sess.elem(episodeIdx);

@@ -43,7 +43,9 @@ comparePathModels=function(enreg,rat, window){
   l = cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
   y = baseModels::getPathTimes(as.numeric(allpaths[,2]),l)
   allpaths = cbind(allpaths,y)
+  allpaths = cbind(allpaths,c(1:length(allpaths[,1])))
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
+  allpaths_num = cbind(allpaths_num,c(1:length(allpaths_num[,1])))
  
   # empprob2 = baseModels::empiricalProbMat2(allpaths_num,window)
   # endLearningStage = getEndIndex(allpaths_num,sim=2)
@@ -53,14 +55,16 @@ comparePathModels=function(enreg,rat, window){
   
 
   # #### Holdout Validation ########################################
-  # endLearningStage = getEndIndex(allpaths_num,sim=2)
-  # Hinit = genInitValues(allpaths_num,sim=2)
-  # #Hinit <- matrix(0,2,6)
-  # 
-  # Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
-  # models = c(6,1,2,5)
-  # #debug(validateHoldout)
-  # #mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num, window = window, rat)
+  endLearningStage = getEndIndex(allpaths_num,sim=2)
+  Hinit = genInitValues(allpaths_num,sim=2)
+  #Hinit <- matrix(0,2,6)
+
+  Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
+  #models = c("aca","gb","aca3","sarsa","acaTurns","gbTurns","aca3Turns","sarsaTurns" )
+  models=c("aca","acaTurns")
+  turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
+  debug(validateHoldout)
+  mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
   # 
   # # ##### Model Selection On Acutal Data #########################3
   # 
@@ -94,28 +98,5 @@ comparePathModels=function(enreg,rat, window){
   # generatePlots(rat,window, res$acamse@ProbMatrix, res$gbmse@ProbMatrix, res$sarsa@ProbMatrix, res$aca3mse@ProbMatrix, allpaths_num)
 }
 
-getTestRange=function(generated_data){
-  
-  end_index = getEndIndex(generated_data)
-  start_index = round(end_index/2)
-  
-  idx  = which(generated_data[1:start_index,2]==1)
-  start_state1 = length(idx)
-  
-  idx  = which(generated_data[1:start_index,2]==2)
-  start_state2 = length(idx)
-  
-  
-  idx  = which(generated_data[1:end_index,2]==1)
-  end_state1 = length(idx)
-  
-  idx  = which(generated_data[1:end_index,2]==2)
-  end_state2 = length(idx)
-  
-  state1 = list(start_index = start_state1, end_index = end_state1)
-  state2 = list(start_index = start_state2, end_index = end_state2)
-  
-  return(list(state1= state1, state2 = state2))
-  
-}
+
 

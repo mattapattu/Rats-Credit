@@ -227,8 +227,6 @@ arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat genera
   arma::vec turns_currPath = turns.elem(turnTimes_idx);
   arma::vec turnTime_currPath = turnTime_method.elem(turnTimes_idx);
 
- 
-
   for (unsigned int i = 0; i < generatedTurnIds.length(); i++)
   {
     //Rcpp::Rcout << "i=" << i << ", generatedTurnIds=" << generatedTurnIds[i] << std::endl;
@@ -243,7 +241,7 @@ arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat genera
 
       if (turns_currPath(j) == curr_turn)
       {
-        
+
         //Rcpp::Rcout << "Turn=" << turnName << ", index=" <<  generatedTurnIds[i] << ", turntime=" <<turnTime_currPath(j) << std::endl;
         generated_TurnsData_sess(generatedTurnIds[i], 3) = turnTime_currPath(j);
         //Rcpp::Rcout << "turnTime_currPath=" << turnTime_currPath(j) << std::endl;
@@ -272,7 +270,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
   arma::vec sessionVec = allpaths.col(4);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
   arma::vec pathNb = allpaths.col(5);
- 
+
   arma::vec all_turns = turnTimes.col(3);
   arma::vec turns_sessions = turnTimes.col(4);
 
@@ -318,7 +316,6 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     for (int i = 0; i < nrow; i++)
     {
       std::shared_ptr<TreeNode> rootNode;
-      
 
       if (resetVector)
       {
@@ -353,7 +350,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         turnNames.push_back(turnSelected->turn);
         episodeTurnStates.push_back(S);
         //Rcpp::Rcout << "selected turn=" << turnSelected->turn << std::endl;
-        
+
         childNodes = turnSelected->child;
         turns_index.push_back(turnIdx);
         turnIdx++;
@@ -399,13 +396,11 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         {
           episodeTurnTimes.push_back(row(3));
         }
-       
       }
 
       //arma::vec episodeTurnTimes_arm(episodeTurnTimes);
       //Rcpp::Rcout << "episodeTurnTimes=" <<episodeTurnTimes_arm << std::endl;
 
-      
       int last_turn = generated_TurnsData_sess((turnIdx - 1), 0);
       //Rcpp::Rcout << "last_turn=" << last_turn << std::endl;
       int S_prime = aca_getNextState(S, A, last_turn);
@@ -421,7 +416,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 
       if (returnToInitState)
       {
-        Rcpp::Rcout << "Inside end episode" << std::endl;
+        //Rcpp::Rcout << "Inside end episode" << std::endl;
         changeState = false;
         returnToInitState = false;
 
@@ -443,14 +438,14 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 
     if (turnIdx < (nrow * 2) - 1)
     {
-      generated_TurnsData_sess.shed_rows((turnIdx + 1), ((nrow * 2) - 1));
+      generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
     }
     generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess);
     //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
     generated_PathData = arma::join_cols(generated_PathData, generated_PathData_sess);
     //Rcpp::Rcout <<  "likelihoodVec=" << likelihoodVec<<std::endl;
   }
-  return (Rcpp::List::create(Named("PathData") = generated_PathData, _["turnData"] = generated_TurnData));
+  return (Rcpp::List::create(Named("PathData") = generated_PathData, _["TurnData"] = generated_TurnData));
 }
 
 // [[Rcpp::export()]]
@@ -474,17 +469,24 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
   arma::vec uniqSessIdx = arma::unique(sessionVec);
 
   arma::vec turnTime_method;
-  if (turnMethod == 0)
+  if (sim == 1)
   {
-    turnTime_method = turnTimes.col(4);
+    turnTime_method = turnTimes.col(3);
   }
-  else if (turnMethod == 1)
+  else
   {
-    turnTime_method = turnTimes.col(5);
-  }
-  else if (turnMethod == 2)
-  {
-    turnTime_method = turnTimes.col(6);
+    if (turnMethod == 0)
+    {
+      turnTime_method = turnTimes.col(5);
+    }
+    else if (turnMethod == 1)
+    {
+      turnTime_method = turnTimes.col(6);
+    }
+    else if (turnMethod == 2)
+    {
+      turnTime_method = turnTimes.col(7);
+    }
   }
 
   int episode = 1;
@@ -678,17 +680,24 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
   //Rcpp::Rcout <<  "uniqSessIdx.n_elem="<<uniqSessIdx.n_elem <<std::endl;
 
   arma::vec turnTime_method;
-  if (turnMethod == 0)
+  if (sim == 1)
   {
-    turnTime_method = turnTimes.col(5);
+    turnTime_method = turnTimes.col(3);
   }
-  else if (turnMethod == 1)
+  else
   {
-    turnTime_method = turnTimes.col(6);
-  }
-  else if (turnMethod == 2)
-  {
-    turnTime_method = turnTimes.col(7);
+    if (turnMethod == 0)
+    {
+      turnTime_method = turnTimes.col(5);
+    }
+    else if (turnMethod == 1)
+    {
+      turnTime_method = turnTimes.col(6);
+    }
+    else if (turnMethod == 2)
+    {
+      turnTime_method = turnTimes.col(7);
+    }
   }
 
   int episode = 1;

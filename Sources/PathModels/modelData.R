@@ -43,24 +43,24 @@ getModelData = function(generated_data, models, window, sim){
   gbacamse = list()
   aca2mse = list()
   aca3mse = list()
-  sarsa = list()
+  sarsamse = list()
   
-  if(1 %in% models){
+  if("aca" %in% models){
     acamse = acaData(Hinit1, generated_data, sim=sim, start_index, end_index, window)
   }
-  if(2 %in% models){
+  if("gb" %in% models){
     gbmse = gbData(Hinit1, generated_data, sim=sim, start_index, end_index, window)
   }
-  if(3 %in% models){
+  if("gbaca" %in% models){
     gbacamse = gbAcaData(Hinit1, generated_data, sim=1, start_index, end_index, window)
   }
-  if(4 %in% models){
+  if("aca2" %in% models){
     aca2mse = aca2Data(Hinit1, generated_data, sim=sim, start_index, end_index, window)
   }
-  if(5 %in% models){
+  if("aca3" %in% models){
     aca3mse = aca3Data(Hinit1, generated_data, sim=sim, start_index, end_index, window)
   }
-  if(6 %in% models){
+  if("sarsa" %in% models){
     sarsamse = sarsaData(Qinit, generated_data, sim=sim, start_index, end_index, window)
   }
   
@@ -70,30 +70,59 @@ getModelData = function(generated_data, models, window, sim){
 }
 
 
-validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat){
+validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, window, rat){
   validated = TRUE
   alpha=0
   gamma=0
-  
+  turnMethod = 0
   mat_res = matrix(0, length(models), length(models))
   colnames(mat_res) <- models
   rownames(mat_res) <- models
+  endLearningStage = endLearningStage/2
   
   for(model in models){
     
-    if(model == 5){
-      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = matrix(0,2,6), allpaths = allpaths_num[1:endLearningStage,], model = model, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+    if(model == "aca"){
+      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = 1, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
+      alpha = out$optim$bestmem[1]
+    }
+    else if(model == "gb"){
+      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = 2, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
+      alpha = out$optim$bestmem[1]
+    }
+    else if(model == "aca3"){
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 5, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
       alpha = out$optim$bestmem[1]
       gamma1 = out$optim$bestmem[2]
       gamma2 = out$optim$bestmem[3]
-    }else if(model == 6){
-      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = matrix(0,2,6), allpaths = allpaths_num[1:endLearningStage,], model = model, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+    }
+    else if(model == "sarsa"){
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 6, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
       alpha = out$optim$bestmem[1]
       gamma = out$optim$bestmem[2]
       lambda = out$optim$bestmem[3]
-    }else{
-      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = model, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
-      alpha = out$optim$bestmem[1]
+    }
+    else if(model == "acaTurns"){
+      ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num[1:endLearningStage,], turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
+      alpha_ACA = ACA$optim$bestmem[1]
+    }
+    else if(model == "gbTurns"){
+      GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num[1:endLearningStage,], turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
+      alpha_GB = GB$optim$bestmem[1]
+    }
+    else if(model == "aca3Turns"){
+      ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = allpaths_num[1:endLearningStage,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      alpha_ACA3 = ACA3$optim$bestmem[1]
+      gamma1_ACA3 = ACA3$optim$bestmem[2]
+      gamma2_ACA3 = ACA3$optim$bestmem[3]
+    }
+    else if(model == "sarsaTurns"){
+      SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = allpaths_num[1:endLearningStage,], turnTimes = 0, turnMethod = 0, model = 6, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      alpha_SARSA = SARSA$optim$bestmem[1]
+      gamma_SARSA = SARSA$optim$bestmem[2]
+      lambda_SARSA = SARSA$optim$bestmem[3]
+      reward_SARSA = SARSA$optim$bestmem[4]
+      reward_SARSA = 1 + reward_SARSA*9
     }
     
     #mat_res = matrix(0,nrow=100,ncol=(2*length(models)+1))
@@ -108,14 +137,29 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
       total_trials = length(allpaths_num[,1])
       init_state = as.numeric(allpaths_num[1,2])-1
       
-      if(model == 1 || model == 2 || model == 3){
-        generated_data = baseModels::simulateTrials(allpaths_num, H=Hinit, alpha, model=model, policyMethod=1)
-      }else if(model == 4){
-        generated_data = Aca2::simulateTrials(allpaths_num, H=Hinit, alpha, model=model, policyMethod=1)
-      }else if(model == 5){
-        generated_data = Aca3::simulateTrials(allpaths_num, H=matrix(0,2,6), alpha, gamma1,gamma2, model=model, policyMethod=1)
-      }else if(model == 6){
-        generated_data = Sarsa::simulateSarsa(allpaths_num, Q=matrix(0,2,6), alpha, gamma, lambda, model=model, policyMethod=1)
+      if(model == "aca"){
+        generated_data = baseModels::simulateTrials(allpaths_num, turnTimes, alpha, model=1, turnMethod=0)
+      }
+      else if(model == "gb"){
+        generated_data = Aca2::simulateTrials(allpaths_num, turnTimes, alpha, model=2, turnMethod=0)
+      }
+      else if(model == "aca3"){
+        generated_data = Aca3::simulateTrials(allpaths_num, turnTimes, alpha, gamma1,gamma2, model=5, turnMethod=0)
+      }
+      else if(model == "sarsa"){
+        generated_data = Sarsa::simulateSarsa(allpaths_num, turnTimes, alpha, gamma, lambda, model=6, turnMethod=0)
+      }
+      else if(model == "acaTurns"){
+        generated_data = TurnsModels::simulateTurnsModels(allpaths_num, turnTimes, alpha, model=1, turnMethod=0)
+      }
+      else if(model == "gbTurns"){
+        generated_data = TurnsModels::simulateTurnsModels(allpaths_num, turnTimes, alpha, model=2, turnMethod=0)
+      }
+      else if(model == "aca3Turns"){
+        generated_data = Aca3Turns::simulateTurnsModels(allpaths_num, turnTimes, alpha, gamma1,gamma2, model=5, turnMethod=0)
+      }
+      else if(model == "sarsaTurns"){
+        generated_data = SarsaTurns::simulateTurnsModels(allpaths_num, turnTimes, alpha, gamma, lambda, model=6, turnMethod=0)
       }
       
       
@@ -124,39 +168,98 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
       #   next
       # }
       #generated_data[,1:2]=generated_data[,1:2]+1
-      end_index = getEndIndex(generated_data, sim=1)
+      end_index = getEndIndex(generated_data$PathData, sim=1)
       if(end_index == -1){
         missedOptimalIter=missedOptimalIter+1
         next
       }
       
-      res = getModelData(generated_data, models, window = window, sim=1)
+      res1 = getModelData(generated_data$PathData, models, window = window, sim=1)
+      res2 = getTurnModelData(generated_data$PathData, generated_data$TurnData, models, window = window, sim=1)
       
-      # min_index = 0
-      # min = 100000
-      # for(m in models){
-      #   m_idx = 2*which(m == models)-1
-      #   mat_res[iter,m_idx]=res[[m]]@Metrics$likelihood
-      #   mat_res[iter,(m_idx+1)]=res[[m]]@Params_lik$alpha[[1]]
-      #   if(res[[m]]@Metrics$likelihood < min){
-      #     min = res[[m]]@Metrics$likelihood
-      #     min_index = m
-      #   }
-      # }
-      #mat_res[iter,(2*length(models)+1)]= res[[min_index]]@Name
-      
+
       min_index = 0
       min = 100000
-      for(m in models){
-        if(res[[m]]@Metrics$likelihood < min){
-          min = res[[m]]@Metrics$likelihood
-          min_index = m
+      min_method = "null"
+      
+      
+      for(m in models)
+      {
+        if(m == "aca")
+        {
+          if(res1$acamse@Metrics$likelihood < min)
+          {
+            min = res1$acamse@Metrics$likelihood
+            min_method = m
+          }
+          
+        }
+        else if(m == "gb")
+        {
+          if(res1$gbmse@Metrics$likelihood < min)
+          {
+            min = res1$gbmse@Metrics$likelihood
+            min_method = m
+          }
+          
+        }
+        else if(m == "aca3")
+        {
+          if(res1$aca3mse@Metrics$likelihood < min)
+          {
+            min = res1$aca3mse@Metrics$likelihood
+            min_method = m
+          }
+          
+        }
+        else if(m == "sarsa")
+        {
+          if(res1$sarsamse@Metrics$likelihood < min)
+          {
+            min = res1$sarsamse@Metrics$likelihood
+            min_method = m
+          }
+          
+        }
+        else if(m == "acaTurns")
+        {
+          if(res2$acaTurnData@Metrics$likelihood < min)
+          {
+            min = res2$acaTurnData@Metrics$likelihood
+            min_method = m
+          }
+          
+        }
+        else if(m == "gbTurns")
+        {
+          if(res2$gbTurnData@Metrics$likelihood < min)
+          {
+            min = res2$gbTurnData@Metrics$likelihood
+            min_method = m
+          }
+          
+        }
+        else if(m == "aca3Turns")
+        {
+          if(res2$aca3TurnData@Metrics$likelihood < min)
+          {
+            min = res2$aca3TurnData@Metrics$likelihood
+            min_method = m
+          }
+          
+        }
+        else if(m == "sarsaTurns")
+        {
+          if(res2$sarsaTurnData@Metrics$likelihood < min)
+          {
+            min = res2$sarsaTurnData@Metrics$likelihood
+            min_method = m
+          }
+          
         }
       }
       
-      mat_res[toString(model),toString(min_index)] = mat_res[toString(model),toString(min_index)] + 1
-      
-      
+      mat_res[toString(model),toString(min_method)] = mat_res[toString(model),toString(min_method)] + 1
       
       print(sprintf("iter=%i", iter))
       iter=iter+1
@@ -183,79 +286,3 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, window, rat
 }
 
 
-windowCompare=function(generated_data, models, sim){
-  
-  end_index = getEndIndex(generated_data)
-  start_index = round(end_index/2)
-  if(start_index >= end_index){
-    print(sprintf("start_index >= end_index. Check if rat learns optimal behavior"))
-    return()
-  }
-  
-  Hinit1 = genInitValues(generated_data,sim=sim)
-  
-  mat_res = matrix(0,nrow=21,ncol=(length(models)+1))
-  cols = vector()
-  
-  if(1 %in% models){
-    cols = c(cols,"ACA")
-  }
-  if(2 %in% models){
-    cols = c(cols,"GB")
-  }
-  if(3 %in% models){
-    cols = c(cols,"GB-ACA")
-  }
-  if(4 %in% models){
-    cols = c(cols,"ACA2")
-  }
-  if(5 %in% models){
-    cols = c(cols,"ACA3")
-  }
-  
-  colnames(mat_res) =  c("window",cols)
-  
-  iter=1
-  
-  for(window in c(2,seq(5, 100, by = 5))){
-    
-    mat_res[iter,1]=window
-    
-    empProbMat <- getEmpProbMat(generated_data,window=window,sim=sim)
-    
-    if(1 %in% models){
-      acamse = acaMse(Hinit1, generated_data, sim=sim, start_index, end_index,empProbMat)
-      mat_res[iter,"ACA"]=acamse$mse
-    }
-    if(2 %in% models){
-      gbmse = gbMse(Hinit1, generated_data, sim=sim, start_index, end_index,empProbMat)
-      mat_res[iter,"GB"]=gbmse$mse
-    }
-    if(3 %in% models){
-      gbacamse = gbAcaMse(Hinit1, generated_data, sim=1, start_index, end_index,empProbMat)
-      mat_res[iter,"GB-ACA"]=gbacamse$mse
-    }
-    if(4 %in% models){
-      aca2mse = aca2Mse(Hinit1, generated_data, sim=sim, start_index, end_index,empProbMat)
-      mat_res[iter,"ACA2"]=aca2mse$mse
-    }
-    if(5 %in% models){
-      aca3mse = aca3Mse(Hinit1, generated_data, sim=sim, start_index, end_index,empProbMat)
-      mat_res[iter,"ACA3"]=aca3mse$mse
-    }
-    
-    iter=iter+1
-    
-  }
-  
-  plot(mat_res[1:21,3],type='l',xaxt = "n", xlab="Window size", ylab="MSE")
-  axis(1, at=1:21, labels=mat_res[1:21,1])
-  lines(mat_res[1:21,2],type='l',col='red')
-  lines(mat_res[1:21,4],type='l',col='blue')
-  lines(mat_res[1:21,4],type='l',col='green')
-  lines(mat_res[1:21,4],type='l',col='blue')
-  lines(mat_res[1:21,5],type='l',col='green')
-  legend("topright", legend=c("MSE GB", "MSE ACA","MSE ACA2","MSE ACA3"),col=c("black","red","blue","green"),cex=0.6,lty = c(1,1,1,1))
-  
-  return(mat_res)
-}

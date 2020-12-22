@@ -79,8 +79,8 @@ inline void AcaCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns,
       double activity = turnTime / arma::accu(episodeTurnTimes_arma);
       currNode->credit = currNode->credit + (alpha * score_episode * activity);
       
-      double partialCredit = score_episode * activity;
-      Rcpp::Rcout <<  "Turn="<< currNode->turn  << ", credit received=" << partialCredit <<std::endl;
+      //double partialCredit = score_episode * activity;
+      //Rcpp::Rcout <<  "Turn="<< currNode->turn  << ", credit received=" << partialCredit <<std::endl;
       
     }
   }

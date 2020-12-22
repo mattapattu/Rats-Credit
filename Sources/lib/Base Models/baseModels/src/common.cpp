@@ -321,7 +321,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
     arma::vec rewards_sess = allpath_rewards.elem(sessionIdx);
     arma::vec time_taken_for_trial_sess = allpath_times.elem(sessionIdx);
 
-    Rcpp::Rcout << "session=" <<session <<", sessId=" << sessId << std::endl;
+    //Rcpp::Rcout << "session=" <<session <<", sessId=" << sessId << std::endl;
 
     int initState = 0;
     bool changeState = false;
@@ -331,6 +331,10 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
     int A = 0;
     int turnIdx = 0;
     //int A_prime=0;
+    std::vector<int> episodeActions;
+    std::vector<int> episodeStates;
+    std::vector<double> episodePathTimes;
+
 
     int S = states_sess(0) - 1;
     arma::mat generated_PathData_sess(nrow, 5);
@@ -351,7 +355,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
 
       A = softmax_action_sel(H,S);
       
-      Rcpp::Rcout << "S=" << S << ", A=" << A << ", episode=" << episode <<std::endl;
+      //Rcpp::Rcout << "S=" << S << ", A=" << A << ", episode=" << episode <<std::endl;
 
       score_episode = score_episode + R(S, A);
       generated_PathData_sess(act, 0) = A;
@@ -362,7 +366,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
 
       Rcpp::StringVector turns = getTurnsFromPaths(A, S);
       int nbOfTurns = turns.length();
-      Rcpp::Rcout <<"Path="<< A << ", nbOfTurns=" << nbOfTurns<<std::endl;
+      //Rcpp::Rcout <<"Path="<< A << ", nbOfTurns=" << nbOfTurns<<std::endl;
       Rcpp::IntegerVector turns_index;
       for (int j = 0; j < nbOfTurns; j++)
       {
@@ -381,16 +385,26 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
         generated_TurnsData_sess((turnIdx - 1), 2) = 1;
       }
 
-      if (A != 5)
+      episodeActions.push_back(A);
+      episodeStates.push_back(S);
+      
+      if (A == 5)
+      {
+        episodePathTimes.push_back(0);  
+      }
+      else
       {
         arma::uvec act_idx = arma::find(generated_PathData_sess.col(0) == A && generated_PathData_sess.col(1) == S);
         int pathCount = act_idx.n_elem;
         double pathTime = getPathTime(allpaths, A, S, sessId, pathCount);
+        episodePathTimes.push_back(pathTime);  
         generated_PathData_sess(act, 3) = pathTime;
         int allpaths_idx = getPathIndex(allpaths, A, S, sessId, pathCount);
         //Rcpp::Rcout << "Update turn times for turns=" << turnNames << ", A=" <<A << ", S=" << S << std::endl;
         generated_TurnsData_sess = updateTurnTime(turnTimes, allpaths_idx, generated_TurnsData_sess, turns_index, turnMethod);
       }
+      
+          
 
       int S_prime = aca_getNextState(S, A);
 
@@ -409,18 +423,13 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
       //Check if episode ended
       if (returnToInitState)
       {
-        Rcpp::Rcout <<  "Inside end episode"<<std::endl;
+        //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
         changeState = false;
         returnToInitState = false;
 
-        arma::vec action_sess = generated_PathData_sess.col(0);
-        arma::vec state_sess = generated_PathData_sess.col(1);
-        arma::vec time_taken_for_trial_sess = generated_PathData_sess.col(3);
-
-        arma::uvec episodeIdx = arma::find(generated_PathData_sess.col(5) == episode);
-        arma::vec actions = action_sess.elem(episodeIdx);
-        arma::vec states = state_sess.elem(episodeIdx);
-        arma::vec time_taken_for_trial = time_taken_for_trial_sess.elem(episodeIdx);
+        arma::vec actions = arma::conv_to<arma::vec>::from(episodeActions);
+        arma::vec states = arma::conv_to<arma::vec>::from(episodeStates);
+        arma::vec time_taken_for_trial = arma::conv_to<arma::vec>::from(episodePathTimes);
 
         episode = episode + 1;
         resetVector = true;
@@ -428,6 +437,9 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
         H = updateCreditMatrix(H, actions, states, time_taken_for_trial, alpha, score_episode, avg_score, model);
 
         score_episode = 0;
+        episodeActions.clear();
+        episodeStates.clear();
+        episodePathTimes.clear();
       }
 
       //H = gamma1 * H;
@@ -437,7 +449,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
 
     if (turnIdx < (nrow * 2) - 1)
     {
-      generated_TurnsData_sess.shed_rows((turnIdx + 1), ((nrow * 2) - 1));
+      generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
     }
     generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess);
     //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
@@ -447,7 +459,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
   
     //Rcpp::Rcout <<  "likelihoodVec=" << likelihoodVec<<std::endl;
   
-  return (Rcpp::List::create(Named("PathData") = generated_PathData, _["turnData"] = generated_TurnData));
+  return (Rcpp::List::create(Named("PathData") = generated_PathData, _["TurnData"] = generated_TurnData));
 }
 
 // [[Rcpp::export()]]

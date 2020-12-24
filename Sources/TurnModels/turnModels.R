@@ -5,7 +5,7 @@ library(TTR)
 
 
 acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,1), allpaths = generated_data[1:half_index,], turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=sim, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
+  ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data[1:half_index,], turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=sim, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
   alpha_ACA = ACA$optim$bestmem[1]
   reward_ACA = ACA$optim$bestmem[2]
   reward_ACA = 1+reward_ACA*9
@@ -114,7 +114,7 @@ negLogLikFunc=function(par,allpaths,turnTimes,turnMethod,model,sim) {
   if(is.infinite(negLogLik)){
     return(1000000)
   }else if(is.nan(negLogLik)){
-    print(sprintf("Alpha = %f, Gamma = %f, Lambda = %f",alpha, gamma, lambda ))
+    print(sprintf("Alpha = %f",alpha ))
     return(1000000)
   }
   else{

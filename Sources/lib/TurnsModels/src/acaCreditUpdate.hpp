@@ -76,7 +76,12 @@ inline void AcaCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns,
       //Rcpp::Rcout <<  "turnIdx="<< arma::conv_to<arma::rowvec>::from(ids) <<std::endl;
       double turnTime = arma::accu(episodeTurnTimes_arma.elem(ids));
       //Rcpp::Rcout <<  "turnTime="<< turnTime <<std::endl;
-      double activity = turnTime / arma::accu(episodeTurnTimes_arma);
+      double episodeDuration = arma::accu(episodeTurnTimes_arma);
+      double activity = 0;
+      if(episodeDuration != 0)
+      {
+        activity = turnTime / arma::accu(episodeTurnTimes_arma);
+      }
       currNode->credit = currNode->credit + (alpha * score_episode * activity);
       
       //double partialCredit = score_episode * activity;

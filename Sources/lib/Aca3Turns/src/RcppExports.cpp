@@ -6,6 +6,22 @@
 
 using namespace Rcpp;
 
+// simulateTurnsModels
+Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, int turnMethod);
+RcppExport SEXP _Aca3Turns_simulateTurnsModels(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP turnMethodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma1(gamma1SEXP);
+    Rcpp::traits::input_parameter< double >::type gamma2(gamma2SEXP);
+    Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateTurnsModels(allpaths, turnTimes, alpha, gamma1, gamma2, turnMethod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getTurnsLikelihood
 std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2, double rewardVal, int sim);
 RcppExport SEXP _Aca3Turns_getTurnsLikelihood(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP rewardValSEXP, SEXP simSEXP) {
@@ -195,8 +211,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getPathFromTurns
+int getPathFromTurns(Rcpp::StringVector turns, int state);
+RcppExport SEXP _Aca3Turns_getPathFromTurns(SEXP turnsSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type turns(turnsSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPathFromTurns(turns, state));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_Aca3Turns_simulateTurnsModels", (DL_FUNC) &_Aca3Turns_simulateTurnsModels, 6},
     {"_Aca3Turns_getTurnsLikelihood", (DL_FUNC) &_Aca3Turns_getTurnsLikelihood, 8},
     {"_Aca3Turns_getProbMatrix", (DL_FUNC) &_Aca3Turns_getProbMatrix, 8},
     {"_Aca3Turns_rcpparma_hello_world", (DL_FUNC) &_Aca3Turns_rcpparma_hello_world, 0},
@@ -212,6 +241,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_Aca3Turns_getTurnString", (DL_FUNC) &_Aca3Turns_getTurnString, 1},
     {"_Aca3Turns_getTurnIdx", (DL_FUNC) &_Aca3Turns_getTurnIdx, 2},
     {"_Aca3Turns_getTurnTimes", (DL_FUNC) &_Aca3Turns_getTurnTimes, 2},
+    {"_Aca3Turns_getPathFromTurns", (DL_FUNC) &_Aca3Turns_getPathFromTurns, 2},
     {NULL, NULL, 0}
 };
 

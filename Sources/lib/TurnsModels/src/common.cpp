@@ -258,7 +258,6 @@ arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat genera
 Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, int model, int turnMethod)
 {
 
-  //Rcpp::Rcout << "model=" << model << ", turnMethod=" << turnMethod << std::endl;
   arma::mat R = arma::zeros(2, 6);
   R(0, 3) = 1;
   R(1, 3) = 1;
@@ -273,7 +272,6 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 
   arma::vec all_turns = turnTimes.col(3);
   arma::vec turns_sessions = turnTimes.col(4);
-
   //Rcpp::Rcout << "sessionVec=" << sessionVec << std::endl;
   //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;
   std::shared_ptr<TreeNode> rootS1 = initS1();

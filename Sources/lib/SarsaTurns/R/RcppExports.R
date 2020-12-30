@@ -17,8 +17,8 @@ rcpparma_bothproducts <- function(x) {
     .Call(`_SarsaTurns_rcpparma_bothproducts`, x)
 }
 
-simulateSarsa <- function(allpaths, turnTimes, alpha, gamma, lambda, turnMethod) {
-    .Call(`_SarsaTurns_simulateSarsa`, allpaths, turnTimes, alpha, gamma, lambda, turnMethod)
+simulateSarsa <- function(allpaths, turnTimes, alpha, gamma, lambda, rewardVal, turnMethod) {
+    .Call(`_SarsaTurns_simulateSarsa`, allpaths, turnTimes, alpha, gamma, lambda, rewardVal, turnMethod)
 }
 
 getTurnsLikelihood <- function(allpaths, alpha, gamma, lambda, rewardVal, sim) {

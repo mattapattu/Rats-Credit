@@ -292,59 +292,71 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
   return (turns);
 }
 
-
+bool elementFound(Rcpp::StringVector turns, std::string turn)
+{
+  bool elementFound = false;
+  for(int i=0; i<turns.size(); i++)
+  {
+    if(turns[i] == turn)
+    {
+      elementFound = true;
+      break;
+    }
+  }
+  return(elementFound);
+}
 // [[Rcpp::export]]
 int getPathFromTurns(Rcpp::StringVector turns, int state)
 {
-
-int path=-1;
+  //Rcpp::Rcout << "turns=" << turns << ", state=" << state << std::endl;
+  int path = 5;
   if (state == 0)
   {
-    if (turns.containsElementNamed("dch"))
+    if (elementFound(turns,"dch"))
     {
-      path=0;
+      path = 0;
     }
-    else if (turns.containsElementNamed("gak"))
+    else if (elementFound(turns,"gak"))
     {
-      path=1;
+      path = 1;
     }
-    else if (turns.containsElementNamed("dcb") && turns.containsElementNamed("bak"))
+    else if (elementFound(turns,"dcb") && elementFound(turns,"bak"))
     {
-      path=2;
+      path = 2;
     }
-    else if (turns.containsElementNamed("gab") && turns.containsElementNamed("bch"))
+    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
     {
-      path=3;
+      path = 3;
     }
-    else if (turns.containsElementNamed("gab") && turns.containsElementNamed("bch"))
+    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
     {
-      path=4;
+      path = 4;
     }
   }
   else if (state == 1)
   {
-    if (turns.containsElementNamed("hcd"))
+    if (elementFound(turns,"hcd"))
     {
-      path=0;
+      path = 0;
     }
-    else if (turns.containsElementNamed("kag"))
+    else if (elementFound(turns,"kag"))
     {
-      path=1;
+      path = 1;
     }
-    else if (turns.containsElementNamed("hcb") && turns.containsElementNamed("bag"))
+    else if (elementFound(turns,"hcb") && elementFound(turns,"bag"))
     {
-      path=2;
+      path = 2;
     }
-    else if (turns.containsElementNamed("kab") && turns.containsElementNamed("bcd"))
+    else if (elementFound(turns,"kab") && elementFound(turns,"bcd"))
     {
-      path=3;
+      path = 3;
     }
-    else if (turns.containsElementNamed("kab") && turns.containsElementNamed("bch"))
+    else if (elementFound(turns,"kab") && elementFound(turns,"bch"))
     {
-      path=4;
+      path = 4;
     }
   }
-  
+
   return (path);
 }
 
@@ -352,67 +364,67 @@ int path=-1;
 std::string getTurnString(int turnNb)
 {
   std::string turn;
-  if (turnNb == 1)
+  if (turnNb == 0)
   {
     turn = "dcb";
   }
-  else if (turnNb == 2)
+  else if (turnNb == 1)
   {
     turn = "dch";
   }
-  else if (turnNb == 3)
+  else if (turnNb == 2)
   {
     turn = "gak";
   }
-  else if (turnNb == 4)
+  else if (turnNb == 3)
   {
     turn = "gab";
   }
-  else if (turnNb == 5)
+  else if (turnNb == 4)
   {
     turn = "bak";
+  }
+  else if (turnNb == 5)
+  {
+    turn = "bag";
   }
   else if (turnNb == 6)
   {
-    turn = "bag";
+    turn = "bcd";
   }
   else if (turnNb == 7)
   {
-    turn = "bcd";
+    turn = "bch";
   }
   else if (turnNb == 8)
   {
-    turn = "bch";
+    turn = "hcb";
   }
   else if (turnNb == 9)
   {
-    turn = "hcb";
+    turn = "hcd";
   }
   else if (turnNb == 10)
   {
-    turn = "hcd";
+    turn = "kag";
   }
   else if (turnNb == 11)
   {
-    turn = "kag";
+    turn = "kab";
   }
   else if (turnNb == 12)
   {
-    turn = "kab";
+    turn = "bak";
   }
   else if (turnNb == 13)
   {
-    turn = "bak";
+    turn = "bag";
   }
   else if (turnNb == 14)
   {
-    turn = "bag";
-  }
-  else if (turnNb == 15)
-  {
     turn = "bcd";
   }
-  else if (turnNb == 16)
+  else if (turnNb == 15)
   {
     turn = "bch";
   }
@@ -423,77 +435,78 @@ std::string getTurnString(int turnNb)
 unsigned int getTurnIdx(std::string turn, int state)
 {
   unsigned int turnNb = 100;
-  if(state==0)
+  if (state == 0)
   {
-    if (turn.compare("dcb") == 0)
+    if (turn == "dcb")
+    {
+      turnNb = 0;
+    }
+    else if (turn == "dch")
     {
       turnNb = 1;
     }
-    else if (turn.compare("dch") == 0)
+    else if (turn == "gak")
     {
       turnNb = 2;
     }
-    else if (turn.compare("gak") == 0)
+    else if (turn == "gab")
     {
       turnNb = 3;
     }
-    else if (turn.compare("gab") == 0)
+    else if (turn == "bak")
     {
       turnNb = 4;
     }
-    else if (turn.compare("bak") == 0)
+    else if (turn == "bag")
     {
       turnNb = 5;
     }
-    else if (turn.compare("bag") == 0)
+    else if (turn == "bcd")
     {
       turnNb = 6;
     }
-    else if (turn.compare("bcd") == 0)
+    else if (turn == "bch")
     {
       turnNb = 7;
     }
-    else if (turn.compare("bch") == 0)
+  }
+  else if (state == 1)
+  {
+    if (turn == "hcb")
     {
       turnNb = 8;
     }
-  }
-  else if(state==1)
-  {
-    if (turn.compare("hcb") == 0)
+    else if (turn == "hcd")
     {
       turnNb = 9;
     }
-    else if (turn.compare("hcd") == 0)
+    else if (turn == "kag")
     {
       turnNb = 10;
     }
-    else if (turn.compare("kag") == 0)
+    else if (turn == "kab")
     {
       turnNb = 11;
     }
-    else if (turn.compare("kab") == 0)
+    else if (turn == "bak")
     {
       turnNb = 12;
     }
-    else if (turn.compare("bak") == 0)
+    else if (turn == "bag")
     {
       turnNb = 13;
     }
-    else if (turn.compare("bag") == 0)
+    else if (turn == "bcd")
     {
       turnNb = 14;
     }
-    else if (turn.compare("bcd") == 0)
+    else if (turn == "bch")
     {
       turnNb = 15;
     }
-    else if (turn.compare("bch") == 0)
-    {
-      turnNb = 16;
-    }
   }
-  return (turnNb-1);
+
+  return turnNb;
 }
 
 

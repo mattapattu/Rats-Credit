@@ -118,11 +118,11 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
     }
     else if(model == "sarsaTurns"){
       SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = allpaths_num[1:endLearningStage,], turnTimes = 0, turnMethod = 0, model = 6, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
-      alpha_SARSA = SARSA$optim$bestmem[1]
-      gamma_SARSA = SARSA$optim$bestmem[2]
-      lambda_SARSA = SARSA$optim$bestmem[3]
-      reward_SARSA = SARSA$optim$bestmem[4]
-      reward_SARSA = 1 + reward_SARSA*9
+      alpha = SARSA$optim$bestmem[1]
+      gamma = SARSA$optim$bestmem[2]
+      lambda = SARSA$optim$bestmem[3]
+      reward = SARSA$optim$bestmem[4]
+      reward = 1 + reward*9
     }
     
     #mat_res = matrix(0,nrow=100,ncol=(2*length(models)+1))
@@ -159,7 +159,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
         generated_data = Aca3Turns::simulateTurnsModels(allpaths_num, turnTimes, alpha, gamma1,gamma2, model=5, turnMethod=0)
       }
       else if(model == "sarsaTurns"){
-        generated_data = SarsaTurns::simulateTurnsModels(allpaths_num, turnTimes, alpha, gamma, lambda, model=6, turnMethod=0)
+        generated_data = SarsaTurns::simulateSarsa(allpaths_num, turnTimes, alpha, gamma, lambda, reward, turnMethod=0)
       }
       
       

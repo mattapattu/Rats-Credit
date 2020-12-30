@@ -50,8 +50,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // simulateSarsa
-Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma, double lambda, int turnMethod);
-RcppExport SEXP _SarsaTurns_simulateSarsa(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP turnMethodSEXP) {
+Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma, double lambda, double rewardVal, int turnMethod);
+RcppExport SEXP _SarsaTurns_simulateSarsa(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP rewardValSEXP, SEXP turnMethodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -60,8 +60,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type rewardVal(rewardValSEXP);
     Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateSarsa(allpaths, turnTimes, alpha, gamma, lambda, turnMethod));
+    rcpp_result_gen = Rcpp::wrap(simulateSarsa(allpaths, turnTimes, alpha, gamma, lambda, rewardVal, turnMethod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -213,7 +214,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SarsaTurns_rcpparma_outerproduct", (DL_FUNC) &_SarsaTurns_rcpparma_outerproduct, 1},
     {"_SarsaTurns_rcpparma_innerproduct", (DL_FUNC) &_SarsaTurns_rcpparma_innerproduct, 1},
     {"_SarsaTurns_rcpparma_bothproducts", (DL_FUNC) &_SarsaTurns_rcpparma_bothproducts, 1},
-    {"_SarsaTurns_simulateSarsa", (DL_FUNC) &_SarsaTurns_simulateSarsa, 6},
+    {"_SarsaTurns_simulateSarsa", (DL_FUNC) &_SarsaTurns_simulateSarsa, 7},
     {"_SarsaTurns_getTurnsLikelihood", (DL_FUNC) &_SarsaTurns_getTurnsLikelihood, 6},
     {"_SarsaTurns_getProbMatrix", (DL_FUNC) &_SarsaTurns_getProbMatrix, 6},
     {"_SarsaTurns_getTrialTimes", (DL_FUNC) &_SarsaTurns_getTrialTimes, 2},

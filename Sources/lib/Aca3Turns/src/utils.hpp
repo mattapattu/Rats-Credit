@@ -588,4 +588,73 @@ void decayCredits(std::shared_ptr<TreeNode> root, double gamma)
         }  
     }
 }
+
+bool elementFound(Rcpp::StringVector turns, std::string turn)
+{
+  bool elementFound = false;
+  for(int i=0; i<turns.size(); i++)
+  {
+    if(turns[i] == turn)
+    {
+      elementFound = true;
+      break;
+    }
+  }
+  return(elementFound);
+}
+
+// [[Rcpp::export]]
+int getPathFromTurns(Rcpp::StringVector turns, int state)
+{
+  //Rcpp::Rcout << "turns=" << turns << ", state=" << state << std::endl;
+  int path = 5;
+  if (state == 0)
+  {
+    if (elementFound(turns,"dch"))
+    {
+      path = 0;
+    }
+    else if (elementFound(turns,"gak"))
+    {
+      path = 1;
+    }
+    else if (elementFound(turns,"dcb") && elementFound(turns,"bak"))
+    {
+      path = 2;
+    }
+    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
+    {
+      path = 3;
+    }
+    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
+    {
+      path = 4;
+    }
+  }
+  else if (state == 1)
+  {
+    if (elementFound(turns,"hcd"))
+    {
+      path = 0;
+    }
+    else if (elementFound(turns,"kag"))
+    {
+      path = 1;
+    }
+    else if (elementFound(turns,"hcb") && elementFound(turns,"bag"))
+    {
+      path = 2;
+    }
+    else if (elementFound(turns,"kab") && elementFound(turns,"bcd"))
+    {
+      path = 3;
+    }
+    else if (elementFound(turns,"kab") && elementFound(turns,"bch"))
+    {
+      path = 4;
+    }
+  }
+
+  return (path);
+}
 #endif

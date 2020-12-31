@@ -4,6 +4,7 @@
 
 #include <regex>
 #include <RcppArmadilloExtensions/sample.h>
+#include "utils.hpp"
 
 using namespace Rcpp;
 
@@ -122,14 +123,189 @@ int actionSelection(arma::mat H, int S, int method, double epsilon = 0)
   return (selected_action);
 }
 
-// [[Rcpp::export()]]
-arma::mat simulateSarsa(arma::mat allpaths, arma::mat Q, double alpha, double gamma, double lambda, int model, int policyMethod, double epsilon = 0)
+//allpaths, A,S, sessId, pathCount
+double getPathIndex(arma::mat allpaths, int action, int state, int sessId, unsigned int pathCount)
 {
+  arma::vec sessionVec = allpaths.col(4);
+  arma::uvec sessionIdx = arma::find(sessionVec == (sessId));
+  arma::vec allpath_actions = allpaths.col(0);
+  arma::vec allpath_states = allpaths.col(1);
+  arma::vec pathNb = allpaths.col(5);
+  arma::vec actions_sess = allpath_actions.elem(sessionIdx);
+  arma::vec states_sess = allpath_states.elem(sessionIdx);
+  arma::vec pathNb_sess = pathNb.elem(sessionIdx);
 
+  arma::uvec act_idx = arma::find(actions_sess == (action + 1) && states_sess == (state + 1));
+
+  //Rcpp::Rcout << "pathCount=" << pathCount << std::endl;
+  //Rcpp::Rcout << "act_idx=" << act_idx << std::endl;
+  double pathIndex = -1;
+
+  if (act_idx.n_elem == 0)
+  {
+    arma::uvec all_acts_idx = arma::find(allpath_actions == (action + 1) && allpath_states == (state + 1));
+    arma::mat X = allpaths.rows(all_acts_idx);
+    arma::uvec idx_after_sess = arma::find(X.col(4) > sessId);
+    arma::uvec idx_before_sess = arma::find(X.col(4) < sessId);
+    //Rcpp::Rcout <<"idx_after_sess=" <<idx_after_sess << std::endl;
+    if (!idx_after_sess.empty())
+    {
+      arma::mat X_after = X.rows(idx_after_sess);
+      pathIndex = X_after(0, 5);
+      //Rcpp::Rcout <<"pathIndex=" <<pathIndex << ", X_after=" << X_after << std::endl;
+    }
+    else if (!idx_before_sess.empty())
+    {
+      arma::mat X_before = X.rows(idx_before_sess);
+      pathIndex = X_before(0, 5);
+      //Rcpp::Rcout << "X_before=" << X_before << std::endl;
+    }
+    else
+    {
+      Rcpp::Rcout << "Action=" << action << ", state=" << state << ", is not found" << std::endl;
+    }
+  }
+  else if (act_idx.n_elem >= pathCount)
+  {
+    pathIndex = pathNb_sess(act_idx(pathCount - 1));
+  }
+  else if (act_idx.n_elem <= pathCount)
+  {
+    pathIndex = pathNb_sess(act_idx(act_idx.n_elem - 1));
+  }
+
+  arma::uvec rowid = arma::find(pathNb == pathIndex);
+  arma::rowvec row = allpaths.row(rowid(0));
+  //Rcpp::Rcout << "row=" << row << std::endl;
+
+  return (pathIndex);
+}
+
+//allpaths, A,S, sessId, pathCount
+double getPathTime(arma::mat allpaths, int action, int state, int sessId, unsigned int pathCount)
+{
+  arma::vec sessionVec = allpaths.col(4);
+  arma::uvec sessionIdx = arma::find(sessionVec == (sessId));
+  //Rcpp::Rcout << "Action=" << action << ", state=" << state << ", sessId=" << sessId << std::endl;
+
+  arma::vec allpath_actions = allpaths.col(0);
+  arma::vec allpath_states = allpaths.col(1);
+  arma::vec allpath_times = allpaths.col(3);
+
+  //Rcpp::Rcout << "sessionIdx=" << sessionIdx << std::endl;
+  arma::vec actions_sess = allpath_actions.elem(sessionIdx);
+  arma::vec states_sess = allpath_states.elem(sessionIdx);
+  arma::vec trialTimes_sess = allpath_times.elem(sessionIdx);
+
+  //Rcpp::Rcout << "pathCount=" << pathCount << std::endl;
+  arma::uvec act_idx = arma::find(actions_sess == (action + 1) && states_sess == (state + 1));
+  //Rcpp::Rcout << "act_idx.n_elem=" << act_idx.n_elem << std::endl;
+  double pathTime = 0;
+
+  if (act_idx.n_elem == 0)
+  {
+    arma::uvec all_acts_idx = arma::find(allpath_actions == (action + 1) && allpath_states == (state + 1));
+    //Rcpp::Rcout << "all_acts_idx=" << all_acts_idx << std::endl;
+    arma::mat X = allpaths.rows(all_acts_idx);
+    //Rcpp::Rcout << "X=" << X << std::endl;
+    arma::uvec idx_after_sess = arma::find(X.col(4) > sessId);
+    arma::uvec idx_before_sess = arma::find(X.col(4) < sessId);
+    //Rcpp::Rcout <<"idx_after_sess=" <<idx_after_sess.empty() << ", idx_before_sess=" <<idx_before_sess.empty()<< std::endl;
+    if (!idx_after_sess.empty())
+    {
+      arma::mat X_after = allpaths.rows(idx_after_sess);
+      pathTime = X_after(0, 3);
+      //Rcpp::Rcout <<"pathTime=" <<pathTime << ", X_after=" << X_after << std::endl;
+    }
+    else if (!idx_before_sess.empty())
+    {
+      arma::mat X_before = allpaths.rows(idx_before_sess);
+      pathTime = X_before(0, 3);
+      //Rcpp::Rcout <<"pathTime=" <<pathTime << ", X_before=" << X_before << std::endl;
+    }
+    else
+    {
+      Rcpp::Rcout << "Action=" << action << ", state=" << state << ", is not found" << std::endl;
+    }
+  }
+  else if (act_idx.n_elem >= pathCount)
+  {
+    pathTime = trialTimes_sess(act_idx(pathCount - 1));
+  }
+  else if (act_idx.n_elem <= pathCount)
+  {
+    pathTime = trialTimes_sess(act_idx(act_idx.n_elem - 1));
+  }
+
+  return (pathTime);
+}
+
+//updateTurnTime(turnTimes, pathIndex, generated_TurnsData_sess, turns_index, turnMethod);
+arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat generated_TurnsData_sess, Rcpp::IntegerVector generatedTurnIds, int turnMethod)
+{
+  arma::vec pathIds = turnTimes.col(0);
+  arma::uvec turnTimes_idx = arma::find(pathIds == allpaths_idx);
+  arma::vec turns = turnTimes.col(3);
+  arma::vec turn_states = turnTimes.col(2);
+  arma::vec turnTime_method;
+
+  //Rcpp::Rcout << "allpaths_idx=" << allpaths_idx << std::endl;
+  //Rcpp::Rcout << "turnTimes_idx=" << turnTimes_idx << std::endl;
+  if (turnMethod == 0)
+  {
+    turnTime_method = turnTimes.col(5);
+  }
+  else if (turnMethod == 1)
+  {
+    turnTime_method = turnTimes.col(6);
+  }
+  else if (turnMethod == 2)
+  {
+    turnTime_method = turnTimes.col(7);
+  }
+
+  arma::vec turns_currPath = turns.elem(turnTimes_idx);
+  arma::vec turnTime_currPath = turnTime_method.elem(turnTimes_idx);
+
+ 
+
+  for (unsigned int i = 0; i < generatedTurnIds.length(); i++)
+  {
+    //Rcpp::Rcout << "i=" << i << ", generatedTurnIds=" << generatedTurnIds[i] << std::endl;
+    std::string turnName = getTurnString(generated_TurnsData_sess(generatedTurnIds[i], 0));
+    int curr_turn = generated_TurnsData_sess(generatedTurnIds[i], 0);
+    //Rcpp::Rcout << "turn to update=" << turnName << std::endl;
+
+    for (unsigned int j = 0; j < turns_currPath.n_elem; j++)
+    {
+      std::string turnName = getTurnString(turns_currPath(j));
+      //Rcpp::Rcout << "turns from rat data=" << turns_currPath(j) << std::endl;
+
+      if (turns_currPath(j) == curr_turn)
+      {
+        
+        //Rcpp::Rcout << "Turn=" << turnName << ", index=" <<  generatedTurnIds[i] << ", turntime=" <<turnTime_currPath(j) << std::endl;
+        generated_TurnsData_sess(generatedTurnIds[i], 3) = turnTime_currPath(j);
+        //Rcpp::Rcout << "turnTime_currPath=" << turnTime_currPath(j) << std::endl;
+        break;
+      }
+    }
+  }
+
+  return (generated_TurnsData_sess);
+}
+
+// [[Rcpp::export()]]
+Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma, double lambda, int turnMethod)
+{
+  int policyMethod = 1;
+  double epsilon = 0;
+  arma::mat Q = arma::zeros(2, 6);
   arma::mat R = arma::zeros(2, 6);
   R(0, 3) = 1;
   R(1, 3) = 1;
-  arma::mat generated_data;
+  arma::mat generated_PathData;
+  arma::mat generated_TurnData;
 
   arma::vec allpath_actions = allpaths.col(0);
   arma::vec allpath_states = allpaths.col(1);
@@ -162,6 +338,7 @@ arma::mat simulateSarsa(arma::mat allpaths, arma::mat Q, double alpha, double ga
     int score_episode = 0;
     int S = states_sess(0) - 1;
     int A = 0;
+    int turnIdx = 0;
     if (policyMethod == 1)
     {
       A = actionSelection(Q, S, 1);
@@ -171,7 +348,11 @@ arma::mat simulateSarsa(arma::mat allpaths, arma::mat Q, double alpha, double ga
       A = actionSelection(Q, S, 2, epsilon);
     }
     arma::mat etrace(2, 6, arma::fill::zeros);
-    arma::mat generated_data_sess(nrow, 5);
+    arma::mat generated_PathData_sess(nrow, 5);
+    generated_PathData_sess.fill(-1);
+    arma::mat generated_TurnsData_sess((nrow * 2), 5);
+    generated_TurnsData_sess.fill(-1);
+
     //All episodes in new session
     for (int i = 0; i < (nrow); i++)
     {
@@ -186,33 +367,43 @@ arma::mat simulateSarsa(arma::mat allpaths, arma::mat Q, double alpha, double ga
       //Rcpp::Rcout << "S=" << S << ", A=" << A << ", episode=" << episode <<std::endl;
 
       score_episode = score_episode + R(S, A);
-      generated_data_sess(i, 0) = A;
-      generated_data_sess(i, 1) = S;
-      generated_data_sess(i, 2) = R(S, A);
+      generated_PathData_sess(i, 0) = A;
+      generated_PathData_sess(i, 1) = S;
+      generated_PathData_sess(i, 2) = R(S, A);
+      generated_PathData_sess(i, 3) = 0;
+      generated_PathData_sess(i, 4) = sessId;
 
-      arma::uvec act_idx = arma::find(generated_data_sess.col(1) == S && generated_data_sess.col(0) == A);
-      arma::uvec sess_act_idx = arma::find(states_sess == (S + 1) && actions_sess == (A + 1));
-
-      if (sess_act_idx.n_elem == 0)
+      Rcpp::StringVector turns = getTurnsFromPaths(A, S);
+      int nbOfTurns = turns.length();
+      //Rcpp::Rcout <<"Path="<< A << ", nbOfTurns=" << nbOfTurns<<std::endl;
+      Rcpp::IntegerVector turns_index;
+      for (int j = 0; j < nbOfTurns; j++)
       {
-        //Rcpp::Rcout << "Here2" <<std::endl;
-        arma::uvec act_idx = arma::find(allpath_states == (S + 1) && allpath_actions == (A + 1));
-        arma::vec act_times = allpath_times.elem(act_idx);
-        //Rcpp::Rcout << "act_idx=" << act_idx << ", act_times=" << act_times <<std::endl;
-        generated_data_sess(i, 3) = arma::mean(act_times);
-        // Rcpp::Rcout << "generated_data_sess(i,3)=" << generated_data_sess(i,3) <<std::endl;
-      }
-      else
-      {
-        //Rcpp::Rcout << "Here3" <<std::endl;
-        //arma::uword last_act = act_idx(act_idx.n_elem-1);
-        arma::vec act_times = time_taken_for_trial_sess.elem(sess_act_idx);
-        // Rcpp::Rcout << "last_act=" << last_act <<std::endl;
-        generated_data_sess(i, 3) = arma::mean(act_times);
+        std::string currTurn = Rcpp::as<std::string>(turns(j));
+        int turnNb = getTurnIdx(currTurn, S);
+        generated_TurnsData_sess(turnIdx, 0) = turnNb;
+        generated_TurnsData_sess(turnIdx, 1) = S;
+        generated_TurnsData_sess(turnIdx, 2) = 0;
+        generated_TurnsData_sess(turnIdx, 4) = sessId;
+        turns_index.push_back(turnIdx);
+        turnIdx++;
       }
 
-      //generated_data_sess(i,4) = episode;
-      generated_data_sess(i, 4) = session + 1;
+      if (R(S, A) == 1)
+      {
+        generated_TurnsData_sess((turnIdx - 1), 2) = 1;
+      }
+
+      if (A != 5)
+      {
+        arma::uvec act_idx = arma::find(generated_PathData_sess.col(0) == A && generated_PathData_sess.col(1) == S);
+        int pathCount = act_idx.n_elem;
+        double pathTime = getPathTime(allpaths, A, S, sessId, pathCount);
+        generated_PathData_sess(i, 3) = pathTime;
+        int allpaths_idx = getPathIndex(allpaths, A, S, sessId, pathCount);
+        //Rcpp::Rcout << "Update turn times for turns=" << turnNames << ", A=" <<A << ", S=" << S << std::endl;
+        generated_TurnsData_sess = updateTurnTime(turnTimes, allpaths_idx, generated_TurnsData_sess, turns_index, turnMethod);
+      }
 
       int S_prime = aca_getNextState(S, A);
       int A_prime = 0;
@@ -265,10 +456,14 @@ arma::mat simulateSarsa(arma::mat allpaths, arma::mat Q, double alpha, double ga
     }
 
     //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
-    generated_data = arma::join_cols(generated_data, generated_data_sess);
-    //Rcpp::Rcout <<  "likelihoodVec=" << likelihoodVec<<std::endl;
+    if (turnIdx < (nrow * 2) - 1)
+    {
+      generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
+    }
+    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess);
+    generated_PathData = arma::join_cols(generated_PathData, generated_PathData_sess);
   }
-  return (generated_data);
+  return (Rcpp::List::create(Named("PathData") = generated_PathData, _["TurnData"] = generated_TurnData));
 }
 
 // [[Rcpp::export()]]

@@ -379,7 +379,7 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
       {
         turn_reward = rewardVal;
       }
-      double prediction = turn_prime->qval;
+      double prediction = gamma * turn_prime->qval;
       double td_err = turn_reward + prediction - turnSelected->qval;
       turnSelected->etrace = turnSelected->etrace + 1;
       //Rcpp::Rcout << "turn_reward=" <<turn_reward << ", turn_prime=" <<turn_prime->turn << ", S=" << S << std::endl;

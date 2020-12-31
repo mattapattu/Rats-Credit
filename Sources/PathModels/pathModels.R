@@ -40,9 +40,9 @@ comparePathModels=function(enreg,rat, window){
     enreg_comb<-rbind(enreg_comb,enreg[[ses]]$POS)
   }
   
-  l = cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
-  y = baseModels::getPathTimes(as.numeric(allpaths[,2]),l)
-  allpaths = cbind(allpaths,y)
+  enreg_box_times = cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
+  pathTimes = baseModels::getPathTimes(as.numeric(allpaths[,3]),enreg_box_times)
+  allpaths = cbind(allpaths,pathTimes)
   allpaths = cbind(allpaths,c(1:length(allpaths[,1])))
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
   allpaths_num = cbind(allpaths_num,c(1:length(allpaths_num[,1])))

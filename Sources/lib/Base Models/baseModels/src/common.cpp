@@ -403,9 +403,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
         //Rcpp::Rcout << "Update turn times for turns=" << turnNames << ", A=" <<A << ", S=" << S << std::endl;
         generated_TurnsData_sess = updateTurnTime(turnTimes, allpaths_idx, generated_TurnsData_sess, turns_index, turnMethod);
       }
-      
-          
-
+     
       int S_prime = aca_getNextState(S, A);
 
       if (S_prime != initState)

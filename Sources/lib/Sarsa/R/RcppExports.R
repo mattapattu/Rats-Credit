@@ -17,8 +17,8 @@ rcpparma_bothproducts <- function(x) {
     .Call(`_Sarsa_rcpparma_bothproducts`, x)
 }
 
-simulateSarsa <- function(allpaths, Q, alpha, gamma, lambda, model, policyMethod, epsilon = 0) {
-    .Call(`_Sarsa_simulateSarsa`, allpaths, Q, alpha, gamma, lambda, model, policyMethod, epsilon)
+simulateSarsa <- function(allpaths, turnTimes, alpha, gamma, lambda, turnMethod) {
+    .Call(`_Sarsa_simulateSarsa`, allpaths, turnTimes, alpha, gamma, lambda, turnMethod)
 }
 
 getPathLikelihood <- function(allpaths, alpha, gamma, lambda, Q, sim, policyMethod, epsilon = 0) {
@@ -27,5 +27,21 @@ getPathLikelihood <- function(allpaths, alpha, gamma, lambda, Q, sim, policyMeth
 
 getProbMatrix <- function(allpaths, alpha, gamma, lambda, Q, sim, policyMethod, epsilon = 0) {
     .Call(`_Sarsa_getProbMatrix`, allpaths, alpha, gamma, lambda, Q, sim, policyMethod, epsilon)
+}
+
+getTurnString <- function(turnNb) {
+    .Call(`_Sarsa_getTurnString`, turnNb)
+}
+
+getTurnIdx <- function(turn, state) {
+    .Call(`_Sarsa_getTurnIdx`, turn, state)
+}
+
+getTurnsFromPaths <- function(path, state) {
+    .Call(`_Sarsa_getTurnsFromPaths`, path, state)
+}
+
+getTurnTimes <- function(allpaths, boxTimes, sim) {
+    .Call(`_Sarsa_getTurnTimes`, allpaths, boxTimes, sim)
 }
 

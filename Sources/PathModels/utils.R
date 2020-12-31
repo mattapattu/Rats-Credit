@@ -501,7 +501,7 @@ getEndIndex = function(generated_data, sim){
     }
   }
   
-  if(end_index1==0 && end_index2 ==0){
+  if(end_index1==0 || end_index2 ==0){
     end_index = -1
   }else{
     end_index = max(s1[end_index1],s2[end_index2])

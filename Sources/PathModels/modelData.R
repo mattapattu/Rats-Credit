@@ -147,7 +147,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
         generated_data = Aca3::simulateTrials(allpaths_num, turnTimes, alpha, gamma1,gamma2, model=5, turnMethod=0)
       }
       else if(model == "sarsa"){
-        generated_data = Sarsa::simulateSarsa(allpaths_num, turnTimes, alpha, gamma, lambda, model=6, turnMethod=0)
+        generated_data = Sarsa::simulateSarsa(allpaths_num, turnTimes, alpha, gamma, lambda, turnMethod=0)
       }
       else if(model == "acaTurns"){
         generated_data = TurnsModels::simulateTurnsModels(allpaths_num, turnTimes, alpha, model=1, turnMethod=0)

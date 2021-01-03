@@ -1,0 +1,3 @@
+useDynLib(Aca2Turns, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+exportPattern("^[[:alpha:]]+")

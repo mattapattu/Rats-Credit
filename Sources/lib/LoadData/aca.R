@@ -151,6 +151,7 @@ add.box.to.pos=function(ses,enreg,spolygons){
                     
   
   # enreg[[ses]]$POS[,"trial"] = cumsum(c(1,as.numeric((g[seq_along(g)-1]=="i"| g[seq_along(g)-1]=="e") & g[-1] != g[-length(g)])))
+  #debug(add.trial.to.pos)
   enreg=add.trial.to.pos(enreg,ses)
   
   
@@ -164,7 +165,7 @@ add.trial.to.pos=function(enreg,ses){
   r <- rle(enreg[[ses]]$POS[,"boxname"])
   allpaths <- toString(r$values)
   ## (, j, a)|(, j, b)|(, f, b)|(, f, a) are special cases : Need better fix here
-  allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k)|(, j, a)|(, j, b)|(, f, g)|(, f, b)|(, f, a)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+  allpaths<-strsplit(allpaths,"(?<=[ei])(?=(, j, k)|(, j, a)|(, j, b)|(, f, g)|(, f, b)|(, f, a)|(, d, c)|(, h, c)|(, j, i, k,))",perl=TRUE)[[1]]
   start_rle_index=1
   stop_rle_index = 0
   start_pos_index=1

@@ -38,9 +38,34 @@ gbTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, en
   return(GB)
 }
 
+aca2TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
+  ACA2 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  alpha_ACA2 = ACA2$optim$bestmem[1]
+  gamma1_ACA2 = ACA2$optim$bestmem[2]
+  #reward_ACA3 = ACA3$optim$bestmem[4]
+  #reward_ACA3 = 1 + reward_ACA3*9
+  ACA2_probMatrix = Aca2Turns::getProbMatrix(generated_data, turnTimes, turnMethod, alpha_ACA2,gamma1_ACA2,1,sim)
+  params_lik = list("alpha"=alpha_ACA2, "gamma1"=gamma1_ACA3)
+  # ACA3 <- DEoptim(aca_negLogLik2,lower = c(0,0,0), upper = c(1,1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  # alpha_ACA3 = ACA3$optim$bestmem[1]
+  # gamma_ACA3 = ACA3$optim$bestmem[2]
+  # epsilon_ACA3 = ACA3$optim$bestmem[3]
+  # params_activity = list("alpha"=alpha_ACA3, "gamma"=gamma_ACA3, "epsilon"=epsilon_ACA3)
+  #ACA3_probMatrix = Aca3::getProbMatrix(generated_data, alpha_ACA3,gamma_ACA3, H=Hinit2, sim, model=5, policyMethod=1)
+  
+  #aca3Actions = getActionData(generated_data, ACA3_probMatrix, half_index, end_index, window, sim)
+  paths = baseModels::getEpisodes(generated_data)
+  #computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
+  computationalActivity = vector()
+  lik = Aca2Turns::getTurnsLikelihood(generated_data, turnTimes, turnMethod, alpha_ACA2, gamma1_ACA2, 1, sim)
+  lik = -1*sum(lik[(half_index+1):end_index])
+  ACA3 <- new("Model", Name = "ACA3", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA3_probMatrix)
+  
+  return(ACA3)
+}
 
 aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = sim, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = sim, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   alpha_ACA3 = ACA3$optim$bestmem[1]
   gamma1_ACA3 = ACA3$optim$bestmem[2]
   gamma2_ACA3 = ACA3$optim$bestmem[3]
@@ -93,6 +118,10 @@ negLogLikFunc=function(par,allpaths,turnTimes,turnMethod,model,sim) {
     reward = par[2]
     reward = 1+reward*9
     turnlik=TurnsModels::getTurnsLikelihood(allpaths,turnTimes,turnMethod,alpha,reward,sim,model)
+  }
+  else if(model == 4){
+    gamma1 = par[2]
+    turnlik=Aca2Turns::getTurnsLikelihood(allpaths,turnTimes,turnMethod,alpha,gamma1,1,sim)
   }
   else if(model == 5){
     gamma1 = par[2]

@@ -90,6 +90,11 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = 2, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
       alpha = out$optim$bestmem[1]
     }
+    else if(model == "aca2"){
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 4, sim = 2, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      alpha = out$optim$bestmem[1]
+      gamma1 = out$optim$bestmem[2]
+    }
     else if(model == "aca3"){
       out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 5, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
       alpha = out$optim$bestmem[1]
@@ -97,10 +102,12 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       gamma2 = out$optim$bestmem[3]
     }
     else if(model == "sarsa"){
-      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 6, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0,0), upper = c(1,1,1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 6, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
       alpha = out$optim$bestmem[1]
       gamma = out$optim$bestmem[2]
       lambda = out$optim$bestmem[3]
+      reward = out$optim$bestmem[4]
+      reward = 1 + reward*9
     }
     else if(model == "acaTurns"){
       ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num[1:endLearningStage,], turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
@@ -110,11 +117,16 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num[1:endLearningStage,], turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
       alpha_GB = GB$optim$bestmem[1]
     }
+    else if(model == "aca2Turns"){
+      ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = allpaths_num[1:endLearningStage,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = 2, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      alpha = ACA3$optim$bestmem[1]
+      gamma1 = ACA3$optim$bestmem[2]
+    }
     else if(model == "aca3Turns"){
       ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = allpaths_num[1:endLearningStage,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
-      alpha_ACA3 = ACA3$optim$bestmem[1]
-      gamma1_ACA3 = ACA3$optim$bestmem[2]
-      gamma2_ACA3 = ACA3$optim$bestmem[3]
+      alpha = ACA3$optim$bestmem[1]
+      gamma1 = ACA3$optim$bestmem[2]
+      gamma2 = ACA3$optim$bestmem[3]
     }
     else if(model == "sarsaTurns"){
       SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = allpaths_num[1:endLearningStage,], turnTimes = 0, turnMethod = 0, model = 6, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
@@ -143,11 +155,14 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       else if(model == "gb"){
         generated_data = Aca2::simulateTrials(allpaths_num, turnTimes, alpha, model=2, turnMethod=0)
       }
+      else if(model == "aca2"){
+        generated_data = Aca2::simulateTrials(allpaths_num, turnTimes, alpha, gamma1,turnMethod=0)
+      }
       else if(model == "aca3"){
-        generated_data = Aca3::simulateTrials(allpaths_num, turnTimes, alpha, gamma1,gamma2, model=5, turnMethod=0)
+        generated_data = Aca3::simulateTrials(allpaths_num, turnTimes, alpha, gamma1,gamma2, turnMethod=0)
       }
       else if(model == "sarsa"){
-        generated_data = Sarsa::simulateSarsa(allpaths_num, turnTimes, alpha, gamma, lambda, turnMethod=0)
+        generated_data = Sarsa::simulateSarsa(allpaths_num, turnTimes, alpha, gamma, lambda, reward, turnMethod=0)
       }
       else if(model == "acaTurns"){
         generated_data = TurnsModels::simulateTurnsModels(allpaths_num, turnTimes, alpha, model=1, turnMethod=0)
@@ -155,8 +170,11 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       else if(model == "gbTurns"){
         generated_data = TurnsModels::simulateTurnsModels(allpaths_num, turnTimes, alpha, model=2, turnMethod=0)
       }
+      else if(model == "aca2Turns"){
+        generated_data = Aca2Turns::simulateTurnsModels(allpaths_num, turnTimes, alpha, gamma1,turnMethod=0)
+      }
       else if(model == "aca3Turns"){
-        generated_data = Aca3Turns::simulateTurnsModels(allpaths_num, turnTimes, alpha, gamma1,gamma2, model=5, turnMethod=0)
+        generated_data = Aca3Turns::simulateTurnsModels(allpaths_num, turnTimes, alpha, gamma1,gamma2, turnMethod=0)
       }
       else if(model == "sarsaTurns"){
         generated_data = SarsaTurns::simulateSarsa(allpaths_num, turnTimes, alpha, gamma, lambda, reward, turnMethod=0)
@@ -174,6 +192,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
         next
       }
       
+      #debug(getTurnModelData)
       res1 = getModelData(generated_data$PathData, models, window = window, sim=1)
       res2 = getTurnModelData(generated_data$PathData, generated_data$TurnData, models, window = window, sim=1)
       
@@ -267,6 +286,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
     
     #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
     print(sprintf("Nb of iterations where optimal behaviour was not learned=%i", missedOptimalIter))
+    print(mat_res)
     
     #boxplotMse(mat_res,model,rat)
     

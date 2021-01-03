@@ -328,7 +328,7 @@ int getPathFromTurns(Rcpp::StringVector turns, int state)
     {
       path = 3;
     }
-    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
+    else if (elementFound(turns,"gab") && elementFound(turns,"bcd"))
     {
       path = 4;
     }

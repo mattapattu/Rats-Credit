@@ -296,7 +296,7 @@ arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat genera
 }
 
 // [[Rcpp::export()]]
-Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma, double lambda, int turnMethod)
+Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma, double lambda, double rewardVal, int turnMethod)
 {
   int policyMethod = 1;
   double epsilon = 0;
@@ -438,7 +438,12 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
       }
 
       double prediction = gamma * Q(S_prime, A_prime);
-      double td_err = R(S, A) + prediction - Q(S, A);
+      int pathReward = 0;
+      if(R(S, A)==1)
+      {
+        pathReward = rewardVal;
+      }
+      double td_err = pathReward + prediction - Q(S, A);
 
       etrace(S, A) = etrace(S, A) + 1;
 
@@ -467,7 +472,7 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
 }
 
 // [[Rcpp::export()]]
-arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, arma::mat Q, int sim, int policyMethod, double epsilon = 0)
+arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, double rewardVal, arma::mat Q,  int sim, int policyMethod, double epsilon = 0)
 {
 
   if (sim != 1)
@@ -591,7 +596,12 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, doub
       // }
 
       double prediction = gamma * Q(S_prime, A_prime);
-      double td_err = R + prediction - Q(S, A);
+      int pathReward = 0;
+      if(R==1)
+      {
+        pathReward = rewardVal;
+      }
+      double td_err = pathReward + prediction - Q(S, A);
 
       //Rcpp::Rcout <<  "prediction=" << prediction<<std::endl;
       // Rcpp::Rcout <<  "S=" << S << ", A =" << A << ", Q(S,A) = " << Q(S,A) <<std::endl;
@@ -620,7 +630,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, doub
 }
 
 // [[Rcpp::export()]]
-arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double lambda, arma::mat Q, int sim, int policyMethod, double epsilon = 0)
+arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double lambda, double rewardVal, arma::mat Q, int sim, int policyMethod, double epsilon = 0)
 {
 
   if (sim != 1)
@@ -768,7 +778,12 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
       // }
 
       double prediction = gamma * Q(S_prime, A_prime);
-      double td_err = R + prediction - Q(S, A);
+      int pathReward = 0;
+      if(R==1)
+      {
+        pathReward = rewardVal;
+      }
+      double td_err = pathReward + prediction - Q(S, A);
 
       //Rcpp::Rcout <<  "prediction=" << prediction<<std::endl;
       // Rcpp::Rcout <<  "S=" << S << ", A =" << A << ", Q(S,A) = " << Q(S,A) <<std::endl;

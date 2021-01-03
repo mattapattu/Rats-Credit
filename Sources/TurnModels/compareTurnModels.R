@@ -63,7 +63,7 @@ compareTurnModels=function(enreg,rat, window){
 
   Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
   models = c(6,1,2,5)
-  debug(validateHoldout)
+  #debug(validateHoldout)
   mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num, window = window, rat)
   # 
   # # ##### Model Selection On Acutal Data #########################3

@@ -41,7 +41,8 @@ comparePathModels=function(enreg,rat, window){
   }
   
   enreg_box_times = cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
-  pathTimes = baseModels::getPathTimes(as.numeric(allpaths[,3]),enreg_box_times)
+  sessionIdVec = as.numeric(allpaths[,2])
+  pathTimes = baseModels::getPathTimes(sessionIdVec,enreg_box_times)
   allpaths = cbind(allpaths,pathTimes)
   allpaths = cbind(allpaths,c(1:length(allpaths[,1])))
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
@@ -60,8 +61,8 @@ comparePathModels=function(enreg,rat, window){
   #Hinit <- matrix(0,2,6)
 
   Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
-  #models = c("aca","gb","aca3","sarsa","acaTurns","gbTurns","aca3Turns","sarsaTurns" )
-  models=c("aca","acaTurns")
+  #models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
+  models = c("aca","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
   turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
   debug(validateHoldout)
   mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)

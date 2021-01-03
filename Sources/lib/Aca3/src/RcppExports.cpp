@@ -7,20 +7,18 @@
 using namespace Rcpp;
 
 // simulateTrials
-arma::mat simulateTrials(arma::mat allpaths, arma::mat H, double alpha, double gamma1, double gamma2, int model, int policyMethod, double epsilon);
-RcppExport SEXP _Aca3_simulateTrials(SEXP allpathsSEXP, SEXP HSEXP, SEXP alphaSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP modelSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
+Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, int turnMethod);
+RcppExport SEXP _Aca3_simulateTrials(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP turnMethodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type turnTimes(turnTimesSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type gamma1(gamma1SEXP);
     Rcpp::traits::input_parameter< double >::type gamma2(gamma2SEXP);
-    Rcpp::traits::input_parameter< int >::type model(modelSEXP);
-    Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
-    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, H, alpha, gamma1, gamma2, model, policyMethod, epsilon));
+    Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulateTrials(allpaths, turnTimes, alpha, gamma1, gamma2, turnMethod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -106,15 +104,67 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getTurnsFromPaths
+Rcpp::StringVector getTurnsFromPaths(int path, int state);
+RcppExport SEXP _Aca3_getTurnsFromPaths(SEXP pathSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type path(pathSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnsFromPaths(path, state));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnString
+std::string getTurnString(int turnNb);
+RcppExport SEXP _Aca3_getTurnString(SEXP turnNbSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type turnNb(turnNbSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnString(turnNb));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnIdx
+unsigned int getTurnIdx(std::string turn, int state);
+RcppExport SEXP _Aca3_getTurnIdx(SEXP turnSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type turn(turnSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnIdx(turn, state));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getTurnTimes
+arma::mat getTurnTimes(Rcpp::CharacterMatrix allpaths, arma::vec boxTimes, int sim);
+RcppExport SEXP _Aca3_getTurnTimes(SEXP allpathsSEXP, SEXP boxTimesSEXP, SEXP simSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::CharacterMatrix >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type boxTimes(boxTimesSEXP);
+    Rcpp::traits::input_parameter< int >::type sim(simSEXP);
+    rcpp_result_gen = Rcpp::wrap(getTurnTimes(allpaths, boxTimes, sim));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_Aca3_simulateTrials", (DL_FUNC) &_Aca3_simulateTrials, 8},
+    {"_Aca3_simulateTrials", (DL_FUNC) &_Aca3_simulateTrials, 6},
     {"_Aca3_getPathLikelihood", (DL_FUNC) &_Aca3_getPathLikelihood, 10},
     {"_Aca3_getProbMatrix", (DL_FUNC) &_Aca3_getProbMatrix, 9},
     {"_Aca3_rcpparma_hello_world", (DL_FUNC) &_Aca3_rcpparma_hello_world, 0},
     {"_Aca3_rcpparma_outerproduct", (DL_FUNC) &_Aca3_rcpparma_outerproduct, 1},
     {"_Aca3_rcpparma_innerproduct", (DL_FUNC) &_Aca3_rcpparma_innerproduct, 1},
     {"_Aca3_rcpparma_bothproducts", (DL_FUNC) &_Aca3_rcpparma_bothproducts, 1},
+    {"_Aca3_getTurnsFromPaths", (DL_FUNC) &_Aca3_getTurnsFromPaths, 2},
+    {"_Aca3_getTurnString", (DL_FUNC) &_Aca3_getTurnString, 1},
+    {"_Aca3_getTurnIdx", (DL_FUNC) &_Aca3_getTurnIdx, 2},
+    {"_Aca3_getTurnTimes", (DL_FUNC) &_Aca3_getTurnTimes, 3},
     {NULL, NULL, 0}
 };
 

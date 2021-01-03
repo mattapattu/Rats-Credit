@@ -483,7 +483,7 @@ getEndIndex = function(generated_data, sim){
   l<-which(SMA(generated_data[s1,3],30)>=0.95)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
-    if(length(k[[set]])>30){
+    if(length(k[[set]])>20){
       end_index1=k[[set]][1]
       break
     }
@@ -495,7 +495,7 @@ getEndIndex = function(generated_data, sim){
   l<-which(SMA(generated_data[s2,3],30)>=0.95)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
-    if(length(k[[set]])>30){
+    if(length(k[[set]])>20){
       end_index2=k[[set]][1]
       break
     }
@@ -547,7 +547,7 @@ enregCombine=function(enreg,rat){
     
     r <- rle(enreg[[ses]]$POS[,"boxname"])
     allpaths_ses <- toString(r$values)
-    allpaths_ses <-strsplit(allpaths_ses,"(?<=[ei])(?=(, j, k)|(, j, a)|(, j, b)|(, f, g)|(, f, b)|(, f, a)|(, d, c)|(, h, c))",perl=TRUE)[[1]]
+    allpaths_ses <-strsplit(allpaths_ses,"(?<=[ei])(?=(, j, k)|(, j, a)|(, j, b)|(, f, g)|(, f, b)|(, f, a)|(, d, c)|(, h, c)|(, j, i, k,))",perl=TRUE)[[1]]
     allpaths_ses <-cbind(allpaths_ses,ses)
     colnames(allpaths_ses) <- c("Path","Session")
     l<-list(allpaths,allpaths_ses)

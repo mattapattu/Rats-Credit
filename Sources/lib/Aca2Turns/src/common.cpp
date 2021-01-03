@@ -258,7 +258,7 @@ unsigned int getTurnTimesIndex(arma::mat turnTimes, int allpaths_idx, int turnNb
 
 //allpaths_num,turnTimes,0,1,model=1,turnMethod = 1
 // [[Rcpp::export()]]
-Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, int turnMethod)
+Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, int turnMethod)
 {
 
   //Rcpp::Rcout << "model=" << model << ", turnMethod=" << turnMethod << std::endl;
@@ -450,9 +450,6 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       S = S_prime;
     }
 
-    decayCredits(rootS1, gamma2);
-    decayCredits(rootS2, gamma2);
-
     if (turnIdx < (nrow * 2) - 1)
     {
       generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
@@ -466,7 +463,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 }
 
 // [[Rcpp::export()]]
-std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2, double rewardVal, int sim)
+std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double rewardVal, int sim)
 {
 
   if (sim != 1)
@@ -670,15 +667,14 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
       S = S_prime;
       //trial=trial+1;
     }
-    decayCredits(rootS1, gamma2);
-    decayCredits(rootS2, gamma2);
+    
   }
 
   return (mseMatrix);
 }
 
 // [[Rcpp::export()]]
-arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double gamma2, double rewardVal, int sim)
+arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double gamma1, double rewardVal, int sim)
 {
 
   if (sim != 1)
@@ -893,8 +889,6 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
 
       //trial=trial+1;
     }
-    decayCredits(rootS1, gamma2);
-    decayCredits(rootS2, gamma2);
   }
 
   return (mseMatrix);

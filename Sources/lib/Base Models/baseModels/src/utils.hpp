@@ -383,7 +383,9 @@ arma::vec getBoxTimes(arma::vec enregPosTimes, Rcpp::IntegerVector rleLengths)
       idx = arma::regspace<arma::uvec>(0, (indexVec[i] - 1));
     }
 
-    double time_in_box = arma::sum(enregPosTimes.elem(idx));
+    arma::uword start_idx = idx(0);
+    arma::uword end_idx = idx(idx.n_elem-1);
+    double time_in_box = enregPosTimes(end_idx)-enregPosTimes(start_idx);
     boxTimes(i) = time_in_box;
   }
   return (boxTimes);
@@ -797,7 +799,7 @@ int getPathFromTurns(Rcpp::StringVector turns, int state)
     {
       path = 3;
     }
-    else if (elementFound(turns,"gab") && elementFound(turns,"bch"))
+    else if (elementFound(turns,"gab") && elementFound(turns,"bcd"))
     {
       path = 4;
     }

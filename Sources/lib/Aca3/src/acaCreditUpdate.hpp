@@ -21,7 +21,11 @@ inline arma::mat Aca3CreditUpdate(arma::mat H, arma::vec actions, arma::vec stat
     arma::vec last_ep_time_s1 = trialTimes.elem(state1_idx);
     arma::vec last_ep_actions_s1 = actions.elem(state1_idx);
     arma::uvec curr_act_idx = arma::find(last_ep_actions_s1==curr_action);
-    double activity = arma::accu(last_ep_time_s1.elem(curr_act_idx))/arma::accu(trialTimes);
+    double activity = 0;
+    if (curr_action != 5)
+    {
+      activity = arma::accu(last_ep_time_s1.elem(curr_act_idx)) / arma::accu(trialTimes);
+    }
     
     H(0,curr_action)= (H(0,curr_action)+(alpha*(score_episode)*(activity)));
     if(R_IsNaN((H(0,curr_action)))){
@@ -45,7 +49,11 @@ inline arma::mat Aca3CreditUpdate(arma::mat H, arma::vec actions, arma::vec stat
     arma::vec last_ep_time_s2 = trialTimes.elem(state2_idx);
     arma::vec last_ep_actions_s2 = actions.elem(state2_idx);
     arma::uvec curr_act_idx= arma::find(last_ep_actions_s2==curr_action);
-    double activity= arma::accu(last_ep_time_s2.elem(curr_act_idx))/arma::accu(trialTimes);
+    double activity = 0;
+    if (curr_action != 5)
+    {
+      activity = arma::accu(last_ep_time_s2.elem(curr_act_idx)) / arma::accu(trialTimes);
+    }
     
     H(1,curr_action)= (H(1,curr_action)+(alpha*score_episode*(activity)));
     

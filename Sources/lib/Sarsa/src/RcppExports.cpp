@@ -50,8 +50,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // simulateSarsa
-Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma, double lambda, int turnMethod);
-RcppExport SEXP _Sarsa_simulateSarsa(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP turnMethodSEXP) {
+Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma, double lambda, double rewardVal, int turnMethod);
+RcppExport SEXP _Sarsa_simulateSarsa(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP rewardValSEXP, SEXP turnMethodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -60,14 +60,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type rewardVal(rewardValSEXP);
     Rcpp::traits::input_parameter< int >::type turnMethod(turnMethodSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulateSarsa(allpaths, turnTimes, alpha, gamma, lambda, turnMethod));
+    rcpp_result_gen = Rcpp::wrap(simulateSarsa(allpaths, turnTimes, alpha, gamma, lambda, rewardVal, turnMethod));
     return rcpp_result_gen;
 END_RCPP
 }
 // getPathLikelihood
-arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, arma::mat Q, int sim, int policyMethod, double epsilon);
-RcppExport SEXP _Sarsa_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP QSEXP, SEXP simSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
+arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, double lambda, double rewardVal, arma::mat Q, int sim, int policyMethod, double epsilon);
+RcppExport SEXP _Sarsa_getPathLikelihood(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP rewardValSEXP, SEXP QSEXP, SEXP simSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,17 +76,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type rewardVal(rewardValSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(getPathLikelihood(allpaths, alpha, gamma, lambda, Q, sim, policyMethod, epsilon));
+    rcpp_result_gen = Rcpp::wrap(getPathLikelihood(allpaths, alpha, gamma, lambda, rewardVal, Q, sim, policyMethod, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
 // getProbMatrix
-arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double lambda, arma::mat Q, int sim, int policyMethod, double epsilon);
-RcppExport SEXP _Sarsa_getProbMatrix(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP QSEXP, SEXP simSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
+arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double lambda, double rewardVal, arma::mat Q, int sim, int policyMethod, double epsilon);
+RcppExport SEXP _Sarsa_getProbMatrix(SEXP allpathsSEXP, SEXP alphaSEXP, SEXP gammaSEXP, SEXP lambdaSEXP, SEXP rewardValSEXP, SEXP QSEXP, SEXP simSEXP, SEXP policyMethodSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -93,11 +95,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type rewardVal(rewardValSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
     Rcpp::traits::input_parameter< int >::type sim(simSEXP);
     Rcpp::traits::input_parameter< int >::type policyMethod(policyMethodSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, alpha, gamma, lambda, Q, sim, policyMethod, epsilon));
+    rcpp_result_gen = Rcpp::wrap(getProbMatrix(allpaths, alpha, gamma, lambda, rewardVal, Q, sim, policyMethod, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -155,9 +158,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_Sarsa_rcpparma_outerproduct", (DL_FUNC) &_Sarsa_rcpparma_outerproduct, 1},
     {"_Sarsa_rcpparma_innerproduct", (DL_FUNC) &_Sarsa_rcpparma_innerproduct, 1},
     {"_Sarsa_rcpparma_bothproducts", (DL_FUNC) &_Sarsa_rcpparma_bothproducts, 1},
-    {"_Sarsa_simulateSarsa", (DL_FUNC) &_Sarsa_simulateSarsa, 6},
-    {"_Sarsa_getPathLikelihood", (DL_FUNC) &_Sarsa_getPathLikelihood, 8},
-    {"_Sarsa_getProbMatrix", (DL_FUNC) &_Sarsa_getProbMatrix, 8},
+    {"_Sarsa_simulateSarsa", (DL_FUNC) &_Sarsa_simulateSarsa, 7},
+    {"_Sarsa_getPathLikelihood", (DL_FUNC) &_Sarsa_getPathLikelihood, 9},
+    {"_Sarsa_getProbMatrix", (DL_FUNC) &_Sarsa_getProbMatrix, 9},
     {"_Sarsa_getTurnString", (DL_FUNC) &_Sarsa_getTurnString, 1},
     {"_Sarsa_getTurnIdx", (DL_FUNC) &_Sarsa_getTurnIdx, 2},
     {"_Sarsa_getTurnsFromPaths", (DL_FUNC) &_Sarsa_getTurnsFromPaths, 2},

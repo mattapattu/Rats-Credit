@@ -38,7 +38,7 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
   acaTurn = list()
   gbTurn = list()
   gbacamse = list()
-  aca2mse = list()
+  aca2Turn = list()
   aca3Turn = list()
   sarsaTurn = list()
   
@@ -58,10 +58,14 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
     # }
     
   }
-  else if("gbTurns" %in% models){    
+  if("gbTurns" %in% models){    
     gbTurn = gbTurnData(generated_data, turnTimes, turnMethod= 0, sim=sim, start_index, end_index, window)
   }
-  else if("aca3Turns" %in% models){        
+  if("aca2Turns" %in% models){        
+    #debug(aca3TurnData)
+    aca2Turn = aca2TurnData(generated_data, turnTimes, turnMethod = 0, sim=sim, start_index, end_index, window)
+  }
+  if("aca3Turns" %in% models){        
     #debug(aca3TurnData)
     aca3Turn = aca3TurnData(generated_data, turnTimes, turnMethod = 0, sim=sim, start_index, end_index, window)
     # aca3Turn1 = aca3TurnData(generated_data, turnTimes, turnMethod = 1, sim=sim, start_index, end_index, window)
@@ -77,13 +81,13 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
     #   aca3Turn = aca3Turn2
     # }
   }
-  else if("sarsaTurns" %in% models){
+  if("sarsaTurns" %in% models){
     #debug(sarsaTurnData)
     sarsaTurn = sarsaTurnData(generated_data, sim=sim, start_index, end_index, window)
   }
   
   
-  return(list("acaTurnData"=acaTurn,"gbTurnData"=gbTurn,"gbacamse"=gbacamse, "aca2mse"=aca2mse, "aca3TurnData"=aca3Turn, "sarsaTurnData"=sarsaTurn))
+  return(list("acaTurnData"=acaTurn,"gbTurnData"=gbTurn,"gbacamse"=gbacamse, "aca2TurnData"=aca2Turn, "aca3TurnData"=aca3Turn, "sarsaTurnData"=sarsaTurn))
   
 }
 

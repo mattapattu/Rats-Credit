@@ -66,21 +66,22 @@ gbAcaData = function(Hinit2, generated_data, sim, half_index, end_index, window)
 
 
 aca2Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
-  ACA2 <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, H = Hinit2, allpaths = generated_data[1:half_index,], model = 4, sim = sim, DEoptim.control(NP=10,F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
+  ACA2 <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 4, sim = sim, DEoptim.control(NP=20,F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
   alpha_ACA2 = ACA2$optim$bestmem[1]
-  params_lik = list("alpha"=alpha_ACA2)
+  gamma1_ACA2 = ACA2$optim$bestmem[2]
+  params_lik = list("alpha"=alpha_ACA2,"gamma1"=gamma1_ACA2)
   
   # ACA2 <- DEoptim(aca_negLogLik2, lower = c(0,0), upper = c(1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 4, sim = sim, DEoptim.control(NP=20,F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
   # alpha_ACA2 = ACA2$optim$bestmem[1]
   # epsilon_ACA2 = ACA2$optim$bestmem[2]
   # params_lik = list("alpha"=alpha_ACA2, "epsilon"=epsilon_ACA2)
-  ACA2_probMatrix = Aca2::getProbMatrix(generated_data, alpha_ACA2, H = Hinit2, sim, model=4, policyMethod=1)
+  ACA2_probMatrix = Aca2::getProbMatrix(generated_data, alpha_ACA2, gamma1_ACA2, H = Hinit2, sim, model=4, policyMethod=1)
   
   #aca2Actions = getActionData(generated_data, ACA2_probMatrix, half_index, end_index, window, sim)
   paths = baseModels::getEpisodes(generated_data)
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA2_probMatrix)
   computationalActivity = vector()
-  lik = -1 * sum(Aca2::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA2, Hinit2, sim, model=4, policyMethod=1))
+  lik = -1 * sum(Aca2::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA2, gamma1_ACA2, Hinit2, sim, model=4, policyMethod=1))
   ACA2 <- new("Model", Name = "ACA2", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA2_probMatrix)
   
   return(ACA2)
@@ -111,17 +112,19 @@ aca3Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
 }
 
 sarsaData=function(Qinit, generated_data, sim, half_index, end_index, window){
-  SARSA <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = matrix(0,2,6), allpaths = generated_data[1:half_index,], model = 6, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+  SARSA <- DEoptim(aca_negLogLik1,lower = c(0,0,0,0), upper = c(1,1,1,1), Hinit = matrix(0,2,6), allpaths = generated_data[1:half_index,], model = 6, sim = sim, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   alpha_SARSA = SARSA$optim$bestmem[1]
   gamma_SARSA = SARSA$optim$bestmem[2]
   lambda_SARSA = SARSA$optim$bestmem[3]
-  SARSA_probMatrix = Sarsa::getProbMatrix(generated_data, alpha_SARSA, gamma_SARSA, lambda_SARSA, Q=Qinit, sim, policyMethod = 1)
+  reward_SARSA = SARSA$optim$bestmem[4]
+  reward_SARSA = 1 + reward_SARSA*9
+  SARSA_probMatrix = Sarsa::getProbMatrix(generated_data, alpha_SARSA, gamma_SARSA, lambda_SARSA,reward_SARSA, Q=Qinit, sim, policyMethod = 1)
   params_lik = list("alpha"=alpha_SARSA, "gamma"=gamma_SARSA)
   
   #paths = baseModels::getEpisodes(generated_data)
   #computationalActivity = baseModels::getComputationalActivity(paths,SARSA_probMatrix)
   computationalActivity = vector()
-  lik = -1 * sum(Sarsa::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_SARSA, gamma_SARSA, lambda_SARSA,  Qinit, sim, policyMethod=1))
+  lik = -1 * sum(Sarsa::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_SARSA, gamma_SARSA, lambda_SARSA,reward_SARSA,  Qinit, sim, policyMethod=1))
   SARSA <- new("Model", Name = "SARSA", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = SARSA_probMatrix)
   return(SARSA)
 }
@@ -129,20 +132,28 @@ sarsaData=function(Qinit, generated_data, sim, half_index, end_index, window){
 aca_negLogLik1=function(par,Hinit, allpaths,model,sim) {
   
   alpha = par[1]
-
+  
   if(model == 1 || model == 2 || model == 3){
     lik = baseModels::getPathLikelihood(allpaths, alpha, Hinit, sim, model, policyMethod=1, 0, 0)
-  }else if(model == 4){
-    lik = Aca2::getPathLikelihood(allpaths, alpha, Hinit, sim, model,policyMethod=1)
-  }else if(model == 5){
+  }
+ else if(model == 4){
+    Hinit = matrix(0,2,6)
+    gamma1 = par[2]
+    #print(sprintf("alpha=%f,gamma1=%f,sim=%d",alpha,gamma1,sim))
+    lik = Aca2::getPathLikelihood(allpaths, alpha,gamma1,Hinit, sim, model, policyMethod=1)
+  }
+  else if(model == 5){
     Hinit = matrix(0,2,6)
     gamma1 = par[2]
     gamma2 = par[3]
     lik = Aca3::getPathLikelihood(allpaths, alpha,gamma1,gamma2, Hinit, sim, model, policyMethod=1)
-  }else if(model == 6){
+  }
+  else if(model == 6){
     gamma = par[2]
     lambda = par[3]
-    lik = Sarsa::getPathLikelihood(allpaths, alpha, gamma, lambda, Hinit, sim, policyMethod=1)
+    reward = par[4]
+    reward = 1+reward*9
+    lik = Sarsa::getPathLikelihood(allpaths, alpha, gamma, lambda, reward, Hinit, sim, policyMethod=1)
   }
   
   negLogLik = (-1) *sum(lik)
@@ -160,30 +171,6 @@ aca_negLogLik1=function(par,Hinit, allpaths,model,sim) {
 }
 
 
-aca_negLogLik2=function(par,Hinit, allpaths,model,sim, epsilon) {
-  
-  alpha = par[1]
-  epsilon = (round(par[2]*1000)+0.001)
-  endTrial = (round(par[3]*1000)+1)
-  if(model == 1 || model == 2 || model == 3){
-    lik = baseModels::getPathLikelihood(allpaths, alpha, Hinit, sim, model, policyMethod=2, epsilon,endTrial)
-  }else if(model == 4){
-    lik = Aca2::getPathLikelihood(allpaths, alpha, Hinit, sim, model, policyMethod=2, epsilon)
-  }else if(model == 5){
-    gamma = par[2]
-    lambda = par[3]
-    lik = Aca3::getPathLikelihood(allpaths, alpha, gamma, lambda, Hinit, sim, model, policyMethod=2, epsilon)
-  }
-  
-  negLogLik = (-1) *sum(lik)
- # print(sprintf("negLogLik = %f",negLogLik))
-  if(is.infinite(negLogLik)){
-    return(1000000)
-  }else{
-    return(negLogLik)
-  }
-  
-}
   
   
   

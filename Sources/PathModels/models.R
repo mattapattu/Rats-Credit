@@ -21,7 +21,16 @@ acaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   paths = baseModels::getEpisodes(generated_data)
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA_probMatrix)
   computationalActivity = vector()
-  lik = -1 * sum(baseModels::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA, Hinit2, sim, model=1, policyMethod=1))
+  lik = baseModels::getPathLikelihood(generated_data, alpha_ACA, Hinit2, sim, model=1, policyMethod=1)
+ 
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
   ACA <- new("Model", Name = "ACA", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA_probMatrix)
   
   return(ACA)
@@ -44,7 +53,16 @@ gbData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   paths = baseModels::getEpisodes(generated_data)
   #computationalActivity = baseModels::getComputationalActivity(paths,GB_probMatrix)
   computationalActivity = vector()
-  lik = -1 * sum(baseModels::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_GB, Hinit2, sim, model=2, policyMethod=1))
+  
+  lik = baseModels::getPathLikelihood(generated_data, alpha_GB, Hinit2, sim, model=2, policyMethod=1)
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
   GB <- new("Model", Name = "GB", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = GB_probMatrix)
   
   return(GB)
@@ -58,9 +76,18 @@ gbAcaData = function(Hinit2, generated_data, sim, half_index, end_index, window)
   gbacaActions = getActionData(generated_data, GB_ACA_probMatrix, half_index, end_index, window, sim)
   mse1 = getMse1(gbacaActions,half_index, end_index)
   mse2 = getMse2(gbacaActions,half_index, end_index)
-  lik = -1 * sum(baseModels::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA_GB, Hinit2, sim, model=3))
-  GBACA <- new("Model", Name = "GB-ACA", Actions = gbacaActions, Metrics = list("mse1" = mse1,"mse2" = mse2,"likelihood" = lik), ProbMatrix = GB_ACA_probMatrix)
   
+  lik = baseModels::getPathLikelihood(generated_data, alpha_ACA_GB, Hinit2, sim, model=3)
+  
+  GBACA <- new("Model", Name = "GB-ACA", Actions = gbacaActions, Metrics = list("mse1" = mse1,"mse2" = mse2,"likelihood" = lik), ProbMatrix = GB_ACA_probMatrix)
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
   return(GBACA)
 }
 
@@ -81,7 +108,15 @@ aca2Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
   paths = baseModels::getEpisodes(generated_data)
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA2_probMatrix)
   computationalActivity = vector()
-  lik = -1 * sum(Aca2::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA2, gamma1_ACA2, Hinit2, sim, model=4, policyMethod=1))
+  lik = Aca2::getPathLikelihood(generated_data, alpha_ACA2, gamma1_ACA2, Hinit2, sim, model=4, policyMethod=1)
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
   ACA2 <- new("Model", Name = "ACA2", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA2_probMatrix)
   
   return(ACA2)
@@ -105,7 +140,15 @@ aca3Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
   paths = baseModels::getEpisodes(generated_data)
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
   computationalActivity = vector()
-  lik = -1 * sum(Aca3::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_ACA3, gamma1_ACA3, gamma2_ACA3, Hinit2, sim, model=5, policyMethod=1))
+  lik = Aca3::getPathLikelihood(generated_data, alpha_ACA3, gamma1_ACA3, gamma2_ACA3, Hinit2, sim, model=5, policyMethod=1)
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
   ACA3 <- new("Model", Name = "ACA3", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA3_probMatrix)
   
   return(ACA3)
@@ -124,7 +167,15 @@ sarsaData=function(Qinit, generated_data, sim, half_index, end_index, window){
   #paths = baseModels::getEpisodes(generated_data)
   #computationalActivity = baseModels::getComputationalActivity(paths,SARSA_probMatrix)
   computationalActivity = vector()
-  lik = -1 * sum(Sarsa::getPathLikelihood(generated_data[(half_index+1):end_index,], alpha_SARSA, gamma_SARSA, lambda_SARSA,reward_SARSA,  Qinit, sim, policyMethod=1))
+  lik = Sarsa::getPathLikelihood(generated_data, alpha_SARSA, gamma_SARSA, lambda_SARSA,reward_SARSA,  Qinit, sim, policyMethod=1)
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
   SARSA <- new("Model", Name = "SARSA", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = SARSA_probMatrix)
   return(SARSA)
 }

@@ -15,7 +15,15 @@ acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, e
   ACA_probMatrix = TurnsModels::getProbMatrix(generated_data,turnTimes,turnMethod = turnMethod,alpha=alpha_ACA,reward_ACA, sim,model=1)
   computationalActivity = vector()
   lik = TurnsModels::getTurnsLikelihood(generated_data, turnTimes, turnMethod, alpha_ACA, reward_ACA, sim, model=1)
-  lik = -1*sum(lik[(half_index+1):end_index])
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
+  
   ACA <- new("Model", Name = "ACA", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA_probMatrix)
   
   return(ACA)
@@ -32,7 +40,15 @@ gbTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, en
   GB_probMatrix = TurnsModels::getProbMatrix(generated_data,turnTimes,turnMethod,alpha=alpha_GB,reward_GB,sim,model=2)
   computationalActivity = vector()
   lik = TurnsModels::getTurnsLikelihood(generated_data, turnTimes = turnTimes, turnMethod = turnMethod, alpha_GB, reward_GB, sim, model=2)
-  lik = -1*sum(lik[(half_index+1):end_index])
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
+  
   GB <- new("Model", Name = "GB", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = GB_probMatrix)
   
   return(GB)
@@ -45,7 +61,7 @@ aca2TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
   #reward_ACA3 = ACA3$optim$bestmem[4]
   #reward_ACA3 = 1 + reward_ACA3*9
   ACA2_probMatrix = Aca2Turns::getProbMatrix(generated_data, turnTimes, turnMethod, alpha_ACA2,gamma1_ACA2,1,sim)
-  params_lik = list("alpha"=alpha_ACA2, "gamma1"=gamma1_ACA3)
+  params_lik = list("alpha"=alpha_ACA2, "gamma1"=gamma1_ACA2)
   # ACA3 <- DEoptim(aca_negLogLik2,lower = c(0,0,0), upper = c(1,1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
   # alpha_ACA3 = ACA3$optim$bestmem[1]
   # gamma_ACA3 = ACA3$optim$bestmem[2]
@@ -58,10 +74,18 @@ aca2TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
   computationalActivity = vector()
   lik = Aca2Turns::getTurnsLikelihood(generated_data, turnTimes, turnMethod, alpha_ACA2, gamma1_ACA2, 1, sim)
-  lik = -1*sum(lik[(half_index+1):end_index])
-  ACA3 <- new("Model", Name = "ACA3", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA3_probMatrix)
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
   
-  return(ACA3)
+  ACA2 <- new("Model", Name = "ACA2", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA2_probMatrix)
+  
+  return(ACA2)
 }
 
 aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
@@ -85,7 +109,15 @@ aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
   computationalActivity = vector()
   lik = Aca3Turns::getTurnsLikelihood(generated_data, turnTimes, turnMethod, alpha_ACA3, gamma1_ACA3, gamma2_ACA3, reward_ACA3, sim)
-  lik = -1*sum(lik[(half_index+1):end_index])
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
+  
   ACA3 <- new("Model", Name = "ACA3", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = ACA3_probMatrix)
   
   return(ACA3)
@@ -105,7 +137,15 @@ sarsaTurnData=function(generated_data, sim, half_index, end_index, window){
   #computationalActivity = baseModels::getComputationalActivity(paths,SARSA_probMatrix)
   computationalActivity = vector()
   lik = SarsaTurns::getTurnsLikelihood(generated_data, alpha_SARSA, gamma_SARSA, lambda_SARSA,reward_SARSA,sim)
-  lik = -1*sum(lik[(half_index+1):end_index])
+  if(any(is.infinite(lik)))
+  {
+    lik=100000
+  }
+  else
+  {
+    lik = -1*sum(lik[(half_index+1):end_index])
+  }
+  
   SARSA <- new("Model", Name = "SARSA", Params_lik = params_lik, Metrics = list("computationalActivity" = computationalActivity,"likelihood" = lik), ProbMatrix = SARSA_probMatrix)
   return(SARSA)
 }

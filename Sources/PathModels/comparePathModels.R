@@ -61,10 +61,10 @@ comparePathModels=function(enreg,rat, window){
   #Hinit <- matrix(0,2,6)
 
   Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
-  #models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
-  models = c("aca","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
+  models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
+  #models = c("aca","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
   turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
-  debug(validateHoldout)
+  #debug(validateHoldout)
   mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
   # 
   # # ##### Model Selection On Acutal Data #########################3

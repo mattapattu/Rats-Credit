@@ -153,7 +153,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
         generated_data = baseModels::simulateTrials(allpaths_num, turnTimes, alpha, model=1, turnMethod=0)
       }
       else if(model == "gb"){
-        generated_data = Aca2::simulateTrials(allpaths_num, turnTimes, alpha, model=2, turnMethod=0)
+        generated_data = baseModels::simulateTrials(allpaths_num, turnTimes, alpha, model=2, turnMethod=0)
       }
       else if(model == "aca2"){
         generated_data = Aca2::simulateTrials(allpaths_num, turnTimes, alpha, gamma1,turnMethod=0)

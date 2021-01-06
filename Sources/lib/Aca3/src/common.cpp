@@ -376,6 +376,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
   //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;
   int episode = 1;
   int score_episode = 0;
+  int actionNb=0;
 
   // Loop through each session
   for (unsigned int session = 0; session < (uniqSessIdx.n_elem); session++)
@@ -406,12 +407,13 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
     int S = states_sess(0) - 1;
     arma::mat generated_PathData_sess(nrow, 5);
     generated_PathData_sess.fill(-1);
-    arma::mat generated_TurnsData_sess((nrow * 2), 5);
+    arma::mat generated_TurnsData_sess((nrow * 2), 6);
     generated_TurnsData_sess.fill(-1);
 
     //All episodes in new session
     for (int act = 0; act < (nrow); act++)
     {
+      actionNb++;
       // Rcpp::Rcout << "episode=" << i  << std::endl;
       if (resetVector)
       {
@@ -443,6 +445,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
         generated_TurnsData_sess(turnIdx, 1) = S;
         generated_TurnsData_sess(turnIdx, 2) = 0;
         generated_TurnsData_sess(turnIdx, 4) = sessId;
+        generated_TurnsData_sess(turnIdx, 5) = actionNb;
         turns_index.push_back(turnIdx);
         turnIdx++;
       }

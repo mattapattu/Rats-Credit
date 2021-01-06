@@ -643,4 +643,33 @@ int getPathFromTurns(Rcpp::StringVector turns, int state)
 
   return (path);
 }
+
+
+void getRefCounts(std::shared_ptr<TreeNode> root)
+{
+    //Rcpp::Rcout << "td_error="<< td_error <<std::endl;
+    std::vector<std::shared_ptr<TreeNode>> allnodes; 
+    for (auto i = root->child.begin(); i != root->child.end(); i++)
+    {
+        allnodes.push_back(*i);
+        //Rcpp::Rcout <<  "turn="<< (*i)->turn << ", qval=" << (*i)->qval << ", etrace=" << (*i)->etrace<<std::endl;  
+        std::vector<std::shared_ptr<TreeNode>> childNodes = (*i)->child;
+        if (!childNodes.empty())
+        {
+             for (auto child = childNodes.begin(); child != childNodes.end(); child++)
+             {
+                allnodes.push_back(*child);
+                //Rcpp::Rcout <<  "turn="<< (*child)->turn << ", qval=" << (*child)->qval << ", etrace=" << (*child)->etrace<<std::endl;
+             }
+        }  
+    }
+    
+        
+    for (auto i = allnodes.begin(); i != allnodes.end(); i++)
+    {
+      Rcpp::Rcout << "i="<< (*i)->turn << ", refCount=" << (*i).use_count() <<std::endl;
+    }
+    //root->reset();
+    
+} 
 #endif

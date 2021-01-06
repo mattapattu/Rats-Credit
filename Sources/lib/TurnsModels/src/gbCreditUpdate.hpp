@@ -72,7 +72,8 @@ void GbCreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::ve
       {
         for (auto sibling = currNode->siblings.begin(); sibling != currNode->siblings.end(); sibling++)
         {
-          (*sibling)->credit = (*sibling)->credit + (alpha * (score_episode - avg_score) * softmax((*sibling)));
+          std::shared_ptr<TreeNode> stgPtr = (*sibling).lock();
+          stgPtr->credit = stgPtr->credit + (alpha * (score_episode - avg_score) * softmax(stgPtr));
         }
       }
       //Rcpp::Rcout <<  "Turn="<< *curr_turn  << ", turnTime=" << turnTime <<std::endl;

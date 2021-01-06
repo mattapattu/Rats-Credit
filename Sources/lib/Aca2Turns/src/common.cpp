@@ -281,6 +281,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
   //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;
   std::shared_ptr<TreeNode> rootS1 = initS1();
   std::shared_ptr<TreeNode> rootS2 = initS2();
+  int actionNb=0;
 
   // Loop through each session
   for (unsigned int session = 0; session < (uniqSessIdx.n_elem); session++)
@@ -310,7 +311,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     std::vector<double> episodeTurnTimes;
 
     arma::mat generated_PathData_sess(nrow, 5);
-    arma::mat generated_TurnsData_sess((nrow * 2), 5);
+    arma::mat generated_TurnsData_sess((nrow * 2), 6);
     generated_PathData_sess.fill(-1);
     generated_TurnsData_sess.fill(-1);
     int turnIdx = 0;
@@ -319,7 +320,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     for (int i = 0; i < nrow; i++)
     {
       std::shared_ptr<TreeNode> rootNode;
-
+      actionNb++;
       if (resetVector)
       {
         initState = S;
@@ -349,6 +350,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         generated_TurnsData_sess(turnIdx, 2) = 0;
         generated_TurnsData_sess(turnIdx, 3) = 0;
         generated_TurnsData_sess(turnIdx, 4) = sessId;
+        generated_TurnsData_sess(turnIdx, 5) = actionNb;
         episodeTurns.push_back(turnSelected);
         turnNames.push_back(turnSelected->turn);
         episodeTurnStates.push_back(S);
@@ -853,8 +855,9 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
         probRow(idx) = prob_a;
         for (auto sibling = currNode->siblings.begin(); sibling != currNode->siblings.end(); sibling++)
         {
-          unsigned int idx = getTurnIdx((*sibling)->turn, S);
-          probRow(idx) = softmax((*sibling));
+          std::shared_ptr<TreeNode> stgPtr = (*sibling).lock();
+          unsigned int idx = getTurnIdx(stgPtr->turn, S);
+          probRow(idx) = softmax(stgPtr);
         }
 
         //Rcpp::Rcout <<"prob_a="<< prob_a<<std::endl;

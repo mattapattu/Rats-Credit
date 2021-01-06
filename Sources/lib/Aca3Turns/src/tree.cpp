@@ -46,7 +46,8 @@ std::vector<double> getSiblingCredits(std::shared_ptr<TreeNode> currentNode)
     std::vector<double> credits;
     for (auto i = currentNode->siblings.begin(); i != currentNode->siblings.end(); i++)
     {
-        credits.push_back((*i)->credit);
+        std::shared_ptr<TreeNode> stgPtr = (*i).lock();
+        credits.push_back(stgPtr->credit);
     }
     return (credits);
 }

@@ -47,7 +47,8 @@ std::vector<double> getSiblingQvals(std::shared_ptr<TreeNode> currentNode)
     std::vector<double> qvals;
     for (auto i = currentNode->siblings.begin(); i != currentNode->siblings.end(); i++)
     {
-        qvals.push_back((*i)->qval);
+        std::shared_ptr<TreeNode> stgPtr = (*i).lock();
+        qvals.push_back(stgPtr->qval);
     }
     return (qvals);
 }

@@ -10,7 +10,7 @@ struct TreeNode
     // member vars
     std::string turn;
     double credit;
-    std::vector<std::shared_ptr<TreeNode>> siblings;
+    std::vector<std::weak_ptr<TreeNode>> siblings;
     std::vector<std::shared_ptr<TreeNode>> child; 
     
 };

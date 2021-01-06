@@ -22,7 +22,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // getTurnsLikelihood
-std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double rewardVal, int sim, int model);
+Rcpp::NumericVector getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, int turnMethod, double alpha, double rewardVal, int sim, int model);
 RcppExport SEXP _TurnsModels_getTurnsLikelihood(SEXP allpathsSEXP, SEXP turnTimesSEXP, SEXP turnMethodSEXP, SEXP alphaSEXP, SEXP rewardValSEXP, SEXP simSEXP, SEXP modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

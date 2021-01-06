@@ -28,7 +28,7 @@ getModelData = function(generated_data, models, window, sim){
     return()
   }
   
-  #end_index = length(generated_data[,1])
+  end_index = 0
   #Hinit1 <-genInitValues(generated_data,sim=sim)
   #Qinit <-genInitValues(generated_data,sim=sim)
   Hinit1 = matrix(0,2,6)
@@ -80,7 +80,9 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
   rownames(mat_res) <- models
   endLearningStage = endLearningStage/2
   
+  print(sprintf("models: %s",toString(models)))
   for(model in models){
+    print(sprintf("model= %s",model))
     
     if(model == "aca"){
       out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = 1, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
@@ -280,13 +282,17 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       
       mat_res[toString(model),toString(min_method)] = mat_res[toString(model),toString(min_method)] + 1
       
-      print(sprintf("iter=%i", iter))
+      #print(sprintf("iter=%i", iter))
       iter=iter+1
+      
+      invisible(gc())
     }
     
     #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
     print(sprintf("Nb of iterations where optimal behaviour was not learned=%i", missedOptimalIter))
     print(mat_res)
+    print(memory.size())
+    
     
     #boxplotMse(mat_res,model,rat)
     
@@ -297,6 +303,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
     
   }
   
+  print(sprintf("Returning mat_res")) 
   # if(validated){
   #   print(sprintf("All 3  models validated for %s.",rat)) 
   # }else{

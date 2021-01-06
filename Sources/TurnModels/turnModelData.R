@@ -28,7 +28,9 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
     return()
   }
   
-  end_index = length(generated_data[,1])
+  
+  end_index = 0
+  #end_index = length(generated_data[,1])
   #Hinit1 <-genInitValues(generated_data,sim=sim)
   #Qinit <-genInitValues(generated_data,sim=sim)
   #empProbMat <- getEmpProbMat(generated_data,window=window,sim=sim)
@@ -42,7 +44,8 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
   aca3Turn = list()
   sarsaTurn = list()
   
-  if("acaTurns" %in% models){   
+  if("acaTurns" %in% models){  
+    #debug(acaTurnData)
     acaTurn = acaTurnData(generated_data, turnTimes, turnMethod= 0, sim=sim, start_index, end_index, window)
     # acaTurn1 = acaTurnData(generated_data, turnTimes, turnMethod= 1, sim=sim, start_index, end_index, window)
     # acaTurn2 = acaTurnData(generated_data, turnTimes, turnMethod= 2, sim=sim, start_index, end_index, window)
@@ -83,7 +86,7 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
   }
   if("sarsaTurns" %in% models){
     #debug(sarsaTurnData)
-    sarsaTurn = sarsaTurnData(generated_data, sim=sim, start_index, end_index, window)
+    sarsaTurn = sarsaTurnData(generated_data,turnTimes, sim=sim, start_index, end_index, window)
   }
   
   

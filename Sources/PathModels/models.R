@@ -22,6 +22,10 @@ acaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA_probMatrix)
   computationalActivity = vector()
   lik = baseModels::getPathLikelihood(generated_data, alpha_ACA, Hinit2, sim, model=1, policyMethod=1)
+  if(end_index==0)
+  {
+    end_index = length(lik)
+  }
  
   if(any(is.infinite(lik)))
   {
@@ -55,6 +59,10 @@ gbData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   computationalActivity = vector()
   
   lik = baseModels::getPathLikelihood(generated_data, alpha_GB, Hinit2, sim, model=2, policyMethod=1)
+  if(end_index==0)
+  {
+    end_index = length(lik)
+  }
   if(any(is.infinite(lik)))
   {
     lik=100000
@@ -109,6 +117,10 @@ aca2Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA2_probMatrix)
   computationalActivity = vector()
   lik = Aca2::getPathLikelihood(generated_data, alpha_ACA2, gamma1_ACA2, Hinit2, sim, model=4, policyMethod=1)
+  if(end_index==0)
+  {
+    end_index = length(lik)
+  }
   if(any(is.infinite(lik)))
   {
     lik=100000
@@ -141,6 +153,10 @@ aca3Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
   computationalActivity = vector()
   lik = Aca3::getPathLikelihood(generated_data, alpha_ACA3, gamma1_ACA3, gamma2_ACA3, Hinit2, sim, model=5, policyMethod=1)
+  if(end_index==0)
+  {
+    end_index = length(lik)
+  }
   if(any(is.infinite(lik)))
   {
     lik=100000
@@ -168,6 +184,10 @@ sarsaData=function(Qinit, generated_data, sim, half_index, end_index, window){
   #computationalActivity = baseModels::getComputationalActivity(paths,SARSA_probMatrix)
   computationalActivity = vector()
   lik = Sarsa::getPathLikelihood(generated_data, alpha_SARSA, gamma_SARSA, lambda_SARSA,reward_SARSA,  Qinit, sim, policyMethod=1)
+  if(end_index==0)
+  {
+    end_index = length(lik)
+  }
   if(any(is.infinite(lik)))
   {
     lik=100000

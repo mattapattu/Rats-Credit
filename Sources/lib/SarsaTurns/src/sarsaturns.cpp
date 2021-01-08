@@ -398,11 +398,11 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
       
     }
     //Rcpp::Rcout << "Deleting rows, turnIdx=" << turnIdx << ", nrow * 2=" << nrow * 2 << std::endl;
-    if (turnIdx < (nrow * 2))
-    {
-      generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
-    }
-    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess);
+    // if (turnIdx < (nrow * 2))
+    // {
+    //   generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
+    // }
+    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess.rows(0,(turnIdx-1)));
     generated_PathData = arma::join_cols(generated_PathData, generated_PathData_sess);
   }
   return (Rcpp::List::create(Named("PathData") = generated_PathData, _["TurnData"] = generated_TurnData));

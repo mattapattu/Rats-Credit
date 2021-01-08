@@ -191,7 +191,15 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       end_index = getEndIndex(generated_data$PathData, sim=1)
       if(end_index == -1){
         missedOptimalIter=missedOptimalIter+1
-        next
+        if(missedOptimalIter>100)
+        {
+          break
+        }
+        else
+        {
+          next
+        }
+        
       }
       
       #debug(getTurnModelData)

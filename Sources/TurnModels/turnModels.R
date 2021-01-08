@@ -16,7 +16,14 @@ acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, e
   computationalActivity = vector()
   lik = TurnsModels::getTurnsLikelihood(generated_data, turnTimes, turnMethod, alpha_ACA, reward_ACA, sim, model=1)
   
-  half_index = last(which(turnTimes[,1]==half_index))
+  if(sim==1)
+  {
+    half_index = last(which(turnTimes[,6]<=half_index))
+  }
+  else
+  {
+    half_index = last(which(turnTimes[,1]<=half_index))
+  }
   if(end_index==0)
   {
     end_index=length(lik)
@@ -47,7 +54,15 @@ gbTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, en
   computationalActivity = vector()
   lik = TurnsModels::getTurnsLikelihood(generated_data, turnTimes = turnTimes, turnMethod = turnMethod, alpha_GB, reward_GB, sim, model=2)
   
-  half_index = last(which(turnTimes[,1]==half_index))
+  if(sim==1)
+  {
+    half_index = last(which(turnTimes[,6]<=half_index))
+  }
+  else
+  {
+    half_index = last(which(turnTimes[,1]<=half_index))
+  }
+  
   if(end_index==0)
   {
     end_index=length(lik)
@@ -87,7 +102,14 @@ aca2TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
   computationalActivity = vector()
   lik = Aca2Turns::getTurnsLikelihood(generated_data, turnTimes, turnMethod, alpha_ACA2, gamma1_ACA2, 1, sim)
   
-  half_index = last(which(turnTimes[,1]==half_index))
+  if(sim==1)
+  {
+    half_index = last(which(turnTimes[,6]<=half_index))
+  }
+  else
+  {
+    half_index = last(which(turnTimes[,1]<=half_index))
+  }
   if(end_index==0)
   {
     end_index=length(lik)
@@ -127,7 +149,14 @@ aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
   #computationalActivity = baseModels::getComputationalActivity(paths,ACA3_probMatrix)
   computationalActivity = vector()
   
-  half_index = last(which(turnTimes[,1]==half_index))
+  if(sim==1)
+  {
+    half_index = last(which(turnTimes[,6]<=half_index))
+  }
+  else
+  {
+    half_index = last(which(turnTimes[,1]<=half_index))
+  }
   lik = Aca3Turns::getTurnsLikelihood(generated_data, turnTimes, turnMethod, alpha_ACA3, gamma1_ACA3, gamma2_ACA3, reward_ACA3, sim)
   if(end_index==0)
   {
@@ -161,7 +190,14 @@ sarsaTurnData=function(generated_data,turnTimes, sim, half_index, end_index, win
   #computationalActivity = baseModels::getComputationalActivity(paths,SARSA_probMatrix)
   computationalActivity = vector()
   
-  half_index = last(which(turnTimes[,1]==half_index))
+  if(sim==1)
+  {
+    half_index = last(which(turnTimes[,6]<=half_index))
+  }
+  else
+  {
+    half_index = last(which(turnTimes[,1]<=half_index))
+  }
   lik = SarsaTurns::getTurnsLikelihood(generated_data, alpha_SARSA, gamma_SARSA, lambda_SARSA,reward_SARSA,sim)
   if(end_index==0)
   {

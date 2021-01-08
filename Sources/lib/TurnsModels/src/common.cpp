@@ -436,11 +436,11 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       S = S_prime;
     }
 
-    if (turnIdx < (nrow * 2) - 1)
-    {
-      generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
-    }
-    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess);
+    // if (turnIdx < (nrow * 2) - 1)
+    // {
+    //   generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
+    // }
+    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess.rows(0,(turnIdx-1));
     //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
     generated_PathData = arma::join_cols(generated_PathData, generated_PathData_sess);
     //Rcpp::Rcout <<  "likelihoodVec=" << likelihoodVec<<std::endl;

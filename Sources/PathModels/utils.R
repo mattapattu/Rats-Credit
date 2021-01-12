@@ -313,7 +313,28 @@ generatePlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  SARSAprobMatrix
   
 }
 
-generateTurnPlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  ACA3probMatrix, SARSAprobMatrix, turnTimes){
+getPathProb=function(probMatrix){
+  
+  pathProbMatrix = matrix(0,)
+   
+  for(state in c(1:2))
+  {
+    if(state==1)
+    {
+      probmatrix = probMatrix[,1:8]
+    
+    }
+    else
+    {
+      probmatrix = probMatrix[,9:16]
+    }
+    path1ProbVec = probmatrix[which(probmatrix[,1]!=1),1]
+    
+    
+  }
+}
+
+generateTurnPlots=function(rat,window, res2, turnTimes){
   
   # rle_sess = rle(allpaths_num[,5])
   # last_paths<-cumsum(rle_sess$lengths)
@@ -328,7 +349,6 @@ generateTurnPlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  ACA3probMat
   state2=which(turnTimes1[,3]==2)
   # rle_state1 = rle(allpaths_num[state1,5])
   # rle_state2 = rle(allpaths_num[state2,5])
-  
   
   
   

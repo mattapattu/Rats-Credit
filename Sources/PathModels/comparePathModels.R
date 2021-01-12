@@ -61,8 +61,8 @@ comparePathModels=function(enreg,rat, window){
   #Hinit <- matrix(0,2,6)
 
   Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
-  models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
-  #models = c("sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
+  #models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
+  models = c("aca3","aca3Turns" )
   turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
   #debug(validateHoldout)
   #mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
@@ -74,8 +74,10 @@ comparePathModels=function(enreg,rat, window){
   #mat_res = windowCompare(generated_data,models, sim=2)
   #debug(getModelData)
 
-  pathmodels=c("aca","gb","aca2","aca3","sarsa")
-  turnmodels=c("acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
+  #pathmodels=c("aca","gb","aca2","aca3","sarsa")
+  #turnmodels=c("acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
+  pathmodels=c("aca3")
+  turnmodels=c("aca3Turns")
   res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
   res2 = getTurnModelData(generated_data, turnTimes, turnmodels, window = window, sim=2)
 

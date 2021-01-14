@@ -1,4 +1,6 @@
 library(dplyr)
+library(RColorBrewer)
+
 
 updateACAPathNb=function(allpaths){
   allpaths <- cbind(allpaths,Path=0,Reward=0)
@@ -313,25 +315,148 @@ generatePlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  SARSAprobMatrix
   
 }
 
+generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
+  
+  empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num, window = 30)
+  
+  
+  for(act in c(1:6)){
+    for(state in c(1:2)){
+      pdf(file=paste("Prob_",rat,"_Path", act, "_State",state,".pdf",sep=""))
+      
+     
+      cols <- brewer.pal(8,'Dark2')
+      
+      if(act==4||act==1)
+      {
+        ylim=c(0,1)
+      }
+      else
+      {
+        ylim=c(0,0.6)
+      }
+      
+      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = paste0(rat,": Path ",act," State ",state))
+      lines(empiricalProbMatrix[which(allpaths_num[,2]==state),(act+6*(state-1))])
+      i=0
+      for(m in models)
+      {
+        i = i+1
+        if(m == "aca")
+        {
+          probmatrix = res1$acamse@ProbMatrix
+        }
+        else if(m == "gb")
+        {
+          probmatrix = res1$gbmse@ProbMatrix
+        }
+        else if(m == "aca2")
+        {
+          probmatrix = res1$aca2mse@ProbMatrix
+        }
+        else if(m == "aca3")
+        {
+          probmatrix = res1$aca3mse@ProbMatrix
+        }
+        else if(m == "sarsa")
+        {
+          probmatrix = getPathProb(res1$sarsamse@ProbMatrix)
+        }
+        else if(m == "acaTurns")
+        {
+          probmatrix = getPathProb(res2$acaTurnData@ProbMatrix)
+        }
+        else if(m == "gbTurns")
+        {
+          probmatrix = getPathProb(res2$gbTurnData@ProbMatrix)
+        }
+        else if(m == "aca2Turns")
+        {
+          probmatrix = getPathProb(res2$aca2TurnData@ProbMatrix)
+        }
+        else if(m == "aca3Turns")
+        {
+          probmatrix = getPathProb(res2$aca3TurnData@ProbMatrix)
+        }
+        else if(m == "sarsaTurns")
+        {
+          probmatrix = getPathProb(res2$sarsaTurnData@ProbMatrix)
+        }
+        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col=cols[i],ylab="Probability")
+        
+      }
+      if(act ==4)
+      {
+        legend("bottomright", legend=c(models,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)))
+      }
+      else
+      {
+        legend("topright", legend=c(models,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)))
+      }
+      
+     dev.off()
+    }
+  }
+  
+}
+
+
 getPathProb=function(probMatrix){
   
-  pathProbMatrix = matrix(0,)
-   
+
   for(state in c(1:2))
   {
     if(state==1)
     {
       probmatrix = probMatrix[,1:8]
+      path1ProbVec = probmatrix[which(probmatrix[,2]!=-1),2] #dch
+      path2ProbVec = probmatrix[which(probmatrix[,3]!=-1),3] #gak
+      bak = which(probmatrix[,5]!=-1)
+      path3ProbVec = probmatrix[(bak-1),1] * probmatrix[bak,5] 
+      bch = which(probmatrix[,8]!=-1)
+      path4ProbVec = probmatrix[(bch-1),4]*probmatrix[bch,8]
+      bcd = which(probmatrix[,7]!=-1)
+      path5ProbVec = probmatrix[(bcd-1),4]*probmatrix[bcd,7]
+      
+      matlen = max(length(path1ProbVec),length(path2ProbVec),length(path3ProbVec),length(path4ProbVec),length(path5ProbVec))
+      probMat1 = matrix(0,matlen,6)
+      probMat1[(1:length(path1ProbVec)),1]=path1ProbVec
+      probMat1[(1:length(path2ProbVec)),2]=path2ProbVec
+      probMat1[(1:length(path3ProbVec)),3]=path3ProbVec
+      probMat1[(1:length(path4ProbVec)),4]=path4ProbVec
+      probMat1[(1:length(path5ProbVec)),5]=path5ProbVec
     
     }
     else
     {
       probmatrix = probMatrix[,9:16]
+      path1ProbVec = probmatrix[which(probmatrix[,2]!=-1),2] #dch
+      path2ProbVec = probmatrix[which(probmatrix[,3]!=-1),3] #gak
+      bag = which(probmatrix[,6]!=-1)
+      path3ProbVec = probmatrix[(bag-1),1] * probmatrix[bag,6] 
+      bcd = which(probmatrix[,7]!=-1)
+      path4ProbVec = probmatrix[(bcd-1),4]*probmatrix[bcd,7]
+      bch = which(probmatrix[,7]!=-1)
+      path5ProbVec = probmatrix[(bch-1),4]*probmatrix[bch,8]
+      
+      matlen = max(length(path1ProbVec),length(path2ProbVec),length(path3ProbVec),length(path4ProbVec),length(path5ProbVec))
+      probMat2 = matrix(0,matlen,6)
+      probMat2[(1:length(path1ProbVec)),1]=path1ProbVec
+      probMat2[(1:length(path2ProbVec)),2]=path2ProbVec
+      probMat2[(1:length(path3ProbVec)),3]=path3ProbVec
+      probMat2[(1:length(path4ProbVec)),4]=path4ProbVec
+      probMat2[(1:length(path5ProbVec)),5]=path5ProbVec
     }
-    path1ProbVec = probmatrix[which(probmatrix[,1]!=1),1]
-    
     
   }
+  max_len = max(length(probMat1[,1]),length(probMat2[,1]))
+  probMat = matrix(0,max_len,12)
+  
+  probMat[(1:length(probMat1[,1])),1:6]=probMat1
+  probMat[(1:length(probMat2[,1])),7:12]=probMat2
+  
+  return(probMat)
+  
 }
 
 generateTurnPlots=function(rat,window, res2, turnTimes){

@@ -117,7 +117,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
     }
     else if(model == "gbTurns"){
       GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num[1:endLearningStage,], turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
-      alpha_GB = GB$optim$bestmem[1]
+      alpha = GB$optim$bestmem[1]
     }
     else if(model == "aca2Turns"){
       ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = allpaths_num[1:endLearningStage,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = 2, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
@@ -299,7 +299,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
     #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
     print(sprintf("Nb of iterations where optimal behaviour was not learned=%i", missedOptimalIter))
     print(mat_res)
-    print(memory.size())
+    #print(memory.size())
     
     
     #boxplotMse(mat_res,model,rat)

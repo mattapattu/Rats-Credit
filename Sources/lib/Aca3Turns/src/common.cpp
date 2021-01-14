@@ -398,6 +398,12 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 
           arma::rowvec row = generated_TurnsData_sess.row(turns_index(k));
           episodeTurnTimes.push_back(row(3));
+          
+          if(!std::isfinite(row(3)))
+          {
+            Rcpp::Rcout <<  "In aca3turns.cpp"<<  std::endl;
+            Rcpp::Rcout <<  "turnName="<<turnName << ", state= " <<S << ", sessId=" << sessId <<  std::endl;
+          }
         }
       }
       else
@@ -860,7 +866,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
         for (auto sibling = currNode->siblings.begin(); sibling != currNode->siblings.end(); sibling++)
         {
           std::shared_ptr<TreeNode> stgPtr = (*sibling).lock();
-          unsigned int idx = getTurnIdx(stgPtr->turn, S);
+            unsigned int idx = getTurnIdx(stgPtr->turn, S);
           probRow(idx) = softmax(stgPtr);
         }
 

@@ -402,7 +402,6 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
 
 
 getPathProb=function(probMatrix){
-  
 
   for(state in c(1:2))
   {

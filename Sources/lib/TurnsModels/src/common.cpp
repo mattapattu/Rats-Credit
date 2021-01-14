@@ -253,6 +253,15 @@ arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat genera
   return (generated_TurnsData_sess);
 }
 
+unsigned int getTurnTimesIndex(arma::mat turnTimes, int allpaths_idx, int turnNb)
+{
+  arma::vec pathIds = turnTimes.col(0);
+  arma::vec turns = turnTimes.col(3);
+  arma::uvec turnTimes_idx = arma::find(pathIds == allpaths_idx && turns == turnNb);
+  
+  return (turnTimes_idx(0));
+}
+
 //allpaths_num,turnTimes,0,1,model=1,turnMethod = 1
 // [[Rcpp::export()]]
 Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, int model, int turnMethod)
@@ -380,24 +389,36 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         generated_PathData_sess(i, 3) = pathTime;
         int allpaths_idx = getPathIndex(allpaths, A, S, sessId, pathCount);
         //Rcpp::Rcout << "Update turn times for turns=" << turnNames << ", A=" <<A << ", S=" << S << std::endl;
-        generated_TurnsData_sess = updateTurnTime(turnTimes, allpaths_idx, generated_TurnsData_sess, turns_index, turnMethod);
-      }
-
-      for (int k = 0; k < turns_index.size(); k++)
-      {
-        //Rcpp::Rcout << "k=" <<k << ", turns_index=" <<turns_index(k) << std::endl;
-        arma::rowvec row = generated_TurnsData_sess.row(turns_index(k));
-        //Rcpp::Rcout << "row=" << row << std::endl;
-        if (A == 5)
+        //generated_TurnsData_sess = updateTurnTime(turnTimes, allpaths_idx, generated_TurnsData_sess, turns_index, turnMethod);
+        for (int k = 0; k < turns_index.size(); k++)
         {
+          //Rcpp::Rcout << "k=" <<k << ", turns_index=" <<turns_index(k) << std::endl;
+          unsigned int turnTimes_idx = getTurnTimesIndex(turnTimes, allpaths_idx, generated_TurnsData_sess(turns_index(k), 0));
+          double turnTime = turnTimes(turnTimes_idx, (5 + turnMethod));
+          generated_TurnsData_sess(turns_index(k), 3) = turnTime;
+          std::string turnName = getTurnString(generated_TurnsData_sess(turns_index(k), 0));
+          
+          arma::rowvec row = generated_TurnsData_sess.row(turns_index(k));
+          episodeTurnTimes.push_back(row(3));
+          if(!std::isfinite(row(3)))
+          {
+            Rcpp::Rcout <<  "In turnsmodels.cpp, model =" << model<<  std::endl;
+            Rcpp::Rcout <<  "turnName="<<turnName << ", state= " <<S << ", sessId=" << sessId <<  std::endl;
+          }
+        }
+      }
+      else
+      {
+        for (int k = 0; k < turns_index.size(); k++)
+        {
+          std::string turnName = getTurnString(generated_TurnsData_sess(turns_index(k), 0));  
+          //Rcpp::Rcout << "turnNb=" <<generated_TurnsData_sess(turns_index(k), 0) << ", turn=" << turnName << ", turnTime=" << 0 << ", Path=" << A << ", S=" << S<< std::endl;
           episodeTurnTimes.push_back(0);
         }
-        else
-        {
-          episodeTurnTimes.push_back(row(3));
-        }
+        
       }
 
+      
       //arma::vec episodeTurnTimes_arm(episodeTurnTimes);
       //Rcpp::Rcout << "episodeTurnTimes=" <<episodeTurnTimes_arm << std::endl;
 
@@ -440,7 +461,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     // {
     //   generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
     // }
-    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess.rows(0,(turnIdx-1));
+    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess.rows(0,(turnIdx-1)));
     //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
     generated_PathData = arma::join_cols(generated_PathData, generated_PathData_sess);
     //Rcpp::Rcout <<  "likelihoodVec=" << likelihoodVec<<std::endl;

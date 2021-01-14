@@ -389,15 +389,17 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         {
           //Rcpp::Rcout << "k=" <<k << ", turns_index=" <<turns_index(k) << std::endl;
           unsigned int turnTimes_idx = getTurnTimesIndex(turnTimes, allpaths_idx, generated_TurnsData_sess(turns_index(k), 0));
-          //Rcpp::Rcout << "turnTimes_idx=" << turnTimes_idx << std::endl;
           double turnTime = turnTimes(turnTimes_idx, (5 + turnMethod));
           generated_TurnsData_sess(turns_index(k), 3) = turnTime;
-          //Rcpp::Rcout << "turnTime=" << generated_TurnsData_sess(turns_index(k), 3) << std::endl;
           std::string turnName = getTurnString(generated_TurnsData_sess(turns_index(k), 0));
-          //Rcpp::Rcout << "turnTimes_idx=" << turnTimes_idx << ", turnNb=" <<generated_TurnsData_sess(turns_index(k), 0) << ", turn=" << turnName << ", turnTime=" << turnTime << ", Path=" << A << ", S=" << S<< std::endl;
 
           arma::rowvec row = generated_TurnsData_sess.row(turns_index(k));
           episodeTurnTimes.push_back(row(3));
+          if(!std::isfinite(row(3)))
+          {
+            Rcpp::Rcout <<  "In aca2turns.cpp"<<  std::endl;
+            Rcpp::Rcout <<  "turnName="<<turnName << ", state= " <<S << ", sessId=" << sessId <<  std::endl;
+          }
         }
       }
       else
@@ -844,7 +846,15 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
         episodeTurnStates.push_back(S);
         //Rcpp::Rcout <<"session_turn_count="<< session_turn_count<<std::endl;
         //Rcpp::Rcout <<"turn_time=" << turn_times_session(session_turn_count) <<std::endl;
+        
         episodeTurnTimes.push_back(turn_times_session(session_turn_count));
+        if(!std::isfinite(turn_times_session(session_turn_count)))
+        {
+          Rcpp::Rcout <<  "currNode->turn="<<currNode->turn << ", state= " <<S << ", sessId=" << sessId << ", session_turn_count=" <<session_turn_count  << std::endl;
+          //Rcpp::Rcout << "turns=" <<result <<std::endl;
+          //Rcpp::Rcout << "episodeTurnTimes=" <<episodeTurnTimes_arma <<std::endl;
+          //Rcpp::Rcout <<  "currNode->credit="<<currNode->credit << ", activity=" <<activity << ", episodeTurnTime=" <<arma::accu(episodeTurnTimes_arma) <<std::endl;
+        }
 
         //Change softmax function - input row of credits, first element is always the selected turn, return prob of turn
 

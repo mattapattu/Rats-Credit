@@ -227,6 +227,11 @@ arma::mat updateTurnTime(arma::mat turnTimes, int allpaths_idx, arma::mat genera
 
         //Rcpp::Rcout << "Turn=" << turnName << ", index=" <<  generatedTurnIds[i] << ", turntime=" <<turnTime_currPath(j) << std::endl;
         generated_TurnsData_sess(generatedTurnIds[i], 3) = turnTime_currPath(j);
+        if(!std::isfinite(turnTime_currPath(j)))
+        {
+          Rcpp::Rcout <<  "In sarsaturns.cpp" <<  std::endl;
+          Rcpp::Rcout <<  "turnName="<<turnName << ", state= " <<generated_TurnsData_sess(generatedTurnIds[i], 1) <<  std::endl;
+        }
         //Rcpp::Rcout << "turnTime_currPath=" << turnTime_currPath(j) << std::endl;
         break;
       }
@@ -267,7 +272,7 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
   {
 
     int sessId = uniqSessIdx(session);
-    Rcpp::Rcout << "session=" << session << ", sessId=" << sessId << std::endl;
+    //Rcpp::Rcout << "session=" << session << ", sessId=" << sessId << std::endl;
     arma::uvec sessionIdx = arma::find(sessionVec == (sessId));
     arma::vec actions_sess = allpath_actions.elem(sessionIdx);
     arma::vec states_sess = allpath_states.elem(sessionIdx);
@@ -333,7 +338,7 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
       {
         int A = getPathFromTurns(Rcpp::StringVector(turns.begin(), turns.end()), S);
 
-        Rcpp::Rcout << "turns=" <<Rcpp::StringVector(turns.begin(), turns.end()) << ", S=" <<S << ", A=" <<A  << std::endl;
+        //Rcpp::Rcout << "turns=" <<Rcpp::StringVector(turns.begin(), turns.end()) << ", S=" <<S << ", A=" <<A  << std::endl;
         //Rcpp::Rcout << "turnIds=" <<Rcpp::as<Rcpp::IntegerVector>(turnIds)  << std::endl;
         
         //Rcpp::Rcout << "i=" <<i <<", A=" << A << ", S=" << S << std::endl;

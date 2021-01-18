@@ -463,6 +463,14 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
       //trial=trial+1;
     }
 
+    for (int state = 0; state < 2; state++)
+      {
+        for (int act = 0; act < 5; act++)
+        {
+          etrace(state, act) = 0;
+        }
+      }
+
     //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
     // if (turnIdx < (nrow * 2) - 1)
     // {
@@ -626,6 +634,13 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, doub
       A = A_prime;
       //trial=trial+1;
     }
+    for (int state = 0; state < 2; state++)
+      {
+        for (int act = 0; act < 5; act++)
+        {
+          etrace(state, act) = 0;
+        }
+      }
     likelihoodVec = arma::join_cols(likelihoodVec, likelihoodVec_sess);
     //Rcpp::Rcout <<  "likelihoodVec=" << likelihoodVec<<std::endl;
   }
@@ -808,7 +823,13 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
       A = A_prime;
       //trial=trial+1;
     }
-
+    for (int state = 0; state < 2; state++)
+      {
+        for (int act = 0; act < 5; act++)
+        {
+          etrace(state, act) = 0;
+        }
+      }
     probMatrix_aca = arma::join_cols(probMatrix_aca, probMatrix_sess);
   }
   return (probMatrix_aca);

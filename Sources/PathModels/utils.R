@@ -317,7 +317,11 @@ generatePlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  SARSAprobMatrix
 
 generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
   
-  empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num, window = 30)
+  rle_sess = rle(allpaths_num[,5])
+  last_paths<-cumsum(rle_sess$lengths)
+  allpaths_num<-allpaths_num[-last_paths,]
+  
+  empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num, window = window)
   
   
   for(act in c(1:6)){
@@ -336,7 +340,7 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
         ylim=c(0,0.6)
       }
       
-      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = paste0(rat,": Path ",act," State ",state))
+      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = paste0(rat,": Path ",act," State ",state),cex.lab=1.3)
       lines(empiricalProbMatrix[which(allpaths_num[,2]==state),(act+6*(state-1))])
       i=0
       for(m in models)
@@ -382,16 +386,19 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
         {
           probmatrix = getPathProb(res2$sarsaTurnData@ProbMatrix)
         }
-        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col=cols[i],ylab="Probability")
+        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col=cols[i],ylab="Probability",lwd=2)
         
       }
+      modelnames = models
+      turnIndices = grep("Turns",modelnames)
+      modelnames[-turnIndices] = paste(modelnames[-turnIndices],"Paths",sep="")
       if(act ==4)
       {
-        legend("bottomright", legend=c(models,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)))
+        legend("bottomright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=1.5,lty = rep(1,(i+1)),lwd=2)
       }
       else
       {
-        legend("topright", legend=c(models,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)))
+        legend("topright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=1.5,lty = rep(1,(i+1)),lwd=2)
       }
       
      dev.off()

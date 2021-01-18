@@ -61,149 +61,149 @@ comparePathModels=function(enreg,rat, window){
   #Hinit <- matrix(0,2,6)
 
   Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
-  #models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
-  models = c("aca3","aca3Turns" )
+  models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
+  #models = c("aca3","aca3Turns" )
   turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
   #debug(validateHoldout)
-  mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
-  save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
+  #mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
+  #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
   # 
   # # ##### Model Selection On Acutal Data #########################3
   # 
-  # generated_data <- allpaths_num
-  # #mat_res = windowCompare(generated_data,models, sim=2)
-  # #debug(getModelData)
-  # 
-  # #pathmodels=c("aca","gb","aca2","aca3","sarsa")
-  # #turnmodels=c("acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
-  # pathmodels=c("aca3")
-  # turnmodels=c("aca3Turns")
-  # res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
-  # res2 = getTurnModelData(generated_data, turnTimes, turnmodels, window = window, sim=2)
-  # 
-  # min_index = 0
-  # min = 100000
-  # min_method = "null"
-  # 
-  # 
-  # for(m in models)
-  # {
-  #   if(m == "aca")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "aca", res1$acamse@Metrics$likelihood))
-  # 
-  #     if(res1$acamse@Metrics$likelihood < min)
-  #     {
-  #       min = res1$acamse@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "gb")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "gb", res1$gbmse@Metrics$likelihood))
-  #     if(res1$gbmse@Metrics$likelihood < min)
-  #     {
-  #       min = res1$gbmse@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "aca2")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "aca2", res1$aca2mse@Metrics$likelihood))
-  #     if(res1$aca2mse@Metrics$likelihood < min)
-  #     {
-  #       min = res1$aca2mse@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "aca3")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "aca3", res1$aca3@Metrics$likelihood))
-  #     if(res1$aca3mse@Metrics$likelihood < min)
-  #     {
-  #       min = res1$aca3mse@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "sarsa")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "sarsa", res1$sarsa@Metrics$likelihood))
-  #     if(res1$sarsamse@Metrics$likelihood < min)
-  #     {
-  #       min = res1$sarsamse@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "acaTurns")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "acaTurns", res2$acaTurnData@Metrics$likelihood))
-  #     if(res2$acaTurnData@Metrics$likelihood < min)
-  #     {
-  #       min = res2$acaTurnData@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "gbTurns")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "gbTurns", res2$gbTurnData@Metrics$likelihood))
-  #     if(res2$gbTurnData@Metrics$likelihood < min)
-  #     {
-  #       min = res2$gbTurnData@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "aca2Turns")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "aca2Turns", res2$aca2TurnData@Metrics$likelihood))
-  #     if(res2$aca2TurnData@Metrics$likelihood < min)
-  #     {
-  #       min = res2$aca2TurnData@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "aca3Turns")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "aca3Turns", res2$aca3TurnData@Metrics$likelihood))
-  #     if(res2$aca3TurnData@Metrics$likelihood < min)
-  #     {
-  #       min = res2$aca3TurnData@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  #   else if(m == "sarsaTurns")
-  #   {
-  #     print(sprintf("%s: %s likelihood = %f", rat, "sarsaTurns", res2$sarsaTurnData@Metrics$likelihood))
-  #     if(res2$sarsaTurnData@Metrics$likelihood < min)
-  #     {
-  #       min = res2$sarsaTurnData@Metrics$likelihood
-  #       min_method = m
-  #     }
-  # 
-  #   }
-  # }
-  # 
-  # print(sprintf("%s is best fit for %s", min_method, rat))
-  # 
-  # save(res1,res2, file = paste0(rat,"_res.Rdata"))
-  # # 
-  # # #ranges = getTestRange(generated_data)
-  # # #debug(plotData)
-  # # #plotData2(res,rat,ranges)
-  # # #empProbMat = baseModels::empiricalProbMat(generated_data, window = window)
-  # # debug(generatePlots)
-  # # generatePlots(rat,window, res$acamse@ProbMatrix, res$gbmse@ProbMatrix, res$sarsa@ProbMatrix, res$aca3mse@ProbMatrix, allpaths_num)
-  # #generatePlots(rat,window, res$acamse@ProbMatrix, models, res1, res2, allpaths_num)
-  # #debug(generateModelProbPlots)
-  # generateModelProbPlots(rat,window,res1,res2,models,allpaths_num)
+  generated_data <- allpaths_num
+  #mat_res = windowCompare(generated_data,models, sim=2)
+  #debug(getModelData)
+
+  pathmodels=c("aca","gb","aca2","aca3","sarsa")
+  turnmodels=c("acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
+  #pathmodels=c("aca3")
+  #turnmodels=c("aca3Turns")
+  res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
+  res2 = getTurnModelData(generated_data, turnTimes, turnmodels, window = window, sim=2)
+
+  min_index = 0
+  min = 100000
+  min_method = "null"
+
+
+  for(m in models)
+  {
+    if(m == "aca")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "aca", res1$acamse@Metrics$likelihood))
+
+      if(res1$acamse@Metrics$likelihood < min)
+      {
+        min = res1$acamse@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "gb")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "gb", res1$gbmse@Metrics$likelihood))
+      if(res1$gbmse@Metrics$likelihood < min)
+      {
+        min = res1$gbmse@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "aca2")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "aca2", res1$aca2mse@Metrics$likelihood))
+      if(res1$aca2mse@Metrics$likelihood < min)
+      {
+        min = res1$aca2mse@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "aca3")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "aca3", res1$aca3@Metrics$likelihood))
+      if(res1$aca3mse@Metrics$likelihood < min)
+      {
+        min = res1$aca3mse@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "sarsa")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "sarsa", res1$sarsa@Metrics$likelihood))
+      if(res1$sarsamse@Metrics$likelihood < min)
+      {
+        min = res1$sarsamse@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "acaTurns")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "acaTurns", res2$acaTurnData@Metrics$likelihood))
+      if(res2$acaTurnData@Metrics$likelihood < min)
+      {
+        min = res2$acaTurnData@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "gbTurns")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "gbTurns", res2$gbTurnData@Metrics$likelihood))
+      if(res2$gbTurnData@Metrics$likelihood < min)
+      {
+        min = res2$gbTurnData@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "aca2Turns")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "aca2Turns", res2$aca2TurnData@Metrics$likelihood))
+      if(res2$aca2TurnData@Metrics$likelihood < min)
+      {
+        min = res2$aca2TurnData@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "aca3Turns")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "aca3Turns", res2$aca3TurnData@Metrics$likelihood))
+      if(res2$aca3TurnData@Metrics$likelihood < min)
+      {
+        min = res2$aca3TurnData@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+    else if(m == "sarsaTurns")
+    {
+      print(sprintf("%s: %s likelihood = %f", rat, "sarsaTurns", res2$sarsaTurnData@Metrics$likelihood))
+      if(res2$sarsaTurnData@Metrics$likelihood < min)
+      {
+        min = res2$sarsaTurnData@Metrics$likelihood
+        min_method = m
+      }
+
+    }
+  }
+
+  print(sprintf("%s is best fit for %s", min_method, rat))
+
+  save(res1,res2, file = paste0(rat,"_res.Rdata"))
+  #
+  # #ranges = getTestRange(generated_data)
+  # #debug(plotData)
+  # #plotData2(res,rat,ranges)
+  # #empProbMat = baseModels::empiricalProbMat(generated_data, window = window)
+  # debug(generatePlots)
+  # generatePlots(rat,window, res$acamse@ProbMatrix, res$gbmse@ProbMatrix, res$sarsa@ProbMatrix, res$aca3mse@ProbMatrix, allpaths_num)
+  #generatePlots(rat,window, res$acamse@ProbMatrix, models, res1, res2, allpaths_num)
+  #debug(generateModelProbPlots)
+  #generateModelProbPlots(rat,window,res1,res2,models,allpaths_num)
 }
 
 

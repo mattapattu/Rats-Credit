@@ -530,4 +530,23 @@ void updateQvals(std::shared_ptr<TreeNode> root, double alpha, double td_error, 
         }  
     }
 }
+
+void resetEligibilityTrace(std::shared_ptr<TreeNode> root)
+{
+    //Rcpp::Rcout << "td_error="<< td_error <<std::endl;  
+    for (auto i = root->child.begin(); i != root->child.end(); i++)
+    {
+        (*i)->etrace = 0;
+        //Rcpp::Rcout <<  "turn="<< (*i)->turn << ", qval=" << (*i)->qval << ", etrace=" << (*i)->etrace<<std::endl;  
+        std::vector<std::shared_ptr<TreeNode>> childNodes = (*i)->child;
+        if (!childNodes.empty())
+        {
+             for (auto child = childNodes.begin(); child != childNodes.end(); child++)
+             {
+                (*child)->etrace = 0;
+                //Rcpp::Rcout <<  "turn="<< (*child)->turn << ", qval=" << (*child)->qval << ", etrace=" << (*child)->etrace<<std::endl;
+             }
+        }  
+    }
+}
 #endif

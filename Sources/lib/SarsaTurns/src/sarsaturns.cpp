@@ -402,6 +402,8 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
       S = S_prime;
       
     }
+    resetEligibilityTrace(rootS1);
+    resetEligibilityTrace(rootS2);
     //Rcpp::Rcout << "Deleting rows, turnIdx=" << turnIdx << ", nrow * 2=" << nrow * 2 << std::endl;
     // if (turnIdx < (nrow * 2))
     // {
@@ -624,6 +626,8 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
       A = A_prime;
       //trial=trial+1;
     }
+    resetEligibilityTrace(rootS1);
+    resetEligibilityTrace(rootS2);
   }
 
   return (mseMatrix);
@@ -859,6 +863,8 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
       A = A_prime;
       //trial=trial+1;
     }
+    resetEligibilityTrace(rootS1);
+    resetEligibilityTrace(rootS2);
   }
 
   return (mseMatrix);

@@ -407,6 +407,120 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
   
 }
 
+generateModelProbPlots2=function(rat, window, res1, res2,pathmodels,turnmodels, allpaths_num){
+  
+  rle_sess = rle(allpaths_num[,5])
+  last_paths<-cumsum(rle_sess$lengths)
+  allpaths_num<-allpaths_num[-last_paths,]
+  
+  empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num, window = window)
+  
+  
+  for(act in c(1:6)){
+    for(state in c(1:2)){
+      pdf(file=paste("Prob_",rat,"_Path", act, "_State",state,".pdf",sep=""))
+      
+      
+      cols <- brewer.pal(8,'Dark2')
+      
+      if(act==4||act==1)
+      {
+        ylim=c(0,1)
+      }
+      else
+      {
+        ylim=c(0,0.6)
+      }
+      par(mfrow = c(2, 1))
+      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = "Path model plots",cex.lab=1.3)
+      lines(empiricalProbMatrix[which(allpaths_num[,2]==state),(act+6*(state-1))])
+      i=0
+      for(m in pathmodels)
+      {
+        i = i+1
+        if(m == "aca")
+        {
+          probmatrix = res1$acamse@ProbMatrix
+        }
+        else if(m == "gb")
+        {
+          probmatrix = res1$gbmse@ProbMatrix
+        }
+        else if(m == "aca2")
+        {
+          probmatrix = res1$aca2mse@ProbMatrix
+        }
+        else if(m == "aca3")
+        {
+          probmatrix = res1$aca3mse@ProbMatrix
+        }
+        else if(m == "sarsa")
+        {
+          probmatrix = res1$sarsamse@ProbMatrix
+        }
+        
+        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col=cols[i],ylab="Probability",lwd=2)
+        
+      }
+      modelnames = paste(pathmodels,"Paths",sep="")
+      if(act ==4)
+      {
+        legend("bottomright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)),lwd=2)
+      }
+      else
+      {
+        legend("topright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)),lwd=2)
+      }
+      
+     
+      
+      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = "Turn model plots",cex.lab=1.3)
+      lines(empiricalProbMatrix[which(allpaths_num[,2]==state),(act+6*(state-1))])
+      i=0
+      for(m in turnmodels)
+      {
+        i = i+1
+        if(m == "acaTurns")
+        {
+          probmatrix = getPathProb(res2$acaTurnData@ProbMatrix)
+        }
+        else if(m == "gbTurns")
+        {
+          probmatrix = getPathProb(res2$gbTurnData@ProbMatrix)
+        }
+        else if(m == "aca2Turns")
+        {
+          probmatrix = getPathProb(res2$aca2TurnData@ProbMatrix)
+        }
+        else if(m == "aca3Turns")
+        {
+          probmatrix = getPathProb(res2$aca3TurnData@ProbMatrix)
+        }
+        else if(m == "sarsaTurns")
+        {
+          probmatrix = getPathProb(res2$sarsaTurnData@ProbMatrix)
+        }
+        
+        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col=cols[i],ylab="Probability",lwd=2)
+        
+      }
+      
+      
+      modelnames = turnmodels
+      if(act ==4)
+      {
+        legend("bottomright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)),lwd=2)
+      }
+      else
+      {
+        legend("topright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)),lwd=2)
+      }
+      
+      dev.off()
+    }
+  }
+  
+}
 
 getPathProb=function(probMatrix){
 

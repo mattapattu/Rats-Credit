@@ -407,128 +407,180 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
   
 }
 
-generateModelProbPlots2=function(rat, window, res1, res2,pathmodels,turnmodels, allpaths_num){
+generateModelProbPlots2=function(rat, window, res1, res2,models, allpaths_num,path){
   
   rle_sess = rle(allpaths_num[,5])
   last_paths<-cumsum(rle_sess$lengths)
-  allpaths_num<-allpaths_num[-last_paths,]
+  allpaths_num1<-allpaths_num[-last_paths,]
   
-  empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num, window = window)
+  empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num1, window = window)
+  #setwd(path)
+  dirpath1 = file.path(path,rat)
+  #print(sprintf("Creating dir %s",dirpath1))
+  dir.create(dirpath1)
   
   
-  for(act in c(1:6)){
-    for(state in c(1:2)){
-      pdf(file=paste("Prob_",rat,"_Path", act, "_State",state,".pdf",sep=""))
-      
-      
-      cols <- brewer.pal(8,'Dark2')
-      
-      if(act==4||act==1)
-      {
-        ylim=c(0,1)
-      }
-      else
-      {
-        ylim=c(0,0.6)
-      }
-      par(mfrow = c(2, 1))
-      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = "Path model plots",cex.lab=1.3)
-      lines(empiricalProbMatrix[which(allpaths_num[,2]==state),(act+6*(state-1))])
-      i=0
-      for(m in pathmodels)
-      {
-        i = i+1
-        if(m == "aca")
-        {
-          probmatrix = res1$acamse@ProbMatrix
-        }
-        else if(m == "gb")
-        {
-          probmatrix = res1$gbmse@ProbMatrix
-        }
-        else if(m == "aca2")
-        {
-          probmatrix = res1$aca2mse@ProbMatrix
-        }
-        else if(m == "aca3")
-        {
-          probmatrix = res1$aca3mse@ProbMatrix
-        }
-        else if(m == "sarsa")
-        {
-          probmatrix = res1$sarsamse@ProbMatrix
-        }
-        
-        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col=cols[i],ylab="Probability",lwd=2)
-        
-      }
-      modelnames = paste(pathmodels,"Paths",sep="")
-      if(act ==4)
-      {
-        legend("bottomright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)),lwd=2)
-      }
-      else
-      {
-        legend("topright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)),lwd=2)
-      }
-      
-     
-      
-      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = "Turn model plots",cex.lab=1.3)
-      lines(empiricalProbMatrix[which(allpaths_num[,2]==state),(act+6*(state-1))])
-      i=0
-      for(m in turnmodels)
-      {
-        i = i+1
-        if(m == "acaTurns")
-        {
-          probmatrix = getPathProb(res2$acaTurnData@ProbMatrix)
-        }
-        else if(m == "gbTurns")
-        {
-          probmatrix = getPathProb(res2$gbTurnData@ProbMatrix)
-        }
-        else if(m == "aca2Turns")
-        {
-          probmatrix = getPathProb(res2$aca2TurnData@ProbMatrix)
-        }
-        else if(m == "aca3Turns")
-        {
-          probmatrix = getPathProb(res2$aca3TurnData@ProbMatrix)
-        }
-        else if(m == "sarsaTurns")
-        {
-          probmatrix = getPathProb(res2$sarsaTurnData@ProbMatrix)
-        }
-        
-        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col=cols[i],ylab="Probability",lwd=2)
-        
-      }
-      
-      
-      modelnames = turnmodels
-      if(act ==4)
-      {
-        legend("bottomright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)),lwd=2)
-      }
-      else
-      {
-        legend("topright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=0.8,lty = rep(1,(i+1)),lwd=2)
-      }
-      
-      dev.off()
+  for(m in models)
+  {
+    dirpath2=file.path(dirpath1,m)
+    print(sprintf("subdir %s",dirpath2))
+    dir.create(dirpath2)
+    #print(sprintf("Setting path %s",dirpath2))
+    setwd(dirpath2)
+    
+    if(m == "aca")
+    {
+      probmatrix = res1$acamse@ProbMatrix
     }
+    else if(m == "gb")
+    {
+      probmatrix = res1$gbmse@ProbMatrix
+    }
+    else if(m == "aca2")
+    {
+      probmatrix = res1$aca2mse@ProbMatrix
+    }
+    else if(m == "aca3")
+    {
+      probmatrix = res1$aca3mse@ProbMatrix
+    }
+    else if(m == "sarsa")
+    {
+      probmatrix = res1$sarsamse@ProbMatrix
+    }
+    else if(m == "acaTurns")
+    {
+      probmatrix = getPathProb(res2$acaTurnData@ProbMatrix)
+      probmatrix2 = res2$acaTurnData@ProbMatrix
+    }
+    else if(m == "gbTurns")
+    {
+      probmatrix = getPathProb(res2$gbTurnData@ProbMatrix)
+      probmatrix2 = res2$gbTurnData@ProbMatrix
+    }
+    else if(m == "aca2Turns")
+    {
+      probmatrix = getPathProb(res2$aca2TurnData@ProbMatrix)
+      probmatrix2 = res2$aca2TurnData@ProbMatrix
+    }
+    else if(m == "aca3Turns")
+    {
+      probmatrix = getPathProb(res2$aca3TurnData@ProbMatrix)
+      probmatrix2 = res2$aca3TurnData@ProbMatrix
+    }
+    else if(m == "sarsaTurns")
+    {
+      probmatrix = getPathProb(res2$sarsaTurnData@ProbMatrix)
+      probmatrix2 = res2$sarsaTurnData@ProbMatrix
+    }
+    
+    
+    
+    for(act in c(1:6)){
+      for(state in c(1:2)){
+        
+        
+        pdf(file=paste("Prob_",rat,"_Path", act, "_State",state,".pdf",sep=""))
+        
+        if(act==4||act==1)
+        {
+          ylim=c(0,1)
+        }
+        else
+        {
+          ylim=c(0,0.6)
+        }
+        if(m == "acaTurns" ||m == "gbTurns"|| m == "aca2Turns"||m == "aca3Turns"||m == "sarsaTurns")
+        {
+          if(state==1)
+          {
+            if(act==1)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,2]!=-1),17]
+            }
+            else if(act==2)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,3]!=-1),17]
+            }  
+            else if(act==3)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,5]!=-1),17]
+            }  
+            else if(act==4)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,8]!=-1),17]
+            }  
+            else if(act==5)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,7]!=-1),17]
+            }  
+          }
+          else
+          {
+            
+            if(act==1)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,10]!=-1),17]
+            }
+            else if(act==2)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,11]!=-1),17]
+            }  
+            else if(act==3)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,14]!=-1),17]
+            }  
+            else if(act==4)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,15]!=-1),17]
+            }  
+            else if(act==5)
+            {
+              pathIdx = probmatrix2[which(probmatrix2[,16]!=-1),17]
+            }  
+          }
+          
+          
+          empIdx = which(allpaths_num1[,6] %in% pathIdx)
+          
+        }
+        else
+        {
+          empIdx = which(allpaths_num1[,2]==state)
+        }
+        
+        
+        plot(empiricalProbMatrix[empIdx,(act+6*(state-1))],type='l', xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = paste0(rat,": Path ",act," State ",state),cex.lab=1.3)
+        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col="red",ylab="Probability",lwd=2)
+        
+        if(act ==4)
+        {
+          legend("bottomright", legend=c(m,"Empirical"),col=c("red","black"),cex=1.5,lty = rep(1,(i+1)),lwd=2)
+        }
+        else
+        {
+          legend("topright", legend=c(m,"Empirical"),col=c("red","black"),cex=1.5,lty = rep(1,(i+1)),lwd=2)
+        }
+        
+        dev.off()
+      }
+    }
+    
+
   }
+  
+  
   
 }
 
-getPathProb=function(probMatrix){
+
+getPathProb=function(probabilityMatrix){
 
   for(state in c(1:2))
   {
     if(state==1)
     {
-      probmatrix = probMatrix[,1:8]
+      probmatrix = probabilityMatrix[,1:8]
       path1ProbVec = probmatrix[which(probmatrix[,2]!=-1),2] #dch
       path2ProbVec = probmatrix[which(probmatrix[,3]!=-1),3] #gak
       bak = which(probmatrix[,5]!=-1)
@@ -549,14 +601,14 @@ getPathProb=function(probMatrix){
     }
     else
     {
-      probmatrix = probMatrix[,9:16]
+      probmatrix = probabilityMatrix[,9:16]
       path1ProbVec = probmatrix[which(probmatrix[,2]!=-1),2] #dch
       path2ProbVec = probmatrix[which(probmatrix[,3]!=-1),3] #gak
       bag = which(probmatrix[,6]!=-1)
       path3ProbVec = probmatrix[(bag-1),1] * probmatrix[bag,6] 
       bcd = which(probmatrix[,7]!=-1)
       path4ProbVec = probmatrix[(bcd-1),4]*probmatrix[bcd,7]
-      bch = which(probmatrix[,7]!=-1)
+      bch = which(probmatrix[,8]!=-1)
       path5ProbVec = probmatrix[(bch-1),4]*probmatrix[bch,8]
       
       matlen = max(length(path1ProbVec),length(path2ProbVec),length(path3ProbVec),length(path4ProbVec),length(path5ProbVec))

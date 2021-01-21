@@ -706,6 +706,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
   arma::vec allpath_rewards = allpaths.col(2);
   arma::vec sessionVec = allpaths.col(4);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
+  arma::vec pathIds = turnTimes.col(0);
   //Rcpp::Rcout <<  "uniqSessIdx.n_elem="<<uniqSessIdx.n_elem <<std::endl;
 
   arma::vec turnTime_method;
@@ -748,6 +749,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
 
     arma::uvec turnTimes_idx = arma::find(turnTimes.col(4) == sessId);
     arma::vec turn_times_session = turnTime_method.elem(turnTimes_idx);
+    arma::vec pathIds_session = pathIds.elem(turnTimes_idx);
     arma::uword session_turn_count = 0;
 
     int initState = 0;
@@ -764,7 +766,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
     std::vector<double> episodeTurnTimes;
     //Rcpp::Rcout <<"sessId="<<sessId<< ", actions=" << nrow <<std::endl;
 
-    arma::mat mseMatrix_sess((nrow * 2), 16);
+    arma::mat mseMatrix_sess((nrow * 2), 17);
     mseMatrix_sess.fill(-1);
     int turnIndex=0;
     for (int i = 0; i < (nrow - 1); i++)
@@ -867,8 +869,9 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
 
           //Change softmax function - input row of credits, first element is always the selected turn, return prob of turn
 
-          arma::rowvec probRow(16);
+          arma::rowvec probRow(17);
           probRow.fill(-1);
+          probRow(16) = pathIds_session(session_turn_count);
           double prob_a = softmax(currNode);
           unsigned int idx = getTurnIdx(currNode->turn, S);
           probRow(idx) = prob_a;

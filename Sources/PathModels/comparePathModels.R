@@ -7,7 +7,7 @@ library(Aca3)
 library(TurnsModels)
 
 ### Use optimal paramters on actual data and compute Mean Squared Error.
-comparePathModels=function(enreg,rat, window){
+comparePathModels=function(enreg,rat, window,path){
   
   enregres = enregCombine(enreg, rat)
   allpaths = enregres$allpaths
@@ -204,6 +204,8 @@ comparePathModels=function(enreg,rat, window){
   #generatePlots(rat,window, res$acamse@ProbMatrix, models, res1, res2, allpaths_num)
   #debug(generateModelProbPlots)
   #generateModelProbPlots(rat,window,res1,res2,models,allpaths_num)
+  #debug(generateModelProbPlots2)
+  generateModelProbPlots2(rat, window, res1, res2,models, allpaths_num,path)
 }
 
 

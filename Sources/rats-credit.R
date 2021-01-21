@@ -101,8 +101,8 @@ for (i in c(2:6)) {
   #debug(plot.heatmap.paths)
   #plot.heatmap.paths(enreg,rat[i],dirpath1, TRUE)
   
-  debug(comparePathModels)
-  comparePathModels(enreg,rat[i], window=20)
+  #debug(comparePathModels)
+  comparePathModels(enreg,rat[i], window=20,path)
   
   #debug(compareTurnModels)
   #compareTurnModels(enreg,rat[i], window=20)

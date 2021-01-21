@@ -652,6 +652,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
   arma::vec allpath_rewards = allpaths.col(2);
   arma::vec sessionVec = allpaths.col(4);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
+  arma::vec pathIdx = allpaths.col(5);
 
   int episode = 1;
 
@@ -670,7 +671,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
     arma::vec actions_sess = allpath_actions.elem(sessionIdx);
     arma::vec states_sess = allpath_states.elem(sessionIdx);
     arma::vec rewards_sess = allpath_rewards.elem(sessionIdx);
-
+    arma::vec pathIdx_sess = pathIdx.elem(sessionIdx);
     arma::uword session_turn_count = 0;
 
     int initState = 0;
@@ -774,8 +775,9 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
         }
         //Change softmax function - input row of credits, first element is always the selected turn, return prob of turn
 
-        arma::rowvec probRow(16);
+        arma::rowvec probRow(17);
         probRow.fill(-1);
+        probRow(16) = pathIdx_sess(i);
         double prob_a = softmax(currNode);
         unsigned int idx = getTurnIdx(currNode->turn, S);
         probRow(idx) = prob_a;

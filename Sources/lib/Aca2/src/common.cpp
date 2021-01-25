@@ -723,6 +723,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma1, arma::m
   arma::vec allpath_times = allpaths.col(3);
   arma::vec sessionVec = allpaths.col(4);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
+  arma::vec pathIdx = allpaths.col(5);
   //Rcpp::Rcout << "sessionVec=" << sessionVec << std::endl;
   //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;
   int episode = 1;
@@ -741,6 +742,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma1, arma::m
     arma::vec states_sess = allpath_states.elem(sessionIdx);
     arma::vec rewards_sess = allpath_rewards.elem(sessionIdx);
     arma::vec time_taken_for_trial_sess = allpath_times.elem(sessionIdx);
+    arma::vec pathIdx_sess = pathIdx.elem(sessionIdx);
 
     int initState = 0;
     bool changeState = false;
@@ -760,7 +762,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma1, arma::m
       S = states_sess(0) - 1;
     }
 
-    arma::mat probMatrix_sess((nrow - 1), 12);
+    arma::mat probMatrix_sess((nrow - 1), 13);
     arma::vec episodeVec(nrow - 1);
 
     //All episodes in new session
@@ -803,6 +805,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma1, arma::m
         returnToInitState = true;
       }
 
+      probMatrix_sess(i,12) = pathIdx_sess(i);
       if (S == 0)
       {
         probMatrix_sess.submat(i, 6, i, 11) = arma::zeros(1, 6);

@@ -1,14 +1,20 @@
 library(Rmpfr)
 library(DEoptim)
 library(TTR)
+library(GA)
 
 
 
 acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data[1:half_index,], turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=sim, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
-  alpha_ACA = ACA$optim$bestmem[1]
-  reward_ACA = ACA$optim$bestmem[2]
-  reward_ACA = 1+reward_ACA*9
+  # ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data[1:half_index,], turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=sim, DEoptim.control(NP=100, F=2, CR = 0.9,trace = FALSE, itermax = 200, strategy = 1))
+  # alpha_ACA = ACA$optim$bestmem[1]
+  # reward_ACA = ACA$optim$bestmem[2]
+  # reward_ACA = 1+reward_ACA*9
+  
+  ACA = ga("real-valued", fitness =  negLogLikFunc,lower = c(0), upper = c(1),allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 1, sim = sim, popSize=100, maxiter = 1000, run = 50,monitor=FALSE) 
+  alpha_ACA = ACA@solution[1]
+  reward_ACA = 1
+  
   params_lik = list("alpha"=alpha_ACA, "reward"=reward_ACA)
   
 
@@ -43,10 +49,13 @@ acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, e
 }
 
 gbTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,1), allpaths = generated_data[1:half_index,], turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=sim, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
-  alpha_GB = GB$optim$bestmem[1]
-  reward_GB = GB$optim$bestmem[2]
-  reward_GB = 1+reward_GB*9
+  # GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data[1:half_index,], turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=sim, DEoptim.control(NP=100, F=2, CR = 0.9,trace = FALSE, itermax = 200, strategy = 1))
+  # alpha_GB = GB$optim$bestmem[1]
+  # reward_GB = GB$optim$bestmem[2]
+  # reward_GB = 1+reward_GB*9
+  GB = ga("real-valued", fitness =  negLogLikFunc,lower = c(0), upper = c(1),allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 2, sim = sim, popSize=100, maxiter = 1000, run = 50,monitor=FALSE)
+  alpha_GB = GB@solution[1]
+  reward_GB = 1
   params_lik = list("alpha"= alpha_GB, "reward"= reward_GB)
   
   
@@ -82,11 +91,15 @@ gbTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, en
 }
 
 aca2TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA2 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
-  alpha_ACA2 = ACA2$optim$bestmem[1]
-  gamma1_ACA2 = ACA2$optim$bestmem[2]
+  # ACA2 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = sim, DEoptim.control(NP=100, F=2, CR = 0.9,trace = FALSE, itermax = 200, strategy = 1))
+  # alpha_ACA2 = ACA2$optim$bestmem[1]
+  # gamma1_ACA2 = ACA2$optim$bestmem[2]
   #reward_ACA3 = ACA3$optim$bestmem[4]
   #reward_ACA3 = 1 + reward_ACA3*9
+  ACA2 = ga("real-valued", fitness =  negLogLikFunc,lower = c(0,0), upper = c(1,1),allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = sim, popSize=100, maxiter = 1000, run = 50,monitor=FALSE)
+  alpha_ACA2 = ACA2@solution[1]
+  gamma1_ACA2 = ACA2@solution[2]
+
   ACA2_probMatrix = Aca2Turns::getProbMatrix(generated_data, turnTimes, turnMethod, alpha_ACA2,gamma1_ACA2,1,sim)
   params_lik = list("alpha"=alpha_ACA2, "gamma1"=gamma1_ACA2)
   # ACA3 <- DEoptim(aca_negLogLik2,lower = c(0,0,0), upper = c(1,1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
@@ -129,12 +142,18 @@ aca2TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
 }
 
 aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = sim, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
-  alpha_ACA3 = ACA3$optim$bestmem[1]
-  gamma1_ACA3 = ACA3$optim$bestmem[2]
-  gamma2_ACA3 = ACA3$optim$bestmem[3]
-  reward_ACA3 = ACA3$optim$bestmem[4]
-  reward_ACA3 = 1 + reward_ACA3*9
+  # ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = sim, DEoptim.control(NP=100, F=2, CR = 0.9,trace = FALSE, itermax = 400,strategy = 2))
+  # alpha_ACA3 = ACA3$optim$bestmem[1]
+  # gamma1_ACA3 = ACA3$optim$bestmem[2]
+  # gamma2_ACA3 = ACA3$optim$bestmem[3]
+  # reward_ACA3 = ACA3$optim$bestmem[4]
+  # reward_ACA3 = 1 + reward_ACA3*9
+  suggestedSol = matrix(c(0.8,0.9,0.9, 0.9, 0.9, 0.7 ), nrow = 2, ncol = 3, byrow = TRUE)
+  ACA3 = ga("real-valued", fitness =  negLogLikFunc,lower = c(0,0,0), upper = c(1,1,1),allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = sim, suggestions = suggestedSol, popSize=500, maxiter = 1000, run = 50,monitor=FALSE, optim = TRUE)
+  alpha_ACA3 = ACA3@solution[1]
+  gamma1_ACA3 = ACA3@solution[2]
+  gamma2_ACA3 = ACA3@solution[3]
+  reward_ACA3 = 1
   ACA3_probMatrix = Aca3Turns::getProbMatrix(generated_data, turnTimes, turnMethod, alpha_ACA3,gamma1_ACA3,gamma2_ACA3,reward_ACA3,sim)
   params_lik = list("alpha"=alpha_ACA3, "gamma1"=gamma1_ACA3, "gamma2"=gamma2_ACA3)
     # ACA3 <- DEoptim(aca_negLogLik2,lower = c(0,0,0), upper = c(1,1,1), H = Hinit2, allpaths = generated_data[1:half_index,], model = 5, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
@@ -177,11 +196,17 @@ aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
 }
 
 sarsaTurnData=function(generated_data,turnTimes, sim, half_index, end_index, window){
-  SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = generated_data[1:half_index,], turnTimes = 0, turnMethod = 0, model = 6, sim = sim, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
-  alpha_SARSA = SARSA$optim$bestmem[1]
-  gamma_SARSA = SARSA$optim$bestmem[2]
-  lambda_SARSA = SARSA$optim$bestmem[3]
-  reward_SARSA = SARSA$optim$bestmem[4]
+  # SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = generated_data[1:half_index,], turnTimes = 0, turnMethod = 0, model = 6, sim = sim, DEoptim.control(NP=100, F=2, CR = 0.9,trace = FALSE, itermax = 200, strategy = 1))
+  # alpha_SARSA = SARSA$optim$bestmem[1]
+  # gamma_SARSA = SARSA$optim$bestmem[2]
+  # lambda_SARSA = SARSA$optim$bestmem[3]
+  # reward_SARSA = SARSA$optim$bestmem[4]
+  # reward_SARSA = 1 + reward_SARSA*9
+  out <- GenSA(lower = c(0,0,0,0), upper = c(1,1,1,1), fn = negLogLikFunc,allpaths = generated_data[1:half_index,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 6, sim = sim,control = list(verbose=FALSE,max.time=120))
+  alpha_SARSA = out$par[1]
+  gamma_SARSA = out$par[2]
+  lambda_SARSA = out$par[3]
+  reward_SARSA = out$par[4]
   reward_SARSA = 1 + reward_SARSA*9
   SARSA_probMatrix = SarsaTurns::getProbMatrix(generated_data, alpha_SARSA, gamma_SARSA, lambda_SARSA,reward_SARSA, sim)
   params_lik = list("alpha"=alpha_SARSA, "gamma"=gamma_SARSA, "lambda" =lambda_SARSA, "reward"= reward_SARSA)
@@ -221,30 +246,112 @@ negLogLikFunc=function(par,allpaths,turnTimes,turnMethod,model,sim) {
   alpha = par[1]
 
   if(model == 1 || model == 2 || model == 3){
-    reward = par[2]
-    reward = 1+reward*9
-    turnlik=TurnsModels::getTurnsLikelihood(allpaths,turnTimes,turnMethod,alpha,reward,sim,model)
+    reward = 1
+    
+    probMatrix = TurnsModels::getProbMatrix(allpaths, turnTimes, turnMethod, alpha, reward, sim, model)
+    path4Probs = getPathProb(probMatrix)[,4]
+    path4AboveLim = which(path4Probs >= 0.95)
+    result <- rle(diff(path4AboveLim))
+    path4Converged = any(result$lengths>=1 & result$values==1)
+    
+    path10Probs = getPathProb(probMatrix)[,10]
+    path10AboveLim = which(path10Probs >= 0.95)
+    result <- rle(diff(path10AboveLim))
+    path10Converged = any(result$lengths>=1 & result$values==1)
+    
+    if(path4Converged &&  path10Converged)
+    {
+      turnlik=TurnsModels::getTurnsLikelihood(allpaths,turnTimes,turnMethod,alpha,reward,sim,model)
+    }
+    else
+    {
+      turnlik = -1000000
+    }
+    
   }
   else if(model == 4){
     gamma1 = par[2]
-    turnlik=Aca2Turns::getTurnsLikelihood(allpaths,turnTimes,turnMethod,alpha,gamma1,1,sim)
+    
+    probMatrix = Aca2Turns::getProbMatrix(allpaths, turnTimes, turnMethod, alpha, gamma1,1, sim)
+    path4Probs = getPathProb(probMatrix)[,4]
+    path4AboveLim = which(path4Probs >= 0.95)
+    result <- rle(diff(path4AboveLim))
+    path4Converged = any(result$lengths>=1 & result$values==1)
+    
+    path10Probs = getPathProb(probMatrix)[,10]
+    path10AboveLim = which(path10Probs >= 0.95)
+    result <- rle(diff(path10AboveLim))
+    path10Converged = any(result$lengths>=1 & result$values==1)
+    
+    if(path4Converged &&  path10Converged)
+    {
+      turnlik=Aca2Turns::getTurnsLikelihood(allpaths,turnTimes,turnMethod,alpha,gamma1,1,sim)
+    }
+    else
+    {
+      turnlik = -1000000
+    }
+    
+    
   }
   else if(model == 5){
     gamma1 = par[2]
     gamma2 = par[3]
-    reward = par[4]
-    reward = 1+reward*9
-    turnlik=Aca3Turns::getTurnsLikelihood(allpaths,turnTimes,turnMethod,alpha,gamma1,gamma2,reward,sim)
+    # reward = par[4]
+    # reward = 1+reward*9
+    reward = 1
+    # 
+    probMatrix = Aca3Turns::getProbMatrix(allpaths,turnTimes,turnMethod,alpha,gamma1,gamma2,1,sim)
+    path4Probs = getPathProb(probMatrix)[,4]
+    path4AboveLim = which(path4Probs >= 0.95)
+    result <- rle(diff(path4AboveLim))
+    path4Converged = any(result$lengths>=1 & result$values==1)
+    
+    path10Probs = getPathProb(probMatrix)[,10]
+    path10AboveLim = which(path10Probs >= 0.95)
+    result <- rle(diff(path10AboveLim))
+    path10Converged = any(result$lengths>=1 & result$values==1)
+    
+    if(path4Converged &&  path10Converged)
+    {
+      turnlik=Aca3Turns::getTurnsLikelihood(allpaths,turnTimes,turnMethod,alpha,gamma1,gamma2,1,sim)
+    }
+    else
+    {
+      turnlik = -1000000
+    }
+    
+    
   }
   else if(model == 6){
     gamma = par[2]
     lambda = par[3]
     reward = par[4]
     reward = 1+reward*9
-    turnlik=SarsaTurns::getTurnsLikelihood(allpaths,alpha,gamma,lambda,reward,sim)
+    
+    probMatrix = SarsaTurns::getProbMatrix(allpaths,alpha,gamma,lambda,reward,sim)
+    path4Probs = getPathProb(probMatrix)[,4]
+    path4AboveLim = which(path4Probs >= 0.95)
+    result <- rle(diff(path4AboveLim))
+    path4Converged = any(result$lengths>=1 & result$values==1)
+    
+    path10Probs = getPathProb(probMatrix)[,10]
+    path10AboveLim = which(path10Probs >= 0.95)
+    result <- rle(diff(path10AboveLim))
+    path10Converged = any(result$lengths>=1 & result$values==1)
+    
+    if(path4Converged &&  path10Converged)
+    {
+      turnlik=SarsaTurns::getTurnsLikelihood(allpaths,alpha,gamma,lambda,reward,sim)
+    }
+    else
+    {
+      turnlik = -1000000
+    }
+    
   }
   
-  negLogLik = (-1) *sum(turnlik)
+  negLogLik = (1) *sum(turnlik)
  # print(sprintf("negLogLik = %f",negLogLik))
   if(is.infinite(negLogLik)){
     return(1000000)

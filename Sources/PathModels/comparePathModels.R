@@ -193,7 +193,7 @@ comparePathModels=function(enreg,rat, window,path){
 
   print(sprintf("%s is best fit for %s", min_method, rat))
 
-  save(res1,res2, file = paste0(rat,"_res.Rdata"))
+  save(res1,res2, file = paste0(rat,"_results.Rdata"))
   #
   # #ranges = getTestRange(generated_data)
   # #debug(plotData)
@@ -205,7 +205,8 @@ comparePathModels=function(enreg,rat, window,path){
   #debug(generateModelProbPlots)
   #generateModelProbPlots(rat,window,res1,res2,models,allpaths_num)
   #debug(generateModelProbPlots2)
-  generateModelProbPlots2(rat, window, res1, res2,models, allpaths_num,path)
+  
+  #generateModelProbPlots2(rat, window, res1, res2,models, allpaths_num,path)
 }
 
 

@@ -69,7 +69,7 @@ getTurnModelData = function(generated_data, turnTimes, models, window, sim){
     aca2Turn = aca2TurnData(generated_data, turnTimes, turnMethod = 0, sim=sim, start_index, end_index, window)
   }
   if("aca3Turns" %in% models){        
-    #debug(aca3TurnData)
+    debug(aca3TurnData)
     aca3Turn = aca3TurnData(generated_data, turnTimes, turnMethod = 0, sim=sim, start_index, end_index, window)
     # aca3Turn1 = aca3TurnData(generated_data, turnTimes, turnMethod = 1, sim=sim, start_index, end_index, window)
     # aca3Turn2 = aca3TurnData(generated_data, turnTimes, turnMethod = 2, sim=sim, start_index, end_index, window)

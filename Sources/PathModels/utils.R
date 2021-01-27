@@ -423,7 +423,7 @@ generateModelProbPlots2=function(rat, window, res1, res2,models, allpaths_num,pa
   for(m in models)
   {
     dirpath2=file.path(dirpath1,m)
-    print(sprintf("subdir %s",dirpath2))
+    #print(sprintf("subdir %s",dirpath2))
     dir.create(dirpath2)
     #print(sprintf("Setting path %s",dirpath2))
     setwd(dirpath2)

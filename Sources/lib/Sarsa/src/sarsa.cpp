@@ -374,6 +374,7 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
       generated_PathData_sess(i, 2) = R(S, A);
       generated_PathData_sess(i, 3) = 0;
       generated_PathData_sess(i, 4) = sessId;
+      generated_PathData_sess(i, 5) = actionNb;
 
       Rcpp::StringVector turns = getTurnsFromPaths(A, S);
       int nbOfTurns = turns.length();

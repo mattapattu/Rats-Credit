@@ -314,7 +314,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     std::vector<int> episodeTurnStates;
     std::vector<double> episodeTurnTimes;
 
-    arma::mat generated_PathData_sess(nrow, 5);
+    arma::mat generated_PathData_sess(nrow, 6);
     arma::mat generated_TurnsData_sess((nrow * 2), 6);
     generated_PathData_sess.fill(-1);
     generated_TurnsData_sess.fill(-1);
@@ -372,6 +372,8 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       generated_PathData_sess(i, 2) = R(S, A);
       generated_PathData_sess(i, 3) = 0;
       generated_PathData_sess(i, 4) = sessId;
+      generated_PathData_sess(i, 5) = actionNb;
+
 
       //Rcpp::Rcout << "turnIdx=" << turnIdx << std::endl;
       if (R(S, A) == 1)
@@ -706,7 +708,15 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
   arma::vec allpath_rewards = allpaths.col(2);
   arma::vec sessionVec = allpaths.col(4);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
-  arma::vec pathIds = turnTimes.col(0);
+  arma::vec pathIds;
+  if(sim == 1)
+  {
+    pathIds = turnTimes.col(5);
+  }
+  else
+  {
+    pathIds = turnTimes.col(0);
+  }
   //Rcpp::Rcout <<  "uniqSessIdx.n_elem="<<uniqSessIdx.n_elem <<std::endl;
 
   arma::vec turnTime_method;

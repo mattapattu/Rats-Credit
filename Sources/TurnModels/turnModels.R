@@ -1,12 +1,12 @@
 library(Rmpfr)
 library(DEoptim)
 library(TTR)
-library(GA)
+#library(GA)
 
 
 
 acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
+  ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
   alpha_ACA = ACA$optim$bestmem[1]
   reward_ACA = ACA$optim$bestmem[2]
   reward_ACA = 1+reward_ACA*9
@@ -49,7 +49,7 @@ acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, e
 }
 
 gbTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 20))
+  GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
   alpha_GB = GB$optim$bestmem[1]
   reward_GB = GB$optim$bestmem[2]
   reward_GB = 1+reward_GB*9

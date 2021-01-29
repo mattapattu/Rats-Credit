@@ -357,6 +357,7 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
         generated_PathData_sess(i, 3) = getPathTime(allpaths, A, S, sessId, pathCount);
         int pathIndex = getPathIndex(allpaths, A, S, sessId, pathCount);
         generated_PathData_sess(i, 4) = sessId;
+        generated_PathData_sess(i, 5) = actionNb;
         generated_TurnsData_sess = updateTurnTime(turnTimes, pathIndex, generated_TurnsData_sess, Rcpp::IntegerVector(turnIds.begin(), turnIds.end()), turnMethod);
         turnIds.clear();
         turns.clear();

@@ -85,26 +85,26 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
     print(sprintf("model= %s",model))
     
     if(model == "aca"){
-      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = 1, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
+      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num, half_index = endLearningStage, model = 1, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 100,parallelType = 1))
       alpha = out$optim$bestmem[1]
     }
     else if(model == "gb"){
-      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,],  model = 2, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 20))
+      out = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit=Hinit, allpaths = allpaths_num, half_index = endLearningStage,  model = 2, sim=2, DEoptim.control(NP = 10,F = 0.8, CR = 0.9, trace = FALSE, itermax = 100,parallelType = 1))
       alpha = out$optim$bestmem[1]
     }
     else if(model == "aca2"){
-      out <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 4, sim = 2, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1),Hinit=Hinit, allpaths = allpaths_num, half_index = endLearningStage, model = 4, sim = 2, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
       alpha = out$optim$bestmem[1]
       gamma1 = out$optim$bestmem[2]
     }
     else if(model == "aca3"){
-      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 5, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1),Hinit=Hinit, allpaths = allpaths_num, half_index = endLearningStage, model = 5, sim = 2, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
       alpha = out$optim$bestmem[1]
       gamma1 = out$optim$bestmem[2]
       gamma2 = out$optim$bestmem[3]
     }
     else if(model == "sarsa"){
-      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0,0), upper = c(1,1,1,1),Hinit=Hinit, allpaths = allpaths_num[1:endLearningStage,], model = 6, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      out <- DEoptim(aca_negLogLik1,lower = c(0,0,0,0), upper = c(1,1,1,1),Hinit=Hinit, allpaths = allpaths_num, half_index = endLearningStage, model = 6, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
       alpha = out$optim$bestmem[1]
       gamma = out$optim$bestmem[2]
       lambda = out$optim$bestmem[3]
@@ -112,26 +112,26 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       reward = 1 + reward*9
     }
     else if(model == "acaTurns"){
-      ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num[1:endLearningStage,], turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
+      ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num, half_index = endLearningStage, turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 100,parallelType = 1))
       alpha_ACA = ACA$optim$bestmem[1]
     }
     else if(model == "gbTurns"){
-      GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num[1:endLearningStage,], turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 200))
+      GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = allpaths_num, half_index = endLearningStage, turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=2, DEoptim.control(NP = 20,F = 0.8, CR = 0.9, trace = FALSE, itermax = 100,parallelType = 1))
       alpha = GB$optim$bestmem[1]
     }
     else if(model == "aca2Turns"){
-      ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = allpaths_num[1:endLearningStage,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = 2, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = allpaths_num, half_index = endLearningStage,  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = 2, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
       alpha = ACA3$optim$bestmem[1]
       gamma1 = ACA3$optim$bestmem[2]
     }
     else if(model == "aca3Turns"){
-      ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = allpaths_num[1:endLearningStage,],  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = allpaths_num, half_index = endLearningStage,  turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
       alpha = ACA3$optim$bestmem[1]
       gamma1 = ACA3$optim$bestmem[2]
       gamma2 = ACA3$optim$bestmem[3]
     }
     else if(model == "sarsaTurns"){
-      SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = allpaths_num[1:endLearningStage,], turnTimes = 0, turnMethod = 0, model = 6, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 200))
+      SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = allpaths_num, half_index = endLearningStage, turnTimes = 0, turnMethod = 0, model = 6, sim = 2, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
       alpha = SARSA$optim$bestmem[1]
       gamma = SARSA$optim$bestmem[2]
       lambda = SARSA$optim$bestmem[3]

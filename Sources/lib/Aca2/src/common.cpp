@@ -405,7 +405,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
 
 
     int S = states_sess(0) - 1;
-    arma::mat generated_PathData_sess(nrow, 5);
+    arma::mat generated_PathData_sess(nrow, 6);
     generated_PathData_sess.fill(-1);
     arma::mat generated_TurnsData_sess((nrow * 2), 6);
     generated_TurnsData_sess.fill(-1);
@@ -432,6 +432,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
       generated_PathData_sess(act, 2) = R(S, A);
       generated_PathData_sess(act, 3) = 0;
       generated_PathData_sess(act, 4) = sessId;
+      generated_PathData_sess(act, 5) = actionNb;
 
       Rcpp::StringVector turns = getTurnsFromPaths(A, S);
       int nbOfTurns = turns.length();

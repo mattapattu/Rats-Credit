@@ -79,6 +79,7 @@ comparePathModels=function(enreg,rat, window,path){
   #pathmodels=c("aca3")
   #turnmodels=c("aca3Turns")
   res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
+  #debug(getTurnModelData)
   res2 = getTurnModelData(generated_data, turnTimes, turnmodels, window = window, sim=2)
 
   min_index = 0

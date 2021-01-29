@@ -69,3 +69,7 @@ getPathFromTurns <- function(turns, state) {
     .Call(`_TurnsModels_getPathFromTurns`, turns, state)
 }
 
+getPathProbMatrix <- function(turnProbMat, allpaths, sim) {
+    .Call(`_TurnsModels_getPathProbMatrix`, turnProbMat, allpaths, sim)
+}
+

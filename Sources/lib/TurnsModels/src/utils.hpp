@@ -672,4 +672,105 @@ void getRefCounts(std::shared_ptr<TreeNode> root)
     //root->reset();
     
 } 
+// [[Rcpp::export]]
+arma::mat getPathProbMatrix(arma::mat turnProbMat, arma::mat allpaths, int sim)
+{
+  arma::vec pathIdxOfTurns = turnProbMat.col(16);
+  arma::vec allpath_actions = allpaths.col(0);
+  arma::vec allpath_states = allpaths.col(1);
+  if(sim != 1)
+  {
+    allpath_actions = allpath_actions-1;
+    allpath_states = allpath_states-1;
+  }
+  arma::vec actionNb = allpaths.col(5);
+  arma::vec uniqPaths = arma::unique(pathIdxOfTurns);
+  arma::mat probMatrix(uniqPaths.n_rows, 13);
+  probMatrix.fill(-1);
+  
+  std::shared_ptr<TreeNode> rootS1 = probInitS1();
+  std::shared_ptr<TreeNode> rootS2 = probInitS2();
+  for(unsigned int i = 0; i < uniqPaths.n_rows; i++)
+  {
+    arma::uvec pathIndex = arma::find(actionNb == uniqPaths(i));
+    arma::vec states_matched = allpath_states.elem(pathIndex);
+    arma::vec actions_matched = allpath_actions.elem(pathIndex);
+    int curr_state = states_matched(0);
+    //int curr_action = actions_matched(0);
+    probMatrix(i,12) = uniqPaths(i); 
+    arma::uvec turnProbMatIdx_rowIds = arma::find(pathIdxOfTurns == uniqPaths(i));
+    arma::mat turnProbMatIdx_rows = turnProbMat.rows(turnProbMatIdx_rowIds);
+    
+    //Rcpp::Rcout << "curr_state="<< curr_state << ", curr_action=" <<curr_action<<std::endl;
+    // update tree probabilities
+    for(unsigned int j =0; j < turnProbMatIdx_rows.n_rows; j++)
+    {
+      arma::rowvec row = turnProbMatIdx_rows.row(j);
+      if(curr_state == 0)
+      {
+        for(int turn = 0; turn <=7; turn++)
+        {
+          if(row(turn) != -1)
+          {
+            std::string turnName = getTurnString(turn);
+            std::shared_ptr<TreeNode> node = getNode(rootS1, turnName);
+            node->credit = row(turn);
+            //Rcpp::Rcout << "turnName="<< turnName << ", prob=" <<node->credit<<std::endl;
+          }
+        }
+      }
+      else
+      {
+        for(int turn = 8; turn <=15; turn++)
+        {
+          if(row(turn) != -1)
+          {
+            std::string turnName = getTurnString(turn);
+            std::shared_ptr<TreeNode> node = getNode(rootS2, turnName);
+            node->credit = row(turn);
+            //Rcpp::Rcout << "turnName="<< turnName << ", prob=" <<node->credit<<std::endl;
+          }
+        }
+      }
+      
+    }
+
+    //compute new path probs based on updated tree
+    if(curr_state == 0)
+    {
+      for(int act=0;act <5; act++)
+      {
+        Rcpp::StringVector turnStrings =  getTurnsFromPaths(act, curr_state);
+        //Rcpp::Rcout << "turnStrings="<< turnStrings<<std::endl; 
+        double pathProb = 1;
+        for(unsigned int k=0; k < turnStrings.size() ;k++)
+        {
+          std::string turnName = Rcpp::as<std::string>(turnStrings(k));
+          std::shared_ptr<TreeNode> node = getNode(rootS1, turnName);
+          pathProb = pathProb*node->credit;
+        }
+        probMatrix(i,act) =  pathProb;  
+        //Rcpp::Rcout << "i="<< i << ", act=" <<act << ", pathProb=" << pathProb<<std::endl;     
+      }
+    }
+    else
+    {
+      for(int act=6;act <11; act++)
+      {
+        Rcpp::StringVector turnStrings =  getTurnsFromPaths((act-6), curr_state);
+        //Rcpp::Rcout << "turnStrings="<< turnStrings<<std::endl; 
+        double pathProb = 1;
+        for(unsigned int k=0; k < turnStrings.size() ;k++)
+        {
+          std::string turnName = Rcpp::as<std::string>(turnStrings(k));
+          std::shared_ptr<TreeNode> node = getNode(rootS2, turnName);
+          pathProb = pathProb*node->credit;
+        }
+        probMatrix(i,act) =  pathProb;
+        //Rcpp::Rcout << "i="<< i << ", act=" <<act << ", pathProb=" << pathProb<<std::endl;         
+      }
+    }
+  }
+  return(probMatrix);
+}
 #endif

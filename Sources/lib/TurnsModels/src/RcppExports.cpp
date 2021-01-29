@@ -221,6 +221,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getPathProbMatrix
+arma::mat getPathProbMatrix(arma::mat turnProbMat, arma::mat allpaths, int sim);
+RcppExport SEXP _TurnsModels_getPathProbMatrix(SEXP turnProbMatSEXP, SEXP allpathsSEXP, SEXP simSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type turnProbMat(turnProbMatSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type allpaths(allpathsSEXP);
+    Rcpp::traits::input_parameter< int >::type sim(simSEXP);
+    rcpp_result_gen = Rcpp::wrap(getPathProbMatrix(turnProbMat, allpaths, sim));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_TurnsModels_simulateTurnsModels", (DL_FUNC) &_TurnsModels_simulateTurnsModels, 5},
@@ -240,6 +253,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TurnsModels_getTurnIdx", (DL_FUNC) &_TurnsModels_getTurnIdx, 2},
     {"_TurnsModels_getTurnTimes", (DL_FUNC) &_TurnsModels_getTurnTimes, 3},
     {"_TurnsModels_getPathFromTurns", (DL_FUNC) &_TurnsModels_getPathFromTurns, 2},
+    {"_TurnsModels_getPathProbMatrix", (DL_FUNC) &_TurnsModels_getPathProbMatrix, 3},
     {NULL, NULL, 0}
 };
 

@@ -332,7 +332,7 @@ aca_negLogLik1=function(par,Hinit, allpaths,model,half_index, sim) {
     
   }
   
-  negLogLik = (1) *sum(lik)
+  negLogLik = (-1) *sum(lik)
  # print(sprintf("negLogLik = %f",negLogLik))
   if(is.infinite(negLogLik)){
     return(1000000)

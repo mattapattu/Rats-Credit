@@ -289,7 +289,7 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
     int S = states_sess(0) - 1;
     int S_prime = 0;
     arma::mat etrace(2, 6, arma::fill::zeros);
-    arma::mat generated_PathData_sess(nrow, 5);
+    arma::mat generated_PathData_sess(nrow, 6);
     arma::mat generated_TurnsData_sess((nrow * 2), 6);
     generated_PathData_sess.fill(-1);
     int turnIdx = 0;

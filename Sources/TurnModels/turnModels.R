@@ -6,7 +6,7 @@ library(TTR)
 
 
 acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
+  ACA = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model=1, sim=sim, DEoptim.control(NP=20, F=2, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1, reltol = 0.0005, steptol = 10))
   alpha_ACA = ACA$optim$bestmem[1]
   reward_ACA = ACA$optim$bestmem[2]
   reward_ACA = 1+reward_ACA*9
@@ -49,7 +49,7 @@ acaTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, e
 }
 
 gbTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
+  GB = DEoptim(negLogLikFunc, lower = c(0,0), upper = c(1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model=2, sim=sim, DEoptim.control(NP=20, F=2, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1, reltol = 0.0005, steptol = 10))
   alpha_GB = GB$optim$bestmem[1]
   reward_GB = GB$optim$bestmem[2]
   reward_GB = 1+reward_GB*9
@@ -91,7 +91,7 @@ gbTurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, en
 }
 
 aca2TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA2 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
+  ACA2 <- DEoptim(negLogLikFunc,lower = c(0,0), upper = c(1,1), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = sim, DEoptim.control(NP=20, F=2, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1, reltol = 0.0005, steptol = 10))
   alpha_ACA2 = ACA2$optim$bestmem[1]
   gamma1_ACA2 = ACA2$optim$bestmem[2]
   # ACA2 = ga("real-valued", fitness =  negLogLikFunc,lower = c(0,0), upper = c(1,1),allpaths = generated_data, half_index=half_index,  turnTimes = turnTimes, turnMethod = turnMethod, model = 4, sim = sim, popSize=50, maxiter = 100, run = 10,monitor=FALSE)
@@ -140,7 +140,7 @@ aca2TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
 }
 
 aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, end_index, window){
-  ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = sim, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
+  ACA3 <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,0), allpaths = generated_data, half_index=half_index, turnTimes = turnTimes, turnMethod = turnMethod, model = 5, sim = sim, DEoptim.control(NP=40, F=2, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1, reltol = 0.0005, steptol = 10))
   alpha_ACA3 = ACA3$optim$bestmem[1]
   gamma1_ACA3 = ACA3$optim$bestmem[2]
   gamma2_ACA3 = ACA3$optim$bestmem[3]
@@ -194,7 +194,7 @@ aca3TurnData = function(generated_data, turnTimes, turnMethod, sim, half_index, 
 }
 
 sarsaTurnData=function(generated_data,turnTimes, sim, half_index, end_index, window){
-  SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = generated_data,half_index=half_index, turnTimes = 0, turnMethod = 0, model = 6, sim = sim, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1))
+  SARSA <- DEoptim(negLogLikFunc,lower = c(0,0,0,0), upper = c(1,1,1,1), allpaths = generated_data,half_index=half_index, turnTimes = 0, turnMethod = 0, model = 6, sim = sim, DEoptim.control(NP=40, F=2, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1, reltol = 0.0005, steptol = 10))
   alpha_SARSA = SARSA$optim$bestmem[1]
   gamma_SARSA = SARSA$optim$bestmem[2]
   lambda_SARSA = SARSA$optim$bestmem[3]
@@ -332,12 +332,12 @@ negLogLikFunc=function(par,allpaths,turnTimes,turnMethod,half_index,model,sim) {
     probMatrix = SarsaTurns::getProbMatrix(allpaths,alpha,gamma,lambda,reward,sim)
     pathProbMatrix = TurnsModels::getPathProbMatrix(probMatrix,allpaths,sim)
     path4Probs = pathProbMatrix[which(pathProbMatrix[,4]>0),4]
-    path4AboveLim = which(path4Probs >= 0.95)
+    path4AboveLim = which(path4Probs >= 0.80)
     result <- rle(diff(path4AboveLim))
     path4Converged = any(result$lengths>=30 & result$values==1)
     
     path10Probs = pathProbMatrix[which(pathProbMatrix[,10]>0),10]
-    path10AboveLim = which(path10Probs >= 0.95)
+    path10AboveLim = which(path10Probs >= 0.80)
     result <- rle(diff(path10AboveLim))
     path10Converged = any(result$lengths>=30 & result$values==1)
     

@@ -319,7 +319,7 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
   
   rle_sess = rle(allpaths_num[,5])
   last_paths<-cumsum(rle_sess$lengths)
-  allpaths_num<-allpaths_num[-last_paths,]
+  #allpaths_num1<-allpaths_num[-last_paths,]
   
   empiricalProbMatrix = baseModels::empiricalProbMat(allpaths_num, window = window)
   
@@ -340,8 +340,33 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
         ylim=c(0,0.6)
       }
       
-      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = paste0(rat,": Path ",act," State ",state),cex.lab=1.3)
-      lines(empiricalProbMatrix[which(allpaths_num[,2]==state),(act+6*(state-1))])
+      ### Ugly - update this "aca3TurnData"
+      if(any(grepl("Turns",models)))
+      {
+        pathids = res2$aca3TurnData@ProbMatrix[,17]
+        uniqPathIds = unique(pathids)
+        #uniqPathIds = uniqPathIds[which(uniqPathIds %in% allpaths_num[,6])]
+        empiricalMatIdx = which(allpaths_num[,6] %in% uniqPathIds & allpaths_num[,2] == state)
+        pathIdsInState = allpaths_num[which(allpaths_num[,6] %in% uniqPathIds & allpaths_num[,2] == state),6]
+      }
+      else
+      {
+        empiricalMatIdx = which(allpaths_num[,2]==state)
+        pathIdsInState = allpaths_num[which(allpaths_num[,2]==state),6]
+      }
+      
+      if(state==1)
+      {
+        box = "box E"
+      }
+      else
+      {
+        box = "box I"
+      }
+      actNb = act+ ((state-1)*6)
+      plot(1, type="n", xlab="Trials", ylab="Probability", xlim=c(0, length(which(allpaths_num[,2]==state))), ylim=ylim, main = paste0(rat,": Path ",actNb,", ",box),cex.lab=1.3)
+      lines(empiricalProbMatrix[empiricalMatIdx,(act+6*(state-1))])
+      
       i=0
       for(m in models)
       {
@@ -364,29 +389,31 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
         }
         else if(m == "sarsa")
         {
-          probmatrix = getPathProb(res1$sarsamse@ProbMatrix)
+          probmatrix = res1$sarsamse@ProbMatrix
         }
         else if(m == "acaTurns")
         {
-          probmatrix = getPathProb(res2$acaTurnData@ProbMatrix)
+          probmatrix = TurnsModels::getPathProbMatrix(res2$acaTurnData@ProbMatrix,allpaths_num,sim = 2)
         }
         else if(m == "gbTurns")
         {
-          probmatrix = getPathProb(res2$gbTurnData@ProbMatrix)
+          probmatrix = TurnsModels::getPathProbMatrix(res2$gbTurnData@ProbMatrix,allpaths_num,sim = 2)
         }
         else if(m == "aca2Turns")
         {
-          probmatrix = getPathProb(res2$aca2TurnData@ProbMatrix)
+          probmatrix = TurnsModels::getPathProbMatrix(res2$aca2TurnData@ProbMatrix,allpaths_num,sim = 2)
         }
         else if(m == "aca3Turns")
         {
-          probmatrix = getPathProb(res2$aca3TurnData@ProbMatrix)
+          probmatrix = TurnsModels::getPathProbMatrix(res2$aca3TurnData@ProbMatrix,allpaths_num,sim = 2)
         }
         else if(m == "sarsaTurns")
         {
-          probmatrix = getPathProb(res2$sarsaTurnData@ProbMatrix)
+          probmatrix = TurnsModels::getPathProbMatrix(res2$TurnData@ProbMatrix,allpaths_num,sim = 2)
         }
-        lines(probmatrix[which(probmatrix[,(act+6*(state-1))]>0),(act+6*(state-1))],col=cols[i],ylab="Probability",lwd=2)
+        
+
+        lines(probmatrix[which(probmatrix[,13] %in% pathIdsInState),(act+6*(state-1))],col=cols[i],ylab="Probability",lwd=2)
         
       }
       modelnames = models
@@ -450,27 +477,27 @@ generateModelProbPlots2=function(rat, window, res1, res2,models, allpaths_num,pa
     }
     else if(m == "acaTurns")
     {
-      probmatrix = getPathProb(res2$acaTurnData@ProbMatrix)
+      probmatrix = TurnsModels::getPathProbMatrix(res2$acaTurnData@ProbMatrix,allpaths_num,sim = 2)
       probmatrix2 = res2$acaTurnData@ProbMatrix
     }
     else if(m == "gbTurns")
     {
-      probmatrix = getPathProb(res2$gbTurnData@ProbMatrix)
+      probmatrix = TurnsModels::getPathProbMatrix(res2$gbTurnData@ProbMatrix,allpaths_num,sim = 2)
       probmatrix2 = res2$gbTurnData@ProbMatrix
     }
     else if(m == "aca2Turns")
     {
-      probmatrix = getPathProb(res2$aca2TurnData@ProbMatrix)
+      probmatrix = TurnsModels::getPathProbMatrix(res2$aca2TurnData@ProbMatrix,allpaths_num,sim = 2)
       probmatrix2 = res2$aca2TurnData@ProbMatrix
     }
     else if(m == "aca3Turns")
     {
-      probmatrix = getPathProb(res2$aca3TurnData@ProbMatrix)
+      probmatrix = TurnsModels::getPathProbMatrix(res2$aca3TurnData@ProbMatrix,allpaths_num,sim = 2)
       probmatrix2 = res2$aca3TurnData@ProbMatrix
     }
     else if(m == "sarsaTurns")
     {
-      probmatrix = getPathProb(res2$sarsaTurnData@ProbMatrix)
+      probmatrix = TurnsModels::getPathProbMatrix(res2$sarsaTurnData@ProbMatrix,allpaths_num,sim = 2)
       probmatrix2 = res2$sarsaTurnData@ProbMatrix
     }
     
@@ -797,7 +824,7 @@ getEndIndex = function(generated_data, sim){
   }
   end_index1=0
   s1 <- which(generated_data[,2]==1)
-  l<-which(SMA(generated_data[s1,3],30)>=0.95)
+  l<-which(SMA(generated_data[s1,3],30)>=0.80)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
     if(length(k[[set]])>20){
@@ -809,7 +836,7 @@ getEndIndex = function(generated_data, sim){
   
   end_index2=0
   s2 <- which(generated_data[,2]==2)
-  l<-which(SMA(generated_data[s2,3],30)>=0.95)
+  l<-which(SMA(generated_data[s2,3],30)>=0.80)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
     if(length(k[[set]])>20){

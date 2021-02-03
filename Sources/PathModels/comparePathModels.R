@@ -62,10 +62,10 @@ comparePathModels=function(enreg,rat, window,path){
 
   Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
   models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
-  #models = c("aca3","aca3Turns" )
+  #models = c("sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
   turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
-  #debug(validateHoldout)
-  #mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
+  debug(validateHoldout)
+  mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
   #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
 
   # ##### Model Selection On Acutal Data #########################3
@@ -79,7 +79,7 @@ comparePathModels=function(enreg,rat, window,path){
   #pathmodels=c("aca3")
   #turnmodels=c("aca3Turns")
   res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
-  #debug(getTurnModelData)
+  debug(getTurnModelData)
   res2 = getTurnModelData(generated_data, turnTimes, turnmodels, window = window, sim=2)
 
   min_index = 0
@@ -203,8 +203,10 @@ comparePathModels=function(enreg,rat, window,path){
   # debug(generatePlots)
   # generatePlots(rat,window, res$acamse@ProbMatrix, res$gbmse@ProbMatrix, res$sarsa@ProbMatrix, res$aca3mse@ProbMatrix, allpaths_num)
   #generatePlots(rat,window, res$acamse@ProbMatrix, models, res1, res2, allpaths_num)
+ 
+  #load(paste0("C:/Rats-Credits/",rat,"_results.RData"))
   #debug(generateModelProbPlots)
-  #generateModelProbPlots(rat,window,res1,res2,models,allpaths_num)
+  #sgenerateModelProbPlots(rat,window,res1,res2,c("aca3","aca3Turns"),allpaths_num)
   #debug(generateModelProbPlots2)
 
   #generateModelProbPlots2(rat, window, res1, res2,models, allpaths_num,path)

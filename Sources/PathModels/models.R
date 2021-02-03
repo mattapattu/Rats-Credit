@@ -6,7 +6,7 @@ library(TTR)
 
 
 acaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
-  ACA = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit = Hinit2, allpaths = generated_data,half_index=half_index, model=1, sim=sim, DEoptim.control(NP=10, F=0.8, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1))
+  ACA = DEoptim(aca_negLogLik1, lower = 0, upper = 1, Hinit = Hinit2, allpaths = generated_data,half_index=half_index, model=1, sim=sim, DEoptim.control(NP=10, F=2, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1, reltol = 0.0005, steptol = 10))
   alpha_ACA = ACA$optim$bestmem[1]
   # ACA = ga("real-valued", fitness =  aca_negLogLik1,lower = c(0), upper = c(1),Hinit = Hinit2, allpaths = generated_data, half_index=half_index, model = 1, sim = sim, popSize=50, maxiter = 100, run = 10,monitor=FALSE) 
   # alpha_ACA = ACA@solution[1]
@@ -45,7 +45,7 @@ acaData = function(Hinit2, generated_data, sim, half_index, end_index, window){
 
 gbData = function(Hinit2, generated_data, sim, half_index, end_index, window){
   
-  GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, Hinit =  Hinit2, allpaths = generated_data, half_index=half_index, model = 2, sim=sim, DEoptim.control(NP=10, F=0.8, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1))
+  GB <- DEoptim(aca_negLogLik1,lower = 0, upper = 1, Hinit =  Hinit2, allpaths = generated_data, half_index=half_index, model = 2, sim=sim, DEoptim.control(NP=10, F=2, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1, reltol = 0.0005, steptol = 10))
   alpha_GB = GB$optim$bestmem[1]
   # GB = ga("real-valued", fitness =  aca_negLogLik1,lower = c(0), upper = c(1),Hinit =  Hinit2, allpaths = generated_data, half_index=half_index, model = 2, sim = sim, popSize=50, maxiter = 100, run = 10,monitor=FALSE)
   # alpha_GB = GB@solution[1]
@@ -106,7 +106,7 @@ gbAcaData = function(Hinit2, generated_data, sim, half_index, end_index, window)
 
 
 aca2Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
-  ACA2 <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1), H = Hinit2, allpaths = generated_data,half_index=half_index, model = 4, sim = sim, DEoptim.control(NP=20, F=0.8, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1))
+  ACA2 <- DEoptim(aca_negLogLik1,lower = c(0,0), upper = c(1,1), H = Hinit2, allpaths = generated_data,half_index=half_index, model = 4, sim = sim, DEoptim.control(NP=20, F=2, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1,reltol = 0.0005, steptol = 10))
   alpha_ACA2 = ACA2$optim$bestmem[1]
   gamma1_ACA2 = ACA2$optim$bestmem[2]
   # ACA2 = ga("real-valued", fitness =  aca_negLogLik1,lower = c(0,0), upper = c(1,1),Hinit = Hinit2,allpaths = generated_data, half_index=half_index, model = 4, sim = sim, popSize=50, maxiter = 100, run = 10,monitor=FALSE)
@@ -143,7 +143,7 @@ aca2Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
 }
 
 aca3Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
-  ACA3 <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = Hinit2, allpaths = generated_data,half_index=half_index, model = 5, sim = sim, DEoptim.control(NP=30, F=0.8, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1))
+  ACA3 <- DEoptim(aca_negLogLik1,lower = c(0,0,0), upper = c(1,1,1), Hinit = Hinit2, allpaths = generated_data,half_index=half_index, model = 5, sim = sim, DEoptim.control(NP=30, F=2, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1,reltol = 0.0005, steptol = 10))
   alpha_ACA3 = ACA3$optim$bestmem[1]
   gamma1_ACA3 = ACA3$optim$bestmem[2]
   gamma2_ACA3 = ACA3$optim$bestmem[3]
@@ -184,7 +184,7 @@ aca3Data = function(Hinit2, generated_data, sim, half_index, end_index, window){
 }
 
 sarsaData=function(Qinit, generated_data, sim, half_index, end_index, window){
-  SARSA <- DEoptim(aca_negLogLik1,lower = c(0,0,0,0), upper = c(1,1,1,1), Hinit = matrix(0,2,6), half_index=half_index, allpaths = generated_data, model = 6, sim = sim, DEoptim.control(NP=40, F=0.8, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1))
+  SARSA <- DEoptim(aca_negLogLik1,lower = c(0,0,0,0), upper = c(1,1,1,1), Hinit = matrix(0,2,6), half_index=half_index, allpaths = generated_data, model = 6, sim = sim, DEoptim.control(NP=40, F=2, CR = 0.9,trace = FALSE, itermax = 100, parallelType = 1,reltol = 0.0005, steptol = 10))
   alpha_SARSA = SARSA$optim$bestmem[1]
   gamma_SARSA = SARSA$optim$bestmem[2]
   lambda_SARSA = SARSA$optim$bestmem[3]
@@ -311,12 +311,12 @@ aca_negLogLik1=function(par,Hinit, allpaths,model,half_index, sim) {
     
     probMatrix = Sarsa::getProbMatrix(allpaths, alpha, gamma, lambda,reward, Hinit, sim, model, policyMethod=1)
     path4Probs = probMatrix[which(probMatrix[,4]>0),4]
-    path4AboveLim = which(path4Probs >= 0.95)
+    path4AboveLim = which(path4Probs >= 0.80)
     result <- rle(diff(path4AboveLim))
     path4Converged = any(result$lengths>=30 & result$values==1)
     
     path10Probs = probMatrix[which(probMatrix[,10]>0),10]
-    path10AboveLim = which(path10Probs >= 0.95)
+    path10AboveLim = which(path10Probs >= 0.80)
     result <- rle(diff(path10AboveLim))
     path10Converged = any(result$lengths>=30 & result$values==1)
     

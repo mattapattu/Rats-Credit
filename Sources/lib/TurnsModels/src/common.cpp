@@ -383,7 +383,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         score_episode = score_episode + 1;
       }
       //Rcpp::Rcout << "Path=" << A << ", S=" << S << std::endl;
-      if (A != 5)
+      if (A != 6)
       {
         arma::uvec act_idx = arma::find(generated_PathData_sess.col(0) == A && generated_PathData_sess.col(1) == S);
         int pathCount = act_idx.n_elem;

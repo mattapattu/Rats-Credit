@@ -31,27 +31,35 @@ getPathNumber=function(path){
     pathnb = 2
   }else if(grepl("^f.*g.*a.*k.*j.*i$",path)){
     pathnb = 3
-  }else if(grepl("^j.*i$",path)){
+  }else if(grepl("^f.*e$",path)){
     pathnb = 5
   }else if(grepl("^f.*g.*a.*b.*c.*h.*i$",path)){
     pathnb = 4
-  }else if(grepl("^h.*c.*d.*e$",path)){
+  }else if(grepl("^d.*c.*b.*a.*g.*f.*e$",path))
+  {
+    pathnb = 6
+  }
+  else if(grepl("^h.*c.*d.*e$",path)){
     pathnb = 1
   }else if(grepl("^h.*c.*b.*a.*g.*f.*e$",path)){
     pathnb = 2
   }else if(grepl("^j.*k.*a.*g.*f.*e$",path)){
     pathnb = 3
-  }else if(grepl("^f.*e$",path)){
+  }else if(grepl("^j.*i$",path)){
     pathnb = 5
   }else if(grepl("^j.*k.*a.*b.*c.*d.*e$",path)){
     pathnb = 4
-  }else if(grepl("^.*e$",path)){
+  }else if(grepl("^h.*c.*b.*a.*k.*j.*i$",path))
+  {
     pathnb = 6
+  }
+  else if(grepl("^.*e$",path)){
+    pathnb = 7
   }else if(grepl("^.*i$",path)){
-    pathnb = 6
+    pathnb = 7
   }else{
     ## A =7
-    pathnb=6
+    pathnb=7
   }
   
   return(pathnb)

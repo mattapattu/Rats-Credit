@@ -187,6 +187,12 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
       turns.push_back("gab");
       turns.push_back("bcd");
     }
+    else if (path == 5)
+    {
+      turns.push_back("dcb");
+      turns.push_back("bag");
+    }
+
   }
   else if (state == 1)
   {
@@ -212,6 +218,11 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
     {
       turns.push_back("kab");
       turns.push_back("bch");
+    }
+    else if (path == 5)
+    {
+      turns.push_back("hcb");
+      turns.push_back("bak");
     }
   }
 

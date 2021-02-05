@@ -16,13 +16,18 @@ inline arma::mat Aca3CreditUpdate(arma::mat H, arma::vec actions, arma::vec stat
   arma::vec uniq_action1 = arma::unique(actions.elem(state1_idx));
   
   for(unsigned int l=0;l< uniq_action1.n_elem;l++){
+
+    if(uniq_action1(l)== 6 )
+    {
+      continue;
+    }
     
     double  curr_action = uniq_action1(l);
     arma::vec last_ep_time_s1 = trialTimes.elem(state1_idx);
     arma::vec last_ep_actions_s1 = actions.elem(state1_idx);
     arma::uvec curr_act_idx = arma::find(last_ep_actions_s1==curr_action);
     double activity = 0;
-    if (curr_action != 5)
+    if (curr_action != 6)
     {
       activity = arma::accu(last_ep_time_s1.elem(curr_act_idx)) / arma::accu(trialTimes);
     }
@@ -42,7 +47,9 @@ inline arma::mat Aca3CreditUpdate(arma::mat H, arma::vec actions, arma::vec stat
   arma::vec uniq_action2 = arma::unique(actions.elem(state2_idx));
   
   for(unsigned int l=0;l< uniq_action2.n_elem;l++){
-    if(uniq_action2(l)==-1){
+    
+    if(uniq_action2(l)== 6 )
+    {
       continue;
     }
     double  curr_action = uniq_action2(l);
@@ -50,7 +57,7 @@ inline arma::mat Aca3CreditUpdate(arma::mat H, arma::vec actions, arma::vec stat
     arma::vec last_ep_actions_s2 = actions.elem(state2_idx);
     arma::uvec curr_act_idx= arma::find(last_ep_actions_s2==curr_action);
     double activity = 0;
-    if (curr_action != 5)
+    if (curr_action != 6)
     {
       activity = arma::accu(last_ep_time_s2.elem(curr_act_idx)) / arma::accu(trialTimes);
     }

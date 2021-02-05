@@ -15,7 +15,7 @@ using namespace Rcpp;
 int aca_getNextState(int curr_state, int action)
 {
   int new_state = -1;
-  if (action == 4)
+  if (action == 4 || action == 4)
   {
     new_state = curr_state;
   }
@@ -391,7 +391,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
       episodeActions.push_back(A);
       episodeStates.push_back(S);
       
-      if (A == 5)
+      if (A == 6)
       {
         episodePathTimes.push_back(0);  
       }
@@ -569,22 +569,28 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int s
       }
 
       double prob_a = 0;
-      if (policyMethod == 1)
+      if(A != 6)
       {
-        prob_a = actionProb(A, S, H, 1, 0);
-      }
-      else if (policyMethod == 2)
-      {
-        if (i > endTrial)
+        if (policyMethod == 1)
         {
-          epsilon = 1;
+          prob_a = actionProb(A, S, H, 1, 0);
         }
-        prob_a = actionProb(A, S, H, 2, epsilon);
+        else if (policyMethod == 2)
+        {
+          if (i > endTrial)
+          {
+            epsilon = 1;
+          }
+          prob_a = actionProb(A, S, H, 2, epsilon);
+        }
+      }
+      
+      if(prob_a > 0)
+      {
+        double logProb = log(prob_a);
+        likelihoodVec_sess(i) = logProb;
       }
 
-      double logProb = log(prob_a);
-
-      likelihoodVec_sess(i) = logProb;
       //Rcpp::Rcout << "logProb=" << logProb <<std::endl;
       //log_lik=log_lik+ logProb;
 
@@ -625,7 +631,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int s
       }
 
       S = S_prime;
-      //trial=trial+1;
+     // trial=trial+1;
     }
 
     //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
@@ -699,7 +705,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, arma::mat H, int sim, 
     for (int i = 0; i < (nrow - 1); i++)
     {
 
-      //Rcpp::Rcout << "S=" << S << ", A=" << A << ", episode=" << episode <<std::endl;
+      //Rcpp::Rcout << "S=" << S << ", episode=" << episode <<std::endl;
       if (resetVector)
       {
         initState = S;
@@ -801,6 +807,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, arma::mat H, int sim, 
         //H = Aca3CreditUpdate(H, actions, states, time_taken_for_trial,  alpha, score_episode);
         H = updateCreditMatrix(H, actions, states, time_taken_for_trial, alpha, score_episode, avg_score, model);
         score_episode = 0;
+        //Rcpp::Rcout <<  "Start new episode"<<std::endl;
       }
 
       S = S_prime;

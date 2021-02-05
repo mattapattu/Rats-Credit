@@ -459,7 +459,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
       episodeActions.push_back(A);
       episodeStates.push_back(S);
       
-      if (A == 5)
+      if (A == 6)
       {
         episodePathTimes.push_back(0);  
       }
@@ -640,22 +640,30 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma1, arm
       }
 
       double prob_a = 0;
-      if (policyMethod == 1)
+      if(A != 6)
       {
-        prob_a = actionProb(A, S, H, 1, 0);
-      }
-      else if (policyMethod == 2)
-      {
-        if (i > endTrial)
+        if (policyMethod == 1)
         {
-          epsilon = 1;
+          prob_a = actionProb(A, S, H, 1, 0);
         }
-        prob_a = actionProb(A, S, H, 2, epsilon);
+        else if (policyMethod == 2)
+        {
+          if (i > endTrial)
+          {
+            epsilon = 1;
+          }
+          prob_a = actionProb(A, S, H, 2, epsilon);
+        }
       }
 
-      double logProb = log(prob_a);
+      if(prob_a > 0)
+      {
+        double logProb = log(prob_a);
+        likelihoodVec_sess(i) = logProb;
+      }
+      
 
-      likelihoodVec_sess(i) = logProb;
+      
       //Rcpp::Rcout << "logProb=" << logProb <<std::endl;
       //log_lik=log_lik+ logProb;
 

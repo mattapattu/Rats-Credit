@@ -93,7 +93,7 @@ int epsGreedyActionSel(arma::mat H, int S, double epsilon)
 int aca_getNextState(int curr_state, int action)
 {
   int new_state = -1;
-  if (action == 4)
+  if (action == 4 || action == 5)
   {
     new_state = curr_state;
   }
@@ -398,7 +398,7 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
         generated_TurnsData_sess((turnIdx - 1), 2) = 1;
       }
 
-      if (A != 5)
+      if (A != 6)
       {
         arma::uvec act_idx = arma::find(generated_PathData_sess.col(0) == A && generated_PathData_sess.col(1) == S);
         int pathCount = act_idx.n_elem;
@@ -441,15 +441,25 @@ Rcpp::List simulateSarsa(arma::mat allpaths, arma::mat turnTimes, double alpha, 
         resetVector = true;
       }
 
-      double prediction = gamma * Q(S_prime, A_prime);
+      double prediction = 0;
+
+      if(A_prime !=6)
+      {
+        prediction = gamma * Q(S_prime, A_prime);
+      }
       int pathReward = 0;
       if(R(S, A)==1)
       {
         pathReward = rewardVal;
       }
-      double td_err = pathReward + prediction - Q(S, A);
 
-      etrace(S, A) = etrace(S, A) + 1;
+      double td_err = 0;
+      if(A !=6)
+      {
+        td_err = pathReward + prediction - Q(S, A);
+        etrace(S, A) = etrace(S, A) + 1;
+      }
+     
 
       for (int state = 0; state < 2; state++)
       {
@@ -567,6 +577,8 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, doub
         A_prime = actions_sess(i + 1) - 1;
       }
 
+      //Rcpp::Rcout << "S_prime=" << S_prime << ", A_prime=" << A_prime <<std::endl;
+
       if (S_prime != initState)
       {
         changeState = true;
@@ -577,17 +589,24 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, doub
       }
 
       double prob_a = 0;
-      if (policyMethod == 1)
+      if(A != 6)
       {
-        prob_a = actionProb(A, S, Q, 1);
-      }
-      else if (policyMethod == 2)
-      {
-        prob_a = actionProb(A, S, Q, 2, epsilon);
+        if (policyMethod == 1)
+        {
+          prob_a = actionProb(A, S, Q, 1);
+        }
+        else if (policyMethod == 2)
+        {
+          prob_a = actionProb(A, S, Q, 2, epsilon);
+        }
       }
 
-      double logProb = log(prob_a);
-      likelihoodVec_sess(i) = logProb;
+      if(prob_a > 0)
+      {
+        double logProb = log(prob_a);
+        likelihoodVec_sess(i) = logProb;
+      }
+      //Rcpp::Rcout << "prob_a=" << prob_a <<std::endl;
       //Rcpp::Rcout << "logProb=" << logProb <<std::endl;
       //log_lik=log_lik+ logProb;
 
@@ -607,20 +626,31 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, doub
       //   prediction = gamma*Q(S_prime, idx);
       // }
 
-      double prediction = gamma * Q(S_prime, A_prime);
+      
       int pathReward = 0;
       if(R==1)
       {
         pathReward = rewardVal;
       }
-      double td_err = pathReward + prediction - Q(S, A);
+      //Rcpp::Rcout <<  "pathReward=" << pathReward<<std::endl;
+      double prediction = 0;
+      double td_err = 0;
+       if(A != 6 && A_prime!= 6)
+      {
+        prediction = gamma * Q(S_prime, A_prime);   
+        
+      }
 
       //Rcpp::Rcout <<  "prediction=" << prediction<<std::endl;
-      // Rcpp::Rcout <<  "S=" << S << ", A =" << A << ", Q(S,A) = " << Q(S,A) <<std::endl;
-      // Rcpp::Rcout <<  "S_prime = " << S_prime << ", A_prime = " << A_prime  << ", Q(S',A') = " << Q(S_prime, A_prime) <<std::endl;
+      //Rcpp::Rcout <<  "S=" << S << ", A =" << A <<std::endl;
+      //Rcpp::Rcout <<  "S_prime = " << S_prime << ", A_prime = " << A_prime  << ", Q(S',A') = " << Q(S_prime, A_prime) <<std::endl;
       // Rcpp::Rcout <<  "R = " << R << ", td_err = " << td_err <<std::endl;
 
-      etrace(S, A) = etrace(S, A) + 1;
+       if(A != 6)
+      {
+        etrace(S, A) = etrace(S, A) + 1;  
+        td_err = pathReward + prediction - Q(S, A);   
+      }
 
       for (int state = 0; state < 2; state++)
       {
@@ -797,22 +827,29 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
       //   //Rcpp::Rcout << "S_prime=" << S_prime << ", A_prime=" << A_prime <<std::endl;
 
       // }
-
-      double prediction = gamma * Q(S_prime, A_prime);
+      double prediction = 0;
+      if(A_prime != 6 && A_prime!= 6)
+      {
+        prediction = gamma * Q(S_prime, A_prime);
+      }
+      
       int pathReward = 0;
       if(R==1)
       {
         pathReward = rewardVal;
       }
-      double td_err = pathReward + prediction - Q(S, A);
 
       //Rcpp::Rcout <<  "prediction=" << prediction<<std::endl;
       // Rcpp::Rcout <<  "S=" << S << ", A =" << A << ", Q(S,A) = " << Q(S,A) <<std::endl;
       // Rcpp::Rcout <<  "S_prime = " << S_prime << ", A_prime = " << A_prime  << ", Q(S',A') = " << Q(S_prime, A_prime) <<std::endl;
       // Rcpp::Rcout <<  "R = " << R << ", td_err = " << td_err <<std::endl;
-
-      etrace(S, A) = etrace(S, A) + 1;
-
+      double td_err = 0;
+      if(A != 6)
+      {
+        etrace(S, A) = etrace(S, A) + 1;  
+        td_err = pathReward + prediction - Q(S, A);
+   
+      }
       for (int state = 0; state < 2; state++)
       {
         for (int act = 0; act < 5; act++)

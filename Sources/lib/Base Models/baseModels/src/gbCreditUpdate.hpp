@@ -18,7 +18,7 @@ arma::mat GbCreditUpdate(arma::mat H,arma::vec actions, arma::vec states, double
     
     // UPDATE CREDIT OF STATE 1 ACTIONS SECLECTED DURING LAST N EPISODS
     for(unsigned int l=0;l< uniq_action1.n_elem;l++){
-      if(uniq_action1(l)==-1){
+      if(uniq_action1(l)==-1 || uniq_action1(l)== 6 ){
         continue;
       }
       double  curr_action = uniq_action1(l);
@@ -58,7 +58,7 @@ arma::mat GbCreditUpdate(arma::mat H,arma::vec actions, arma::vec states, double
     // UPDATE CREDIT OF STATE 2 ACTIONS SECLECTED DURING LAST N EPISODS
     
     for(unsigned int l=0;l< uniq_action2.n_elem;l++){
-      if(uniq_action2(l)==-1){
+      if(uniq_action2(l)==-1 || uniq_action2(l)==6){
         continue;
       }
       double  curr_action = uniq_action2(l);

@@ -34,6 +34,7 @@ inline arma::mat AcaCreditUpdate(arma::mat H, arma::vec actions, arma::vec state
       //Rcpp::Rcout <<"state=0" << ", curr_action=" <<curr_action <<", activity="<<activity<<", score_episode="<<score_episode<< std::endl;
 
       H(0, curr_action) = (H(0, curr_action) + (alpha * score_episode * (activity)));
+      //Rcpp::Rcout <<"state=1" << ", curr_action=" <<curr_action <<", activity="<<activity<<", score_episode="<<score_episode << ", H(0, curr_action)=" << H(0, curr_action)<< std::endl;
       if (R_IsNaN((H(0, curr_action))))
       {
         Rcpp::Rcout << "state=" << 0 << ", action=" << curr_action << std::endl;
@@ -74,8 +75,9 @@ inline arma::mat AcaCreditUpdate(arma::mat H, arma::vec actions, arma::vec state
         activity = arma::accu(last_ep_time_s2.elem(curr_act_idx)) / arma::accu(trialTimes);
       }
 
-      //Rcpp::Rcout <<"state=1" << ", curr_action=" <<curr_action <<", activity="<<activity<<", score_episode="<<score_episode<< std::endl;
       H(1, curr_action) = (H(1, curr_action) + (alpha * score_episode * (activity)));
+      //Rcpp::Rcout <<"state=1" << ", curr_action=" <<curr_action <<", activity="<<activity<<", score_episode="<<score_episode << ", H(1, curr_action)=" << H(1, curr_action)<< std::endl;
+
 
       if (R_IsNaN((H(1, curr_action))))
       {

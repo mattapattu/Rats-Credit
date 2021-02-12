@@ -332,12 +332,12 @@ negLogLikFunc=function(par,allpaths,turnTimes,turnMethod,half_index,model,sim) {
     probMatrix = SarsaTurns::getProbMatrix(allpaths,alpha,gamma,lambda,reward,sim)
     pathProbMatrix = TurnsModels::getPathProbMatrix(probMatrix,allpaths,sim)
     path4Probs = pathProbMatrix[which(pathProbMatrix[,4]>0),4]
-    path4AboveLim = which(path4Probs >= 0.80)
+    path4AboveLim = which(path4Probs >= 0.95)
     result <- rle(diff(path4AboveLim))
     path4Converged = any(result$lengths>=30 & result$values==1)
     
     path10Probs = pathProbMatrix[which(pathProbMatrix[,10]>0),10]
-    path10AboveLim = which(path10Probs >= 0.80)
+    path10AboveLim = which(path10Probs >= 0.95)
     result <- rle(diff(path10AboveLim))
     path10Converged = any(result$lengths>=30 & result$values==1)
     

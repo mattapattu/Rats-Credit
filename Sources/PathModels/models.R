@@ -311,12 +311,12 @@ aca_negLogLik1=function(par,Hinit, allpaths,model,half_index, sim) {
     
     probMatrix = Sarsa::getProbMatrix(allpaths, alpha, gamma, lambda,reward, Hinit, sim, model, policyMethod=1)
     path4Probs = probMatrix[which(probMatrix[,4]>0),4]
-    path4AboveLim = which(path4Probs >= 0.80)
+    path4AboveLim = which(path4Probs >= 0.95)
     result <- rle(diff(path4AboveLim))
     path4Converged = any(result$lengths>=30 & result$values==1)
     
     path10Probs = probMatrix[which(probMatrix[,10]>0),10]
-    path10AboveLim = which(path10Probs >= 0.80)
+    path10AboveLim = which(path10Probs >= 0.95)
     result <- rle(diff(path10AboveLim))
     path10Converged = any(result$lengths>=30 & result$values==1)
     

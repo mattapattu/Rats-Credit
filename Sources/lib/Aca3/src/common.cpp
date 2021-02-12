@@ -590,6 +590,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma1, dou
     }
 
     arma::vec likelihoodVec_sess(nrow - 1);
+    likelihoodVec_sess.fill(0);
     arma::vec episodeVec(nrow - 1);
     //All episodes in new session
     for (int i = 0; i < (nrow - 1); i++)

@@ -15,45 +15,11 @@ comparePathModels=function(enreg,rat, window,path){
   allpaths = updateACAPathNbmse(allpaths)
   print(sprintf("rat:%s",rat))
 
-  enreg_comb<-matrix(, nrow = 0, ncol = 7)
-  for(ses in 1:length(enreg)){
-    
-    if(is.null(enreg[[ses]])){
-      #print(sprintf("skipping %s ses %i as enreg is empty",rat,ses))
-      next
-    }else if(isempty(enreg[[ses]]$EVENTS)){
-      #print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
-      next
-    }else if(rat=="rat_106" && ses==3){
-      #print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
-      next
-      
-    }else if(rat=="rat_112" && ses==1){
-      #print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
-      next
-      
-    }else if(rat=="rat_113" && ses==13){
-      #print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
-      next
-    }
-    
-    enreg_comb<-rbind(enreg_comb,enreg[[ses]]$POS)
-  }
-  
-  enreg_box_times = cbind(as.numeric(enreg_comb[, 1]),as.numeric(enreg_comb[, 6]),as.numeric(enreg_comb[, 7]) )
-  sessionIdVec = as.numeric(allpaths[,2])
-  pathTimes = baseModels::getPathTimes(sessionIdVec,enreg_box_times)
-  allpaths = cbind(allpaths,pathTimes)
-  allpaths = cbind(allpaths,c(1:length(allpaths[,1])))
-  allpaths_num = matrix(as.numeric(unlist(allpaths[,c(3,5,4,6,2)])),nrow=nrow(allpaths[,c(3,5,4,6,2)]))
+  allpaths_num = matrix(as.numeric(unlist(allpaths[,c(5,7,6,2,4)])),nrow=nrow(allpaths[,c(5,7,6,2,4)]))
   allpaths_num = cbind(allpaths_num,c(1:length(allpaths_num[,1])))
- 
-  # empprob2 = baseModels::empiricalProbMat2(allpaths_num,window)
-  # endLearningStage = getEndIndex(allpaths_num,sim=2)
-  # #debug(generateEmpiricalPlots)
-  # generateEmpiricalPlots(rat, empprob2,endLearningStage)
-  
-  
+  allpaths_num = cbind(allpaths_num,as.numeric(allpaths[,3]))
+  turnTimes = getTurnsMatrix(allpaths,enreg)
+
 
   # #### Holdout Validation ########################################
   endLearningStage = getEndIndex(allpaths_num,sim=2)
@@ -64,8 +30,7 @@ comparePathModels=function(enreg,rat, window,path){
   models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
   #models = c("sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
   turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
-  debug(validateHoldout)
-  mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
+  #mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
   #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
 
   # ##### Model Selection On Acutal Data #########################3
@@ -78,8 +43,8 @@ comparePathModels=function(enreg,rat, window,path){
   turnmodels=c("acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
   #pathmodels=c("aca3")
   #turnmodels=c("aca3Turns")
+  #debug(getModelData)
   res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
-  debug(getTurnModelData)
   res2 = getTurnModelData(generated_data, turnTimes, turnmodels, window = window, sim=2)
 
   min_index = 0

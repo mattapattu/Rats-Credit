@@ -825,7 +825,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, int turnMethod,
       }
 
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
-      if (A != 5)
+      if (A != 6)
       {
         Rcpp::StringVector turns;
         turns = getTurnsFromPaths(A, S);

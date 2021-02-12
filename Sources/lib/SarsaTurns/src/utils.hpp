@@ -261,6 +261,11 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
       turns.push_back("gab");
       turns.push_back("bcd");
     }
+    else if (path == 5)
+    {
+      turns.push_back("dcb");
+      turns.push_back("bag");
+    }
   }
   else if (state == 1)
   {
@@ -286,6 +291,11 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
     {
       turns.push_back("kab");
       turns.push_back("bch");
+    }
+    else if (path == 5)
+    {
+      turns.push_back("hcb");
+      turns.push_back("bak");
     }
   }
 
@@ -332,6 +342,10 @@ int getPathFromTurns(Rcpp::StringVector turns, int state)
     {
       path = 4;
     }
+    else if (elementFound(turns,"dcb") && elementFound(turns,"bag"))
+    {
+      path = 5;
+    }
   }
   else if (state == 1)
   {
@@ -354,6 +368,10 @@ int getPathFromTurns(Rcpp::StringVector turns, int state)
     else if (elementFound(turns,"kab") && elementFound(turns,"bch"))
     {
       path = 4;
+    }
+    else if (elementFound(turns,"hcb") && elementFound(turns,"bak"))
+    {
+      path = 5;
     }
   }
 

@@ -14,11 +14,11 @@ int getNextState(int curr_state, int action, int last_turn)
 {
   //Rcpp::Rcout << "curr_state=" << curr_state << ", action=" << action << ", last_turn=" << last_turn << std::endl;
   int new_state = -1;
-  if (action == 4)
+  if (action == 4 || action == 5)
   {
     new_state = curr_state;
   }
-  else if (action == 5)
+  else if (action == 6)
   {
     if (last_turn == 4 || last_turn == 7 || last_turn == 12 || last_turn == 15)
     {
@@ -573,7 +573,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, double alpha, double 
         else if (j == (nbOfTurns - 1))
         {
           //Rcpp::Rcout <<"A_prime=" << A_prime << ", S_prime=" <<S_prime<< std::endl;
-          if (A_prime == 5)
+          if (A_prime == 6)
           {
             prediction = 0;
           }
@@ -802,7 +802,7 @@ arma::mat getProbMatrix(arma::mat allpaths, double alpha, double gamma, double l
         else if (j == (nbOfTurns - 1))
         {
           //Rcpp::Rcout <<"A_prime=" << A_prime << ", S_prime=" <<S_prime<< std::endl;
-          if (A_prime == 5)
+          if (A_prime == 6)
           {
             prediction = 0;
           }

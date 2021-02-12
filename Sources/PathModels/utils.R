@@ -23,7 +23,7 @@ updateACAPathNb=function(allpaths){
 
 
 getPathNumber=function(path){
-  path  = gsub("^, ","",path)
+  #path  = gsub("^, ","",path)
   
   if(grepl("^d.*c.*h.*i$",path)){
     pathnb = 1
@@ -109,47 +109,51 @@ updateACAPathNb1=function(allpaths){
 updateACAPathNbmse=function(allpaths){
   allpaths <- cbind(allpaths,Path=0,Reward=0,State=0)
   for(i in 1:(length(allpaths[,1]))){
-    ses=as.numeric(allpaths[i,"Session"])
-    trial=i-which(allpaths[,"Session"]==ses)[1]+1
-    l<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
-    R=sum(as.numeric(enreg[[ses]]$POS[l,"Reward"]))
+    #ses=as.numeric(allpaths[i,"Session"])
+    #trial=i-which(allpaths[,"Session"]==ses)[1]+1
+    #l<-which(as.numeric(enreg[[ses]]$POS[,"trial"])==trial)
+    #R=sum(as.numeric(enreg[[ses]]$POS[l,"Reward"]))
     
-    if(R>0){
-      allpaths[i,4] = 1
-    }else{
-      allpaths[i,4] = 0
-    }
     
-    allpaths[i,3] = getPathNumber(allpaths[i,1])
+    allpaths[i,5] = getPathNumber(allpaths[i,1])
+    
+    if(allpaths[i,5] == 4)
+      {
+      allpaths[i,6] = 1
+      }
+    else
+      {
+      allpaths[i,6] = 0
+      }
     
     if(grepl("^, f",allpaths[i,1])||grepl("^, d",allpaths[i,1])){
-      allpaths[i,5]=1
+      allpaths[i,7]=1
     }
     else if(grepl("^, h",allpaths[i,1])||grepl("^, j",allpaths[i,1])){
-      allpaths[i,5]=2
+      allpaths[i,7]=2
     }
     ## (to assign states for incomplete paths seen at the end/begining of records)
     else if(i>1){
       
       if(grepl("^.*e$",allpaths[i-1,1])){
-        allpaths[i,5]=1
+        allpaths[i,7]=1
       }
       else if(grepl("^.*i$",allpaths[i-1,1])){
-        allpaths[i,5]=2
+        allpaths[i,7]=2
       }
       ## If cannot be estimated, then do by default : assume the trial = Path5
       else if(grepl("^.*e$",allpaths[i,1])){
-        allpaths[i,5]=1
+        allpaths[i,7]=1
       }
       else if(grepl("^.*i$",allpaths[i,1])){
-        allpaths[i,5]=2
+        allpaths[i,7]=2
       }
       
     }else if(i==1){
       if(grepl("^.*e$",allpaths[i,1])){
-        allpaths[i,5]=2
+        allpaths[i,7]=2
       }else if(grepl("^.*i$",allpaths[i,1])){
-        allpaths[i,5]=1
+        allpaths[i,7]=1
       }
       
     }
@@ -158,6 +162,47 @@ updateACAPathNbmse=function(allpaths){
   return(allpaths)
 }
 
+
+getTurnsMatrix=function(allpaths,enreg)
+{
+  totalPaths = 2*length(allpaths[,1])
+  turnTimes = matrix(0,totalPaths,6)
+  turnIdx = 1;
+  boxIndices = as.numeric(allpaths[,3])
+  for(i in 1:totalPaths)
+    {
+      
+      turns = TurnsModels::getTurnsFromPaths((as.numeric(allpaths[i,5])-1),(as.numeric(allpaths[i,7])-1))
+      
+      if(i==1)
+      {
+        idx = seq(1,boxIndices[i])
+      }
+      else
+      {
+        idx = seq((boxIndices[i-1]+1), boxIndices[i])
+      }
+        
+      
+      ses = as.numeric(allpaths[i,4])
+      enregRows = enreg[[ses]]$tab[idx,]
+      
+      if(length(turns) >0)
+      {
+        for(j in 1:length(turns))
+        {
+          turnTimes[turnIdx,1] = i
+          turnTimes[turnIdx,2] = as.numeric(allpaths[i,5])-1
+          turnTimes[turnIdx,3] = as.numeric(allpaths[i,7])-1
+          turnIdx = turnIdx+1
+        }
+      }
+      
+      
+    }
+  
+  
+}
 
 genInitValues=function(allpaths,sim){
   H <- matrix(0,2,6)
@@ -832,7 +877,7 @@ getEndIndex = function(generated_data, sim){
   }
   end_index1=0
   s1 <- which(generated_data[,2]==1)
-  l<-which(SMA(generated_data[s1,3],30)>=0.80)
+  l<-which(SMA(generated_data[s1,3],30)>=0.95)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
     if(length(k[[set]])>20){
@@ -844,7 +889,7 @@ getEndIndex = function(generated_data, sim){
   
   end_index2=0
   s2 <- which(generated_data[,2]==2)
-  l<-which(SMA(generated_data[s2,3],30)>=0.80)
+  l<-which(SMA(generated_data[s2,3],30)>=0.95)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
     if(length(k[[set]])>20){
@@ -865,52 +910,41 @@ getEndIndex = function(generated_data, sim){
 }
 
 enregCombine=function(enreg,rat){
-  allpaths <- matrix("",0,2)
-  colnames(allpaths) <- c("Path","Session")
+  allpaths <- matrix("",0,4)
+  colnames(allpaths) <- c("Path","Time","boxId","sessNb")
   boxTimes <- vector()
-  boxcount1 = 0
-  boxcount2 = 0
   ### Loop through all enreg[[ses]] of current rat
   for(ses in 1:length(enreg)){
     
-    if(is.null(enreg[[ses]])){
-      #print(sprintf("skipping %s ses %i as enreg is empty",rat,ses))
-      next
-    }else if(isempty(enreg[[ses]]$EVENTS)){
-      #print(sprintf("skipping %s ses %i as reward data is empty",rat,ses))
-      next
-    }else if(rat=="rat_106" && ses==3){
-      #print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
-      next
+    allpaths_ses = strsplit(enreg[[ses]]$short,"(?<=[ei])(?=(jk)|(ja)|(jb)|(fg)|(fb)|(fa)|(dc)|(hc)|(jik))",perl=TRUE)[[1]]
+    boxIndices = c(1,cumsum(nchar(allpaths_ses)))
+    allpaths_ses = cbind(allpaths_ses,rep(0,length(allpaths_ses)),rep(0,length(allpaths_ses)))
+    
+    for(i in 1:(length(boxIndices)-1))
+    {
+      range = boxIndices[i+1]-boxIndices[i]
+      if(range > 0)
+      {
+        range = range-1
+      }
+      idx = seq((boxIndices[i+1]-range), boxIndices[i+1])
+      enregRows = enreg[[ses]]$tab[idx,]
+      if(is.matrix(enregRows))
+      {
+        pathTime = sum((enregRows[,2]-enregRows[,1])[-length(enregRows[,2])]) ## Remove last box which is i/e
+      }
+      else
+      {
+        pathTime = enregRows[2] - enregRows[1]
+      }
       
-    }else if(rat=="rat_112" && ses==1){
-      #print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
-      next
-      
-    }else if(rat=="rat_113" && ses==13){
-      #print(sprintf("skipping %s ses %i as enreg is not good",rat,ses))
-      next
+      allpaths_ses[i,2] = pathTime
+      allpaths_ses[i,3] = boxIndices[i+1]
       
     }
     
-    #last_trial <- as.numeric(enreg[[ses]]$POS[length(enreg[[ses]]$POS[,1]),"trial"])
-    #reward49_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "49"),"trial"])
-    #reward51_trials <- as.numeric(enreg[[ses]]$POS[which(enreg[[ses]]$POS[,"Reward"]== "51"),"trial"])
-    
-    r <- rle(enreg[[ses]]$POS[,"boxname"])
-    allpaths_ses <- toString(r$values)
-    allpaths_ses <-strsplit(allpaths_ses,"(?<=[ei])(?=(, j, k)|(, j, a)|(, j, b)|(, f, g)|(, f, b)|(, f, a)|(, d, c)|(, h, c)|(, j, i, k,))",perl=TRUE)[[1]]
-    allpaths_ses <-cbind(allpaths_ses,ses)
-    colnames(allpaths_ses) <- c("Path","Session")
-    l<-list(allpaths,allpaths_ses)
+    allpaths_ses = cbind(allpaths_ses,ses)
     allpaths <- rbind(allpaths,allpaths_ses)
-    #boxtime_ses <- baseModels::getBoxTimes(as.numeric(enreg[[ses]]$POS[,1]), r$lengths)
-    #print(sprintf("boxes - times = %i, sess = %i", (length(boxtime_ses)-length(r$values)), ses))
-    #boxcount1  = boxcount1 + (length(boxtime_ses))
-    #k<-gsub(", ", "", toString(allpaths_ses[,1]), fixed = TRUE)
-    #boxcount2  = boxcount2 + nchar(k)                    
-    #print(sprintf("boxCount = %i, boxCount_allpaths = %i, sess = %i", boxcount1,boxcount2,ses))
-    boxTimes <- c(boxTimes, baseModels::getBoxTimes(as.numeric(enreg[[ses]]$POS[,1]), r$lengths))
   }
   
   return(list("allpaths" = allpaths, "boxTimes" = boxTimes))

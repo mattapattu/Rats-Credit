@@ -240,52 +240,74 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
   {
     if (path == 0)
     {
-      turns.push_back("dch");
+      turns.push_back("dc1");
+      turns.push_back("c2h");
     }
     else if (path == 1)
     {
-      turns.push_back("gak");
+      turns.push_back("fga1");
+      turns.push_back("a2kj");
     }
     else if (path == 2)
     {
-      turns.push_back("dcb");
-      turns.push_back("bak");
+      turns.push_back("dc1");
+      turns.push_back("c2ba1");
+      turns.push_back("a2kj");
     }
     else if (path == 3)
     {
-      turns.push_back("gab");
-      turns.push_back("bch");
+      turns.push_back("fga1");
+      turns.push_back("a2bc1");
+      turns.push_back("c2h");
     }
     else if (path == 4)
     {
-      turns.push_back("gab");
-      turns.push_back("bcd");
+      turns.push_back("fga1");
+      turns.push_back("a2bc1");
+      turns.push_back("c2d");
+    }
+    else if (path == 5)
+    {
+      turns.push_back("dc1");
+      turns.push_back("c2ba1");
+      turns.push_back("a2gf");
     }
   }
   else if (state == 1)
   {
     if (path == 0)
     {
-      turns.push_back("hcd");
+      turns.push_back("hc1");
+      turns.push_back("c2d");
     }
     else if (path == 1)
     {
-      turns.push_back("kag");
+      turns.push_back("kja1");
+      turns.push_back("a2gf");
     }
     else if (path == 2)
     {
-      turns.push_back("hcb");
-      turns.push_back("bag");
+      turns.push_back("hc1");
+      turns.push_back("c2ba1");
+      turns.push_back("a2gf");
     }
     else if (path == 3)
     {
-      turns.push_back("kab");
-      turns.push_back("bcd");
+      turns.push_back("kja1");
+      turns.push_back("a2bc1");
+      turns.push_back("c2d");
     }
     else if (path == 4)
     {
-      turns.push_back("kab");
-      turns.push_back("bch");
+      turns.push_back("jka1");
+      turns.push_back("a2bc1");
+      turns.push_back("c2h");
+    }
+    else if (path == 5)
+    {
+      turns.push_back("hc1");
+      turns.push_back("c2ba1");
+      turns.push_back("a2kj");
     }
   }
 
@@ -616,6 +638,10 @@ int getPathFromTurns(Rcpp::StringVector turns, int state)
     {
       path = 4;
     }
+    else if (elementFound(turns,"dcb") && elementFound(turns,"bag"))
+    {
+      path = 5;
+    }
   }
   else if (state == 1)
   {
@@ -638,6 +664,10 @@ int getPathFromTurns(Rcpp::StringVector turns, int state)
     else if (elementFound(turns,"kab") && elementFound(turns,"bch"))
     {
       path = 4;
+    }
+    else if (elementFound(turns,"hcb") && elementFound(turns,"bak"))
+    {
+      path = 5;
     }
   }
 

@@ -12,10 +12,13 @@ inline double softmax_cpp3(int A, int S, arma::mat H)
 {
   //Rcpp::Rcout <<  "softmax_cpp3"<<std::endl;
   arma::rowvec v = H.row(S);
-  //Rcpp::Rcout <<  v<< std::endl;
+  Rcpp::Rcout <<  v<< std::endl;
   double m = arma::max(v);
   double exp_sum = std::exp(H(S, 0) - m) + std::exp(H(S, 1) - m) + std::exp(H(S, 2) - m) + std::exp(H(S, 3) - m) + std::exp(H(S, 4) - m) + std::exp(H(S, 5) - m);
+  //Rcpp::Rcout << "m=" << m << ", exp_sum=" <<exp_sum << std::endl;
+  //Rcpp::Rcout <<  v<< std::endl;
   double pr_A = (std::exp(H(S, A) - m)) / exp_sum;
+  //Rcpp::Rcout << "pr_A=" << pr_A << std::endl;
 
   //  float m=arma::max(v);
   //  v=exp(v-m);

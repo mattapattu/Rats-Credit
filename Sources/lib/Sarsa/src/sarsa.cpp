@@ -548,6 +548,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma, doub
     }
 
     arma::vec likelihoodVec_sess(nrow - 1);
+    likelihoodVec_sess.fill(0);
     arma::mat etrace(2, 6, arma::fill::zeros);
     //All episodes in new session
     for (int i = 0; i < (nrow - 1); i++)

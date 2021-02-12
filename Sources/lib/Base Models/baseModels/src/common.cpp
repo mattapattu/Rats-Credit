@@ -480,6 +480,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int s
   arma::vec allpath_rewards = allpaths.col(2);
   arma::vec allpath_times = allpaths.col(3);
   arma::vec sessionVec = allpaths.col(4);
+  arma::vec actionNb = allpaths.col(5);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
   //Rcpp::Rcout << "sessionVec=" << sessionVec << std::endl;
   //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;
@@ -498,6 +499,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int s
     arma::vec states_sess = allpath_states.elem(sessionIdx);
     arma::vec rewards_sess = allpath_rewards.elem(sessionIdx);
     arma::vec time_taken_for_trial_sess = allpath_times.elem(sessionIdx);
+    arma::vec actionNb_sess = actionNb.elem(sessionIdx);
 
     int initState = 0;
     bool changeState = false;
@@ -518,6 +520,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int s
     }
 
     arma::vec likelihoodVec_sess(nrow - 1);
+    likelihoodVec_sess.fill(0);
     arma::vec episodeVec(nrow - 1);
     //All episodes in new session
     for (int i = 0; i < (nrow - 1); i++)
@@ -569,26 +572,19 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, arma::mat H, int s
       }
 
       double prob_a = 0;
+      double logProb = 0;
       if(A != 6)
       {
-        if (policyMethod == 1)
-        {
-          prob_a = actionProb(A, S, H, 1, 0);
-        }
-        else if (policyMethod == 2)
-        {
-          if (i > endTrial)
-          {
-            epsilon = 1;
-          }
-          prob_a = actionProb(A, S, H, 2, epsilon);
-        }
+        prob_a = softmax_cpp3(A, S, H);
+        logProb = log(prob_a);
+        likelihoodVec_sess(i) = logProb;
+        
       }
       
-      if(prob_a > 0)
+      if(logProb > 0 && A != 6)
       {
-        double logProb = log(prob_a);
-        likelihoodVec_sess(i) = logProb;
+        Rcpp::Rcout <<"PathNb=" <<actionNb_sess(i) << ", A=" <<A << " ,S=" <<S << ", prob_a=" << prob_a << " is < 0" <<std::endl;
+        Rcpp::Rcout << "H=" << H  <<std::endl;
       }
 
       //Rcpp::Rcout << "logProb=" << logProb <<std::endl;

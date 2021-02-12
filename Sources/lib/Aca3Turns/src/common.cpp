@@ -15,11 +15,11 @@ int aca_getNextState(int curr_state, int action, int last_turn)
 {
   //Rcpp::Rcout << "curr_state=" << curr_state << ", action=" << action << ", last_turn=" << last_turn << std::endl;
   int new_state = -1;
-  if (action == 4)
+  if (action == 4 || action == 5)
   {
     new_state = curr_state;
   }
-  else if (action == 5)
+  else if (action == 6)
   {
     if (last_turn == 4 || last_turn == 7 || last_turn == 12 || last_turn == 15)
     {
@@ -378,7 +378,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         score_episode = score_episode + 1;
       }
       //Rcpp::Rcout << "Path=" << A << ", S=" << S << std::endl;
-      if (A != 5)
+      if (A != 6)
       {
         arma::uvec act_idx = arma::find(generated_PathData_sess.col(0) == A && generated_PathData_sess.col(1) == S);
         int pathCount = act_idx.n_elem;

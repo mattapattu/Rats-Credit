@@ -589,6 +589,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma1, arm
     }
 
     arma::vec likelihoodVec_sess(nrow - 1);
+    likelihoodVec_sess.fill(0);
     arma::vec episodeVec(nrow - 1);
     //All episodes in new session
     for (int i = 0; i < (nrow - 1); i++)
@@ -642,26 +643,17 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma1, arm
       double prob_a = 0;
       if(A != 6)
       {
-        if (policyMethod == 1)
-        {
-          prob_a = actionProb(A, S, H, 1, 0);
-        }
-        else if (policyMethod == 2)
-        {
-          if (i > endTrial)
-          {
-            epsilon = 1;
-          }
-          prob_a = actionProb(A, S, H, 2, epsilon);
-        }
-      }
-
-      if(prob_a > 0)
-      {
+        prob_a = softmax_cpp3(A, S, H);
         double logProb = log(prob_a);
         likelihoodVec_sess(i) = logProb;
+        
       }
       
+      if(prob_a <= 0 && A != 6)
+      {
+        Rcpp::Rcout <<"PathNb=" <<actionNb_sess(i) << ", A=" <<A << " ,S=" <<S << ", prob_a=" << prob_a << " is < 0" <<std::endl;
+        Rcpp::Rcout << "H=" << H  <<std::endl;
+      }
 
       
       //Rcpp::Rcout << "logProb=" << logProb <<std::endl;

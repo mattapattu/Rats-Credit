@@ -282,7 +282,7 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
     }
     else if (path == 1)
     {
-      turns.push_back("kja1");
+      turns.push_back("jka1");
       turns.push_back("a2gf");
     }
     else if (path == 2)
@@ -293,7 +293,7 @@ Rcpp::StringVector getTurnsFromPaths(int path, int state)
     }
     else if (path == 3)
     {
-      turns.push_back("kja1");
+      turns.push_back("jka1");
       turns.push_back("a2bc1");
       turns.push_back("c2d");
     }
@@ -391,72 +391,88 @@ unsigned int getTurnIdx(std::string turn, int state)
   unsigned int turnNb = 100;
   if (state == 0)
   {
-    if (turn == "dcb")
+    if (turn == "dc1")
     {
       turnNb = 0;
     }
-    else if (turn == "dch")
+    else if (turn == "fga1")
     {
       turnNb = 1;
     }
-    else if (turn == "gak")
+    else if (turn == "c2h")
     {
       turnNb = 2;
     }
-    else if (turn == "gab")
+    else if (turn == "c2ba1")
     {
       turnNb = 3;
     }
-    else if (turn == "bak")
+    else if (turn == "a2bc1")
     {
       turnNb = 4;
     }
-    else if (turn == "bag")
+    else if (turn == "a2kj")
     {
       turnNb = 5;
     }
-    else if (turn == "bcd")
+    else if (turn == "a2kj")
     {
       turnNb = 6;
     }
-    else if (turn == "bch")
+    else if (turn == "a2gf")
     {
       turnNb = 7;
+    }
+    else if (turn == "c2d")
+    {
+      turnNb = 8;
+    }
+    else if (turn == "c2h")
+    {
+      turnNb = 9;
     }
   }
   else if (state == 1)
   {
-    if (turn == "hcb")
-    {
-      turnNb = 8;
-    }
-    else if (turn == "hcd")
-    {
-      turnNb = 9;
-    }
-    else if (turn == "kag")
+    if (turn == "hc1")
     {
       turnNb = 10;
     }
-    else if (turn == "kab")
+    else if (turn == "jka1")
     {
       turnNb = 11;
     }
-    else if (turn == "bak")
+    else if (turn == "c2d")
     {
       turnNb = 12;
     }
-    else if (turn == "bag")
+    else if (turn == "c2ba1")
     {
       turnNb = 13;
     }
-    else if (turn == "bcd")
+    else if (turn == "a2bc1")
     {
       turnNb = 14;
     }
-    else if (turn == "bch")
+    else if (turn == "a2gf")
     {
       turnNb = 15;
+    }
+    else if (turn == "a2kj")
+    {
+      turnNb = 16;
+    }
+    else if (turn == "a2gf")
+    {
+      turnNb = 17;
+    }
+    else if (turn == "c2d")
+    {
+      turnNb = 18;
+    }
+    else if (turn == "c2h")
+    {
+      turnNb = 19;
     }
   }
 

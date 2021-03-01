@@ -21,7 +21,7 @@ setClass("Model",
 getTurnModelData = function(generated_data, turnTimes, models, window, sim){
   
   #start_index = getStartIndex(generated_data)
-  end_index = getEndIndex(generated_data, sim)
+  end_index = getEndIndex(generated_data, sim, limit = 0.95)
   start_index = round(end_index/2)
   if(start_index >= end_index){
     print(sprintf("start_index >= end_index. Check if rat learns optimal behavior"))

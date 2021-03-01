@@ -22,14 +22,14 @@ comparePathModels=function(enreg,rat, window,path){
 
 
   # #### Holdout Validation ########################################
-  endLearningStage = getEndIndex(allpaths_num,sim=2)
+  endLearningStage = getEndIndex(allpaths_num,sim=2, limit=0.95)
   Hinit = genInitValues(allpaths_num,sim=2)
   #Hinit <- matrix(0,2,6)
 
   Models = list("ACA" = 1, "GB" = 2, "GB-ACA" = 3, "ACA2" = 4, "ACA3" = 5, "SARSA"=6)
   models = c("aca","gb","aca2","aca3","sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns" )
   #models = c("sarsa","acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
-  turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
+  #turnTimes = TurnsModels::getTurnTimes(allpaths,boxTimes,sim=2)
   #mat_res = validateHoldout(models,Hinit=matrix(0,2,6),endLearningStage,allpaths_num,turnTimes, window = window, rat)
   #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
 
@@ -44,7 +44,8 @@ comparePathModels=function(enreg,rat, window,path){
   #pathmodels=c("aca3")
   #turnmodels=c("aca3Turns")
   #debug(getModelData)
-  res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
+  #res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
+  debug(getTurnModelData)
   res2 = getTurnModelData(generated_data, turnTimes, turnmodels, window = window, sim=2)
 
   min_index = 0

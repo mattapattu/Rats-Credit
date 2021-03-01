@@ -31,12 +31,11 @@ getPathNumber=function(path){
     pathnb = 2
   }else if(grepl("^f.*g.*a.*k.*j.*i$",path)){
     pathnb = 3
-  }else if(grepl("^f.*e$",path)){
+  }else if(grepl("^f.*g.*a.*b.*c.*c.*d.*e$",path)){
     pathnb = 5
   }else if(grepl("^f.*g.*a.*b.*c.*h.*i$",path)){
     pathnb = 4
-  }else if(grepl("^d.*c.*b.*a.*g.*f.*e$",path))
-  {
+  }else if(grepl("^d.*c.*b.*a.*g.*f.*e$",path)){
     pathnb = 6
   }
   else if(grepl("^h.*c.*d.*e$",path)){
@@ -45,12 +44,11 @@ getPathNumber=function(path){
     pathnb = 2
   }else if(grepl("^j.*k.*a.*g.*f.*e$",path)){
     pathnb = 3
-  }else if(grepl("^j.*i$",path)){
+  }else if(grepl("^j.*k.*a.*b.*c.*h.*i$",path)){
     pathnb = 5
   }else if(grepl("^j.*k.*a.*b.*c.*d.*e$",path)){
     pathnb = 4
-  }else if(grepl("^h.*c.*b.*a.*k.*j.*i$",path))
-  {
+  }else if(grepl("^h.*c.*b.*a.*k.*j.*i$",path)){
     pathnb = 6
   }
   else if(grepl("^.*e$",path)){
@@ -118,13 +116,13 @@ updateACAPathNbmse=function(allpaths){
     allpaths[i,5] = getPathNumber(allpaths[i,1])
     
     if(allpaths[i,5] == 4)
-      {
+    {
       allpaths[i,6] = 1
-      }
+    }
     else
-      {
+    {
       allpaths[i,6] = 0
-      }
+    }
     
     if(grepl("^, f",allpaths[i,1])||grepl("^, d",allpaths[i,1])){
       allpaths[i,7]=1
@@ -163,45 +161,301 @@ updateACAPathNbmse=function(allpaths){
 }
 
 
-getTurnsMatrix=function(allpaths,enreg)
+getTurnDuration=function(path, state, enregRows)
 {
-  totalPaths = 2*length(allpaths[,1])
-  turnTimes = matrix(0,totalPaths,6)
-  turnIdx = 1;
-  boxIndices = as.numeric(allpaths[,3])
-  for(i in 1:totalPaths)
+  
+  turntimes=list();
+  if (state == 0)
+  {
+    if (path == 0)
     {
       
-      turns = TurnsModels::getTurnsFromPaths((as.numeric(allpaths[i,5])-1),(as.numeric(allpaths[i,7])-1))
+      d = enregRows[1,2] - enregRows[1,1]
+      c = enregRows[2,2] - enregRows[2,1]
+      c1 = c/2
+      dc1 = d + c1
+      
+      c2 = c/2
+      h = enregRows[3,2] - enregRows[3,1]
+      c2h = c2 + h
+      
+      
+      turntimes = list("dc1"=dc1, "c2h" = c2h)
+      
+    }
+    else if (path == 1)
+    {
+      
+      fg = sum(enregRows[1:2,2] - enregRows[1:2,1])
+      a = enregRows[3,2] - enregRows[3,1]
+      a1 = a/2
+      fga1 = fg + a1
+      
+      a2 = a/2
+      kj = sum(enregRows[4:5,2] - enregRows[4:5,1])
+      a2kj = a2 + kj
+      
+      
+      turntimes = list("fga1"=fga1, "a2kj" = a2kj)
+      
+    }
+    else if (path == 2)
+    {
+      
+      d = enregRows[1,2] - enregRows[1,1]
+      c = enregRows[2,2] - enregRows[2,1]
+      c1 = c/2
+      dc1 = d + c1
+      
+      c2 = c/2
+      b = enregRows[3,2] - enregRows[3,1]
+      a = enregRows[4,2] - enregRows[4,1]
+      a1 = a/2
+      c2ba1 = c2 + b + a1
+      
+      a2 = a/2
+      kj = sum(enregRows[5:6,2] - enregRows[5:6,1])
+      a2kj = a2+kj
+      
+      turntimes = list("dc1"=dc1, "c2ba1" = c2ba1, "a2kj"=a2kj)
+      
+      
+    }
+    else if (path == 3)
+    {
+      
+      fg = sum(enregRows[1:2,2] - enregRows[1:2,1])
+      a = enregRows[3,2] - enregRows[3,1]
+      a1 = a/2
+      fga1 = fg + a1
+      
+      a2 = a/2
+      b = enregRows[4,2] - enregRows[4,1]
+      c = enregRows[5,2] - enregRows[5,1]
+      c1 = c/2
+      a2bc1 = a2 + b + c1
+      
+      c2 = c/2
+      h = enregRows[6,2] - enregRows[6,1]
+      c2h = c2 + h
+      
+      turntimes = list("fga1"=fga1, "a2bc1" = a2bc1, "c2h"=c2h)
+      
+    }
+    else if (path == 4)
+    {
+      
+      fg = sum(enregRows[1:2,2] - enregRows[1:2,1])
+      a = enregRows[3,2] - enregRows[3,1]
+      a1 = a/2
+      fga1 = fg + a1
+      
+      a2 = a/2
+      b = enregRows[4,2] - enregRows[4,1]
+      c = enregRows[5,2] - enregRows[5,1]
+      c1 = c/2
+      a2bc1 = a2 + b + c1
+      
+      c2 = c/2
+      d = enregRows[6,2] - enregRows[6,1]
+      c2d = c2 + d
+      
+      turntimes = list("fga1"=fga1, "a2bc1" = a2bc1, "c2d"=c2d)
+    }
+    else if (path == 5)
+    {
+      
+      d = enregRows[1,2] - enregRows[1,1]
+      c = enregRows[2,2] - enregRows[2,1]
+      c1 = c/2
+      dc1 = d + c1
+      
+      c2 = c/2
+      b = enregRows[3,2] - enregRows[3,1]
+      a = enregRows[4,2] - enregRows[4,1]
+      a1 = a/2
+      c2ba1 = c2 + b + a1
+      
+      a2 = a/2
+      gf = sum(enregRows[5:6,2] - enregRows[5:6,1])
+      a2gf = a2 + gf
+      
+      turntimes = list("dc1"=dc1, "c2ba1" = c2ba1, "a2gf"=a2gf)
+    }
+  }
+  else if (state == 1)
+  {
+    if (path == 0)
+    {
+      
+      h = enregRows[1,2] - enregRows[1,1]
+      c = enregRows[2,2] - enregRows[2,1]
+      c1 = c/2
+      hc1 = h + c1
+      
+      c2 = c/2
+      d = enregRows[3,2] - enregRows[3,1]
+      c2d = c2 + d
+      
+      
+      turntimes = list("hc1"=hc1, "c2d" = c2d)
+    }
+    else if (path == 1)
+    {
+      
+      jk = sum(enregRows[1:2,2] - enregRows[1:2,1])
+      a = enregRows[3,2] - enregRows[3,1]
+      a1 = a/2
+      jka1 = jk + a1
+      
+      a2 = a/2
+      gf = sum(enregRows[4:5,2] - enregRows[4:5,1])
+      a2gf = a2 + gf
+      
+      
+      turntimes = list("jka1"=jka1, "a2gf" = a2gf)
+    }
+    else if (path == 2)
+    {
+      h = enregRows[1,2] - enregRows[1,1]
+      c = enregRows[2,2] - enregRows[2,1]
+      c1 = c/2
+      hc1 = h + c1
+      
+      c2 = c/2
+      b = enregRows[3,2] - enregRows[3,1]
+      a = enregRows[4,2] - enregRows[4,1]
+      a1 = a/2
+      c2ba1 = c2 + b + a1
+      
+      a2 = a/2
+      gf = sum(enregRows[5:6,2] - enregRows[5:6,1])
+      a2gf = a2 + gf
+      
+      turntimes = list("hc1"=hc1, "c2ba1" = c2ba1, "a2gf"=a2gf)
+      
+    }
+    else if (path == 3)
+    {
+      jk = sum(enregRows[1:2,2] - enregRows[1:2,1])
+      a = enregRows[3,2] - enregRows[3,1]
+      a1 = a/2
+      jka1 = jk + a1
+      
+      a2 = a/2
+      b = enregRows[4,2] - enregRows[4,1]
+      c = enregRows[5,2] - enregRows[5,1]
+      c1 = c/2
+      a2bc1 = a2 + b + c1
+      
+      c2 = c/2
+      d = enregRows[6,2] - enregRows[6,1]
+      c2d = c2 + d
+      
+      
+      turntimes = list("jka1"=jka1, "a2bc1" = a2bc1, "c2d"=c2d)
+      
+    }
+    else if (path == 4)
+    {
+      
+      jk = sum(enregRows[1:2,2] - enregRows[1:2,1])
+      a = enregRows[3,2] - enregRows[3,1]
+      a1 = a/2
+      jka1 = jk + a1
+      
+      a2 = a/2
+      b = enregRows[4,2] - enregRows[4,1]
+      c = enregRows[5,2] - enregRows[5,1]
+      c1 = c/2
+      a2bc1 = a2 + b + c1
+      
+      c2 = c/2
+      h = enregRows[6,2] - enregRows[6,1]
+      c2h = c2 + h
+      
+      turntimes = list("jka1"=jka1, "a2bc1" = a2bc1, "c2h"=c2h)
+    }
+    else if (path == 5)
+    {
+      
+      h = enregRows[1,2] - enregRows[1,1]
+      c = enregRows[2,2] - enregRows[2,1]
+      c1 = c/2
+      hc1 = h + c1
+      
+      c2 = c/2
+      b = enregRows[3,2] - enregRows[3,1]
+      a = enregRows[4,2] - enregRows[4,1]
+      a1 = a/2
+      c2ba1 = c2 + b + a1
+      
+      a2 = a/2
+      kj = sum(enregRows[5:6,2] - enregRows[5:6,1])
+      a2kj = a2 + kj
+      
+      turntimes = list("hc1"=hc1, "c2ba1" = c2ba1, "a2kj"=a2kj)
+    }
+  }
+  
+  return (turntimes);
+}
+
+
+getTurnsMatrix=function(allpaths,enreg)
+{
+  totalTurns = 3*length(allpaths[,1])
+  turnTimes = matrix(0,totalTurns,6)
+  colnames(turnTimes) <- c("Action", "Path", "State","Turn","Session", "Duration" )
+  turnIdx = 1;
+  boxIndices = as.numeric(allpaths[,3])
+  uniqSess = uniq(as.numeric(allpaths[,4]))$b
+  
+  for(ses in uniqSess)
+  {
+    idx_ses = which(as.numeric(allpaths[,4])==ses)
+    pathCount_ses = length(allpaths[idx_ses,1])
+    
+    for(i in 1:pathCount_ses)
+    {
+      path = as.numeric(allpaths[idx_ses[i],5])-1
+      state = as.numeric(allpaths[idx_ses[i],7])-1
+      turns = TurnsNew::getTurnsFromPaths(path,state)
       
       if(i==1)
       {
-        idx = seq(1,boxIndices[i])
+        idx = seq(1,boxIndices[idx_ses[i]])
       }
       else
       {
-        idx = seq((boxIndices[i-1]+1), boxIndices[i])
+        idx = seq((boxIndices[idx_ses[i]-1]+1), boxIndices[idx_ses[i]])
       }
-        
       
-      ses = as.numeric(allpaths[i,4])
+      
       enregRows = enreg[[ses]]$tab[idx,]
       
+      turntimes = getTurnDuration(path, state, enregRows)
       if(length(turns) >0)
       {
         for(j in 1:length(turns))
         {
-          turnTimes[turnIdx,1] = i
-          turnTimes[turnIdx,2] = as.numeric(allpaths[i,5])-1
-          turnTimes[turnIdx,3] = as.numeric(allpaths[i,7])-1
+          turnTimes[turnIdx,1] = idx_ses[i]
+          turnTimes[turnIdx,2] = path
+          turnTimes[turnIdx,3] = state
+          turnTimes[turnIdx,4] = TurnsNew::getTurnIdx(turns[j],state)
+          turnTimes[turnIdx,5] = ses
+          turnTimes[turnIdx,6] = turntimes[[j]]
           turnIdx = turnIdx+1
         }
       }
       
-      
     }
+    
+  }
   
+  turnTimes = turnTimes[-(turnIdx:totalTurns),]
   
+  return(turnTimes)
 }
 
 genInitValues=function(allpaths,sim){
@@ -361,7 +615,7 @@ generatePlots=function(rat,window, ACAprobMatrix, GBprobMatrix,  SARSAprobMatrix
         
       }
       
-     
+      
       dev.off()
     }
   }
@@ -381,7 +635,7 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
     for(state in c(1:2)){
       pdf(file=paste("Prob_",rat,"_Path", act, "_State",state,".pdf",sep=""))
       
-     
+      
       cols <- brewer.pal(8,'Dark2')
       
       if(act==4||act==1)
@@ -465,7 +719,7 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
           probmatrix = TurnsModels::getPathProbMatrix(res2$TurnData@ProbMatrix,allpaths_num,sim = 2)
         }
         
-
+        
         lines(probmatrix[which(probmatrix[,13] %in% pathIdsInState),(act+6*(state-1))],col=cols[i],ylab="Probability",lwd=2)
         
       }
@@ -481,7 +735,7 @@ generateModelProbPlots=function(rat, window, res1, res2,models, allpaths_num){
         legend("topright", legend=c(modelnames,"Empirical"),col=c(cols[1:i],cols[8]),cex=1.5,lty = rep(1,(i+1)),lwd=2)
       }
       
-     dev.off()
+      dev.off()
     }
   }
   
@@ -646,7 +900,7 @@ generateModelProbPlots2=function(rat, window, res1, res2,models, allpaths_num,pa
       }
     }
     
-
+    
   }
   
   
@@ -655,7 +909,7 @@ generateModelProbPlots2=function(rat, window, res1, res2,models, allpaths_num,pa
 
 
 getPathProb=function(probabilityMatrix){
-
+  
   for(state in c(1:2))
   {
     if(state==1)
@@ -677,7 +931,7 @@ getPathProb=function(probabilityMatrix){
       probMat1[(1:length(path3ProbVec)),3]=path3ProbVec
       probMat1[(1:length(path4ProbVec)),4]=path4ProbVec
       probMat1[(1:length(path5ProbVec)),5]=path5ProbVec
-    
+      
     }
     else
     {
@@ -817,7 +1071,7 @@ generateEmpiricalPlots=function(rat,empiricalProbMatrix2,endLearningStage){
     for(state in c(1:2)){
       jpeg(paste("EmpProb_",rat,"_Path", act, "_State",state,".jpeg",sep=""))
       
-       plot(empiricalProbMatrix2[,(act+6*(state-1))],col='black',type='l',ylim=c(0,1),ylab="Probability", xaxt='n', xlab='Session Nb')
+      plot(empiricalProbMatrix2[,(act+6*(state-1))],col='black',type='l',ylim=c(0,1),ylab="Probability", xaxt='n', xlab='Session Nb')
       #lines(GB_ACAprobMatrix[which(GB_ACAprobMatrix[,(act+6*(state-1))]!=0),(act+6*(state-1))],col='red',type='l')
       
       axis(1, line=0,at=cumsum(x2_rle$lengths), labels = x2_rle$values)
@@ -871,13 +1125,13 @@ getStartIndex = function(generated_data){
   return(start_index)
 }
 
-getEndIndex = function(generated_data, sim){
+getEndIndex = function(generated_data, sim, limit){
   if(sim==1){
     generated_data[,1:2] = generated_data[,1:2] + 1
   }
   end_index1=0
   s1 <- which(generated_data[,2]==1)
-  l<-which(SMA(generated_data[s1,3],30)>=0.95)
+  l<-which(SMA(generated_data[s1,3],30)>=limit)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
     if(length(k[[set]])>20){
@@ -889,7 +1143,7 @@ getEndIndex = function(generated_data, sim){
   
   end_index2=0
   s2 <- which(generated_data[,2]==2)
-  l<-which(SMA(generated_data[s2,3],30)>=0.95)
+  l<-which(SMA(generated_data[s2,3],30)>=limit)
   k<-split(l, cumsum(c(1, diff(l) != 1)))
   for(set in 1:length(k)){
     if(length(k[[set]])>20){
@@ -907,6 +1161,81 @@ getEndIndex = function(generated_data, sim){
   #print(sprintf("end_index=%i", end_index))
   
   return(end_index)
+}
+
+simulateTurnTime=function(turnTimes, allpaths,turnId, turnNb)
+{
+  grp1 = c(0,2,7,8,10,15)
+  grp2 = c(1,5,6,9,13,14)
+  grp3 = c(3,4,11,12)
+  
+  endStage1 = getEndIndex(allpaths,sim=2,limit=0.5)
+  turnIdxStage1 = last(which(turnTimes[,1]<=endStage1))
+  endStage2 = getEndIndex(allpaths,sim=2,limit=0.95)
+  turnIdxStage2 = last(which(turnTimes[,1]<=endStage2))
+  endStage3 = length(allpaths[,1])
+  turnIdxStage3 = length(turnTimes[,1])
+  #pathstages=c(1,endStage1,endStage2,endStage3)
+  turnstages = c(1,turnIdxStage1,turnIdxStage2,turnIdxStage3)
+  
+  out<-cut(turnNb, breaks=turnstages,right = FALSE,include.lowest = TRUE)
+  as.numeric(out)
+  start = turnstages[as.numeric(out)]
+  end = turnstages[as.numeric(out)+1]-1
+  
+  if(turnId %in% grp1)
+  {
+    x=turnTimes[which(turnTimes[start:end,4] %in% grp1),6]
+  }
+  else if(turnId %in% grp2)
+  {
+    x=turnTimes[which(turnTimes[start:end,4] %in% grp2),6] 
+  }
+  else if(turnId %in% grp3)
+  {
+    x=turnTimes[which(turnTimes[start:end,4] %in% grp3),6] 
+  }
+  x=x[!x %in% boxplot.stats(x)$out]
+  sampledTime = sample(x,1)
+  return(sampledTime)
+}
+
+
+simulatePathTime=function(turnTimes, allpaths,path, pathNb)
+{
+  grp1 = c(1)
+  grp2 = c(2,3,4,5,6)
+  
+  endStage1 = getEndIndex(allpaths,sim=2,limit=0.5)
+  turnIdxStage1 = last(which(turnTimes[,1]<=endStage1))
+  endStage2 = getEndIndex(allpaths,sim=2,limit=0.95)
+  turnIdxStage2 = last(which(turnTimes[,1]<=endStage2))
+  endStage3 = length(allpaths[,1])
+  turnIdxStage3 = length(turnTimes[,1])
+  
+  pathstages=c(1,endStage1,endStage2,endStage3)
+  #turnstages = c(1,turnIdxStage1,turnIdxStage2,turnIdxStage3)
+  
+  out<-cut(pathNb, breaks=pathstages,right = FALSE,include.lowest = TRUE)
+  as.numeric(out)
+  start = pathstages[as.numeric(out)]
+  end = pathstages[as.numeric(out)+1]-1
+  
+  if(path %in% grp1)
+  {
+    allpathIdx=which(allpaths[start:end,1] %in% grp1)
+  }
+  else if(path %in% grp2)
+  {
+    allpathIdx=which(allpaths[start:end,1] %in% grp2)
+  }
+  x=allpaths[allpathIdx,4]
+  remove = which(x %in% boxplot.stats(x)$out)
+  allpathIdx = allpathIdx[-remove]
+  sampledId = sample(allpathIdx,1)
+  pathNbSelected = allpaths[sampledId,6]
+  turndurations = turnTimes[which(turnTimes[,1]==pathNbSelected),6]
+  return(turndurations)
 }
 
 enregCombine=function(enreg,rat){
@@ -948,6 +1277,23 @@ enregCombine=function(enreg,rat){
   }
   
   return(list("allpaths" = allpaths, "boxTimes" = boxTimes))
+}
+
+
+populateRatModel=function(rat,allpaths)
+{
+  
+  allpaths = updateACAPathNbmse(allpaths)
+  
+  allpaths_num = matrix(as.numeric(unlist(allpaths[,c(5,7,6,2,4)])),nrow=nrow(allpaths[,c(5,7,6,2,4)]))
+  allpaths_num = cbind(allpaths_num,c(1:length(allpaths_num[,1])))
+  allpaths_num = cbind(allpaths_num,as.numeric(allpaths[,3]))
+  turnTimes = getTurnsMatrix(allpaths,enreg)
+  
+  ratdata = new("RatData", rat = rat,allpaths = allpaths_num,turnTimes = turnTimes)
+  
+  return(ratdata)
+  
 }
 
 locate_xtrem <- function (x, last = FALSE)
@@ -1101,7 +1447,7 @@ plotData = function(res,rat, ranges){
     dev.off()
   }
   
-
+  
 }
 
 

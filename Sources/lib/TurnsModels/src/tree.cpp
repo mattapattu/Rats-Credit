@@ -61,6 +61,8 @@ std::vector<double> getSiblingCredits(std::shared_ptr<TreeNode> currentNode)
     return (credits);
 }
 
+
+
 std::shared_ptr<TreeNode> getNode(std::shared_ptr<TreeNode> root, std::string nodeName)
 {
     //Rcpp::Rcout << "td_error="<< td_error <<std::endl;  

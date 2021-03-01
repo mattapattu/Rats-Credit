@@ -651,7 +651,7 @@ arma::vec getPathLikelihood(arma::mat allpaths, double alpha, double gamma1, arm
       
       if(prob_a <= 0 && A != 6)
       {
-        Rcpp::Rcout <<"PathNb=" <<actionNb_sess(i) << ", A=" <<A << " ,S=" <<S << ", prob_a=" << prob_a << " is < 0" <<std::endl;
+        //Rcpp::Rcout <<"PathNb=" <<actionNb_sess(i) << ", A=" <<A << " ,S=" <<S << ", prob_a=" << prob_a << " is < 0" <<std::endl;
         Rcpp::Rcout << "H=" << H  <<std::endl;
       }
 

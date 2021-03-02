@@ -6,7 +6,7 @@ setClass("Action",
           )
 
 
-setClass("Model", 
+setClass("ModelData", 
          slots = list(
            Name = "character", 
            Params_lik = "list",
@@ -15,13 +15,23 @@ setClass("Model",
            
 )
 
+setClass("Model", 
+         slots = list(
+           Name = "character", 
+           alpha = "numeric",
+           gamma1 ="numeric",
+           gamma2 = "numeric",
+           lambda = "numeric")
+         
+)
+
 
 
 
 getModelData = function(generated_data, models, window, sim){
   
   #start_index = getStartIndex(generated_data)
-  end_index = getEndIndex(generated_data, sim)
+  end_index = getEndIndex(generated_data, sim, limit=0.95)
   start_index = round(end_index/2)
   if(start_index >= end_index){
     print(sprintf("start_index >= end_index. Check if rat learns optimal behavior"))
@@ -62,6 +72,7 @@ getModelData = function(generated_data, models, window, sim){
     aca3mse = aca3Data(Hinit1, generated_data, sim=sim, start_index, end_index, window)
   }
   if("sarsa" %in% models){
+    #debug(sarsaData)
     sarsamse = sarsaData(Qinit, generated_data, sim=sim, start_index, end_index, window)
   }
   
@@ -69,6 +80,8 @@ getModelData = function(generated_data, models, window, sim){
   return(list("acamse"=acamse,"gbmse"=gbmse,"gbacamse"=gbacamse, "aca2mse"=aca2mse, "aca3mse"=aca3mse, "sarsamse"=sarsamse))
   
 }
+
+
 
 
 validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, window, rat){
@@ -80,6 +93,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
   colnames(mat_res) <- models
   rownames(mat_res) <- models
   endLearningStage = endLearningStage/2
+  
   
   print(sprintf("models: %s",toString(models)))
   for(model in models){
@@ -189,7 +203,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       #   next
       # }
       #generated_data[,1:2]=generated_data[,1:2]+1
-      end_index = getEndIndex(generated_data$PathData, sim=1)
+      end_index = getEndIndex(generated_data$PathData, sim=1, limit=0.95)
       if(end_index == -1){
         missedOptimalIter=missedOptimalIter+1
         if(missedOptimalIter>1000)
@@ -207,7 +221,7 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
       res1 = getModelData(generated_data$PathData, models, window = window, sim=1)
       res2 = getTurnModelData(generated_data$PathData, generated_data$TurnData, models, window = window, sim=1)
       
-
+      
       min_index = 0
       min = 100000
       min_method = "null"
@@ -320,5 +334,4 @@ validateHoldout=function(models,Hinit,endLearningStage,allpaths_num, turnTimes, 
   # }
   return(mat_res)
 }
-
 

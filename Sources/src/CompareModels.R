@@ -26,15 +26,13 @@ updateModelData=function(ratdata,modelData)
   
   
   if(modelName == "aca3Paths"){
-    Aca3Paths = setArgList(Aca3Paths,ratdata)
-    
-    res = optimize(aca_negLogLik1,Aca3Paths@argList)
+
+    res = callOptimize(Aca3Paths,ratdata)
 
   }
   else if(modelName == "aca3Turns"){
-    Aca3Turns =setArgList(Aca3Turns,ratdata,endLearningStage)
-    
-    res = optimize(negLogLikFunc,Aca3Turns@argList)
+
+    res = callOptimize(Aca3Turns, ratdata)
   }
   
   modelData = setModelParams(modelData,res)

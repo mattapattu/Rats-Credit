@@ -1,5 +1,6 @@
 library(dplyr)
 library(RColorBrewer)
+library(TTR)
 
 
 updateACAPathNb=function(allpaths){
@@ -1280,7 +1281,7 @@ enregCombine=function(enreg,rat){
 }
 
 
-populateRatModel=function(rat,allpaths)
+populateRatModel=function(rat,allpaths,enreg)
 {
   
   allpaths = updateACAPathNbmse(allpaths)

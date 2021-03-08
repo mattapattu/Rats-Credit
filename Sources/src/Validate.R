@@ -19,8 +19,8 @@ HoldoutTest=function(ratdata, testingdata)
   for(model in models){
     print(sprintf("model= %s",model))
     
-    trueModelData = new("ModelData", Name = model)
-    trueModelData = updateModelData(ratdta,currmodel)
+    trueModelData = new("ModelData", Name = model, sim=2)
+    trueModelData = updateModelData(ratdata,trueModelData)
     
     
     iter = 1
@@ -47,7 +47,7 @@ HoldoutTest=function(ratdata, testingdata)
         
       }
       
-      allmodelRes = getModelResults(generated_data,models)
+      allmodelRes = getModelResults(generated_data,models,sim=1)
       min_method = getMinimumLikelihood(allmodelRes)
       mat_res[toString(model),toString(min_method)] = mat_res[toString(model),toString(min_method)] + 1
       

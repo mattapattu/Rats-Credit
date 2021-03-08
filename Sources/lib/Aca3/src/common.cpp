@@ -172,7 +172,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
     int S = states_sess(0) - 1;
     arma::mat generated_PathData_sess(nrow, 6);
     generated_PathData_sess.fill(-1);
-    arma::mat generated_TurnsData_sess((nrow * 2), 6);
+    arma::mat generated_TurnsData_sess((nrow * 3), 6);
     generated_TurnsData_sess.fill(-1);
 
     //All episodes in new session
@@ -204,6 +204,7 @@ Rcpp::List simulateTrials(arma::mat allpaths, arma::mat turnTimes, double alpha,
       else
       {
           durationMat = simulatePathTime(turnTimes,allpaths,actionNb,A,pathStages);
+          //Rcpp::Rcout << "durationMat=" << durationMat <<std::endl;
           double pathDuration = arma::accu(durationMat.col(1));
           generated_PathData_sess(act, 3) = pathDuration;
           episodePathTimes.push_back(pathDuration);  

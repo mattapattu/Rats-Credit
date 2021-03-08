@@ -9,11 +9,11 @@
 #include "utils.hpp"
 
 //updateHMat(H,actions, states, trialTimes, alpha,N, score_episode, avg_score, model);
-inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns, std::vector<int> episodeTurnStates, std::vector<double> episodeTurnTimes, double alpha, float score_episode)
+inline void Aca3CreditUpdate(std::vector<std::string> episodeTurns, std::vector<int> episodeTurnStates, std::vector<double> episodeTurnTimes, double alpha, float score_episode, Graph* S0, Graph* S1)
 {
 
   arma::vec episodeTurnStates_arma = arma::conv_to<arma::vec>::from(episodeTurnStates);
-  //Rcpp::Rcout <<  "episodeTurnStates=" << episodeTurnStates_arma <<std::endl;
+  //Rcpp::Rcout <<  "episodeTurns.size=" << episodeTurns.size() <<std::endl;
 
   arma::vec episodeTurnTimes_arma(episodeTurnTimes);
   for (int state = 0; state < 2; state++)
@@ -21,21 +21,20 @@ inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns
     //get turns in state 0/1
     std::set<std::string> turns;
     //std::vector<double> turnTimes;
-    std::vector<std::shared_ptr<TreeNode>> episodeTurns_state;
 
     //identify unique turns corresponding to each state
     for (unsigned int index = 0; index < episodeTurnStates.size(); ++index)
     {
       if (episodeTurnStates[index] == state)
       {
-        turns.insert(episodeTurns[index]->turn);
+        turns.insert(episodeTurns[index]);
         //turnTimes.push_back(episodeTurnTimes[index]);
       }
     }
+    
     std::ostringstream stream;
     std::copy(turns.begin(), turns.end(), std::ostream_iterator<std::string>(stream, ","));
     std::string result = stream.str();
-
     //Rcpp::Rcout << "curr_state=" <<state << ", turns= " <<result <<std::endl;
 
     //turns - contains all unique turns in an episode corresponding to one state
@@ -50,7 +49,8 @@ inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns
       //Rcpp::Rcout << "curr_turn=" <<*curr_turn << " in state=" << state<<std::endl;
        // to store the indices of all instances of curr_turn
       unsigned int turnIndex = 0;
-      std::shared_ptr<TreeNode> currNode;
+      Node* currNode;
+      
 
       for (auto node = std::begin(episodeTurns); node != std::end(episodeTurns); ++node)
       {
@@ -58,11 +58,19 @@ inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns
         if (episodeTurnStates[turnIndex] == state)
         {
 
-          if ((*node)->turn == *curr_turn)
+          if (*node == *curr_turn)
           {
-            //Rcpp::Rcout <<  "Turn="<< *curr_turn  << " is found in episodeTurns at index=" <<turnIndex <<std::endl;
+            //Rcpp::Rcout <<  "Turn="<< *curr_turn <<", state=" <<state << " is found in episodeTurns at index=" <<turnIndex <<std::endl;
             turnIdx.push_back(turnIndex);
-            currNode = *node;
+            //currNode = episodeTurns[turnIndex];
+            if(state == 0)
+            {
+              currNode = S0->getNode(*curr_turn);
+            }
+            else
+            {
+              currNode = S1->getNode(*curr_turn);
+            }
           }
         }
         turnIndex++;
@@ -73,7 +81,9 @@ inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns
         Rcpp::Rcout <<"state=" <<state <<  ", turn="<< *curr_turn  << " not found in episodeTurns" <<std::endl;
       }
       arma::uvec ids = Rcpp::as<arma::uvec>(turnIdx);
+      //Rcpp::Rcout <<  "turnIdx="<< arma::conv_to<arma::rowvec>::from(ids) <<std::endl;
       double turnTime = arma::accu(episodeTurnTimes_arma.elem(ids));
+      //Rcpp::Rcout <<  "turnTime="<< turnTime <<std::endl;
       double episodeDuration = arma::accu(episodeTurnTimes_arma);
       double activity = 0;
       if(episodeDuration != 0)
@@ -81,16 +91,10 @@ inline void Aca3CreditUpdate(std::vector<std::shared_ptr<TreeNode>> episodeTurns
         activity = turnTime / arma::accu(episodeTurnTimes_arma);
       }
       currNode->credit = currNode->credit + (alpha * score_episode * activity);
-      if(!std::isfinite(currNode->credit))
-      {
-        Rcpp::Rcout <<  "currNode->turn="<<currNode->turn << ", currNode->credit="<<currNode->credit << ", state= " <<state << ", turnTime=" <<turnTime  << std::endl;
-        Rcpp::Rcout << "turns=" <<result <<std::endl;
-        Rcpp::Rcout << "episodeTurnTimes=" <<episodeTurnTimes_arma <<std::endl;
-        //Rcpp::Rcout <<  "currNode->credit="<<currNode->credit << ", activity=" <<activity << ", episodeTurnTime=" <<arma::accu(episodeTurnTimes_arma) <<std::endl;
-      }
+      
       //double partialCredit = score_episode * activity;
-      //Rcpp::Rcout <<  "Turn="<< currNode->turn  << ", credit received=" << partialCredit <<std::endl;
-      //Rcpp::Rcout <<  "turnIdx="<< arma::conv_to<arma::rowvec>::from(ids) <<std::endl;
+      //Rcpp::Rcout <<  "Turn="<< currNode->node  <<", state=" <<state  << ", credit=" << currNode->credit <<std::endl;
+      
     }
   }
 }

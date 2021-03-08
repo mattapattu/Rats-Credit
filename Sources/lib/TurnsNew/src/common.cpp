@@ -47,35 +47,28 @@ int aca_getNextState(int curr_state, int action, int last_turn)
   return (new_state);
 }
 
-std::shared_ptr<TreeNode> softmax_action_sel(std::vector<std::shared_ptr<TreeNode>> nodes)
+Edge softmax_action_sel(Graph graph, std::vector<Edge> edges)
 {
 
-  std::vector<double> creditVec;
-  for (auto node = nodes.begin(); node != nodes.end(); node++)
+  std::vector<double> probVec;
+  for (auto edge = edges.begin(); edge != edges.end(); edge++)
   {
-    creditVec.push_back((*node)->credit);
+    probVec.push_back((*edge).probability);
   }
-  arma::vec creditVec_arma(creditVec);
+  arma::vec probVec_arma(probVec);
   //Rcpp::Rcout <<"creditVec_arma="<<creditVec_arma<<std::endl;
 
-  double m = arma::max(creditVec_arma);
-
-  //Rcpp::Rcout <<"m="<<m<<", v="<<v<<std::endl;
-
-  creditVec_arma = exp(creditVec_arma - m);
-  double exp_sum = arma::accu(creditVec_arma);
-  creditVec_arma = creditVec_arma / exp_sum;
-  IntegerVector actions = seq(0, (nodes.size() - 1));
-  int action_selected = Rcpp::RcppArmadillo::sample(actions, 1, true, creditVec_arma)[0];
+  IntegerVector actions = seq(0, (edges.size() - 1));
+  int action_selected = Rcpp::RcppArmadillo::sample(actions, 1, true, probVec_arma)[0];
   //Rcpp::Rcout <<"action_selected="<<action_selected<<std::endl;
 
-  return (nodes[action_selected]);
+  return (edges[action_selected]);
 }
 
 
 //allpaths_num,turnTimes,0,1,model=1,turnMethod = 1
 // [[Rcpp::export()]]
-Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, arma::vec turnStages)
+Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, Rcpp::S4 turnModel, arma::vec turnStages)
 {
 
   //Rcpp::Rcout << "model=" << model << ", turnMethod=" << turnMethod << std::endl;
@@ -97,8 +90,9 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 
   //Rcpp::Rcout << "sessionVec=" << sessionVec << std::endl;
   //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;
-  std::shared_ptr<TreeNode> rootS1 = initS1();
-  std::shared_ptr<TreeNode> rootS2 = initS2();
+  Graph S0 (turnModel, 0);
+  Graph S1 (turnModel, 1);
+
   int actionNb=0;
 
   // Loop through each session
@@ -124,7 +118,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     int episode = 1;
 
     int S = states_sess(0) - 1;
-    std::vector<std::shared_ptr<TreeNode>> episodeTurns;
+    std::vector<std::string> episodeTurns;
     std::vector<int> episodeTurnStates;
     std::vector<double> episodeTurnTimes;
 
@@ -137,7 +131,6 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     //Rcpp::Rcout << "nrow=" << nrow << std::endl;
     for (int i = 0; i < nrow; i++)
     {
-      std::shared_ptr<TreeNode> rootNode;
       actionNb++;
       if (resetVector)
       {
@@ -146,42 +139,48 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         resetVector = false;
       }
 
-      if (S == 0)
+      Node* currNode;
+      std::vector<Edge>* edges;
+      Rcpp::StringVector turnNames;
+      Graph graph;
+      if(S == 0)
       {
-        rootNode = rootS1;
-      }
+        graph = S0;
+        edges = graph.getOutgoingEdges("E");
+      } 
       else
       {
-        rootNode = rootS2;
+        graph = S1;
+        edges = graph.getOutgoingEdges("I");
       }
-      std::vector<std::shared_ptr<TreeNode>> childNodes = rootNode->child;
 
-      std::vector<unsigned int> turns_index;
-      Rcpp::StringVector turnNames;
-      while (!childNodes.empty())
+      while (!edges->empty())
       {
-        std::shared_ptr<TreeNode> turnSelected = softmax_action_sel(childNodes);
-        //Rcpp::Rcout << "turnSelected=" << turnSelected->turn << std::endl;
-        int turnNb = getTurnIdx(turnSelected->turn, S);
+        Edge edgeSelected = softmax_action_sel(graph, *edges);
+        std::string turnSelected = edgeSelected.dest->node;
+        currNode = edgeSelected.dest;
+        
+
+        int turnNb = getTurnIdx(currNode->node, S);
+        int turncount = turnIdx+1;
+        double turnTime = simulateTurnDuration(turnTimes,allpaths,turnNb,turncount, turnStages);
+
         //Rcpp::Rcout << "S=" << S << ", turnNb=" << turnNb << std::endl;
         generated_TurnsData_sess(turnIdx, 0) = turnNb;
         generated_TurnsData_sess(turnIdx, 1) = S;
         generated_TurnsData_sess(turnIdx, 2) = 0;
-        //Rcpp::Rcout << "turnNb=" << turnNb << ", turnIdx=" << (turnIdx+1) << std::endl;
-        int turncount = turnIdx+1;
-        double turnTime = simulateTurnDuration(turnTimes,allpaths,turnNb,turncount, turnStages);
-        //Rcpp::Rcout << "turnTime=" << turnTime << std::endl;
         generated_TurnsData_sess(turnIdx, 3) = turnTime;
         generated_TurnsData_sess(turnIdx, 4) = sessId;
         generated_TurnsData_sess(turnIdx, 5) = actionNb;
-        episodeTurns.push_back(turnSelected);
-        turnNames.push_back(turnSelected->turn);
+        
+        turnNames.push_back(turnSelected);
+        episodeTurns.push_back(currNode->node);
         episodeTurnStates.push_back(S);
-        //Rcpp::Rcout << "selected turn=" << turnSelected->turn << std::endl;
         episodeTurnTimes.push_back(turnTime);
-        childNodes = turnSelected->child;
-        turns_index.push_back(turnIdx);
+        //turns_index.push_back(turnIdx);
+
         turnIdx++;
+        edges = graph.getOutgoingEdges(currNode->node);
       }
 
       int A = getPathFromTurns(turnNames, S);
@@ -221,10 +220,10 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         //Rcpp::Rcout << "Inside end episode" << std::endl;
         changeState = false;
         returnToInitState = false;
-
         avg_score = (avg_score * (episode - 1) + (score_episode - avg_score)) / episode;
-
-        Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode);
+        Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode, &S0, &S1);
+        S0.updateEdgeProbs();
+        S1.updateEdgeProbs();
         //Rcpp::Rcout <<  "H="<<H<<std::endl;
         score_episode = 0;
         episode = episode + 1;
@@ -235,16 +234,16 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       }
 
       //Rcpp::Rcout << "Here1" << std::endl;
-      decayCredits(rootS1, gamma1);
-      decayCredits(rootS2, gamma1);
+      decayCredits(S0, gamma1);
+      decayCredits(S1, gamma1);
       //Rcpp::Rcout << "Here2" << std::endl;
 
       S = S_prime;
     }
 
    //Rcpp::Rcout << "Here3" << std::endl;
-    decayCredits(rootS1, gamma2);
-    decayCredits(rootS2, gamma2);
+    decayCredits(S0, gamma2);
+    decayCredits(S1, gamma2);
 
     // if (turnIdx < (nrow * 2) - 1)
     // {
@@ -262,7 +261,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 }
 
 // [[Rcpp::export()]]
-std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, double rewardVal, int sim)
+std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, double rewardVal, Rcpp::S4 turnModel, int sim)
 {
 
   if (sim != 1)
@@ -293,8 +292,10 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
   int episode = 1;
 
-  std::shared_ptr<TreeNode> rootS1 = initS1();
-  std::shared_ptr<TreeNode> rootS2 = initS2();
+  Graph S0 (turnModel, 0);
+  S0.printGraph();
+  Graph S1 (turnModel, 1);
+  S1.printGraph();
 
   //Rcpp::Rcout <<"rootS1.turn ="<<rootS1->turn<<std::endl;
   //Rcpp::Rcout <<"rootS2.turn ="<<rootS2->turn<<std::endl;
@@ -322,7 +323,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
     int nrow = actions_sess.n_rows;
     int S = 0;
     int A = 0;
-    std::vector<std::shared_ptr<TreeNode>> episodeTurns;
+    std::vector<std::string> episodeTurns;
     std::vector<int> episodeTurnStates;
     std::vector<double> episodeTurnTimes;
 
@@ -373,66 +374,42 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
 
-      Rcpp::StringVector turns;
-      turns = getTurnsFromPaths(A, S);
+      Rcpp::StringVector turns = getTurnsFromPaths(A, S);
       int nbOfTurns = turns.length();
-      //Rcpp::Rcout <<"Path="<< A << ", nbOfTurns=" << nbOfTurns<<std::endl;
-      std::shared_ptr<TreeNode> currNode;
-      std::shared_ptr<TreeNode> parentNode;
+      //Rcpp::Rcout <<"turns="<< turns << std::endl;
+
+      Node* prevNode;
+      Node* currNode;
+      Graph graph;
+      if(S == 0)
+      {
+        graph = S0;
+        prevNode = graph.getNode("E");
+      } 
+      else
+      {
+        graph = S1;
+        prevNode = graph.getNode("I");
+      }
+
       for (int j = 0; j < nbOfTurns; j++)
       {
         std::string currTurn = Rcpp::as<std::string>(turns(j));
-        //Rcpp::Rcout <<"j=" <<j <<", currTurn="<< currTurn<<std::endl;
-        if (j == 0)
-        {
-          if (S == 0)
-          {
-            currNode = getChildNode(rootS1, currTurn);
-            parentNode = rootS1;
-            if (!currNode)
-            {
-              //Rcpp::Rcout <<"currTurn="<< currTurn <<" is not child of "<< rootS1->turn <<std::endl;
-            }
-          }
-          else
-          {
-            currNode = getChildNode(rootS2, currTurn);
-            parentNode = rootS2;
-            if (!currNode)
-            {
-              //Rcpp::Rcout <<"currTurn="<< currTurn <<" is not child of "<< rootS2->turn <<std::endl;
-            }
-          }
-        }
-        else
-        {
-          parentNode = currNode;
-          currNode = getChildNode(currNode, currTurn);
-          
-          if (!currNode)
-          {
-            //Rcpp::Rcout <<"currNode is null"<<std::endl;
-          }
-        }
-
-        if (!currNode)
-        {
-          //Rcpp::Rcout <<"currNode is null"<<std::endl;
-        }
-        //Rcpp::Rcout <<"currNode.turn="<< currNode->turn<<std::endl;
-        episodeTurns.push_back(currNode);
+        currNode = graph.getNode(currTurn);
+        //currNode->credit = currNode->credit + 1; //Test
+        //Rcpp::Rcout <<"currNode="<< currNode->node<<std::endl;
+        episodeTurns.push_back(currNode->node);
         episodeTurnStates.push_back(S);
-        //Rcpp::Rcout <<"session_turn_count="<< session_turn_count<<std::endl;
-        //Rcpp::Rcout <<"session_turn_count="<< session_turn_count <<", turn_time=" << turn_times_session(session_turn_count) <<std::endl;
         episodeTurnTimes.push_back(turn_times_session(session_turn_count));
 
-        //Change softmax function - input row of credits, first element is always the selected turn, return prob of turn
-
-        double prob_a = softmax(currNode,parentNode);
+        Edge edge = graph.getEdge(prevNode->node, currNode->node);
+        double prob_a = edge.probability;
         //Rcpp::Rcout <<"prob_a="<< prob_a<<std::endl;
         double logProb = log(prob_a);
         mseMatrix.push_back(logProb);
+
         session_turn_count++;
+        prevNode =  currNode;
       }
 
       //log_lik=log_lik+ logProb;
@@ -446,7 +423,15 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
         avg_score = avg_score + (score_episode - avg_score) / episode;
         //Rcpp::Rcout <<  "score_episode=" << score_episode<<std::endl;
-        Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode);
+        // for (unsigned int index = 0; index < episodeTurns.size(); ++index)
+        // {
+        //   Rcpp::Rcout << "index=" <<index << ", episodeTurns[index]= " <<episodeTurns[index]->node <<std::endl;
+        // }
+        Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode, &S0, &S1);
+        //Rcpp::Rcout << "Update S0 probabilities"<<std::endl;
+        S0.updateEdgeProbs();
+        //Rcpp::Rcout << "Update S1 probabilities"<<std::endl;
+        S1.updateEdgeProbs();
         //Rcpp::Rcout <<  "H="<<H<<std::endl;
         score_episode = 0;
         episode = episode + 1;
@@ -455,20 +440,20 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
         episodeTurnStates.clear();
         episodeTurnTimes.clear();
       }
-      decayCredits(rootS1, gamma1);
-      decayCredits(rootS2, gamma1);
+      decayCredits(S0, gamma1);
+      decayCredits(S1, gamma1);
       S = S_prime;
       //trial=trial+1;
     }
-    decayCredits(rootS1, gamma2);
-    decayCredits(rootS2, gamma2);
+    decayCredits(S0, gamma2);
+    decayCredits(S1, gamma2);
   }
 
   return (mseMatrix);
 }
 
 // [[Rcpp::export()]]
-arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, double rewardVal, int sim)
+arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, double rewardVal, Rcpp::S4 turnModel, int sim)
 {
 
   if (sim != 1)
@@ -507,8 +492,8 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
   }
   int episode = 1;
 
-  std::shared_ptr<TreeNode> rootS1 = initS1();
-  std::shared_ptr<TreeNode> rootS2 = initS2();
+  Graph S0 (turnModel, 0);
+  Graph S1 (turnModel, 1);
 
   //Rcpp::Rcout <<"rootS1.turn ="<<rootS1->turn<<std::endl;
   //Rcpp::Rcout <<"rootS2.turn ="<<rootS2->turn<<std::endl;
@@ -537,7 +522,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
     int nrow = actions_sess.n_rows;
     int S = 0;
     int A = 0;
-    std::vector<std::shared_ptr<TreeNode>> episodeTurns;
+    std::vector<std::string> episodeTurns;
     std::vector<int> episodeTurnStates;
     std::vector<double> episodeTurnTimes;
 
@@ -588,79 +573,68 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
 
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
 
-      Rcpp::StringVector turns;
-      turns = getTurnsFromPaths(A, S);
+      Rcpp::StringVector turns = getTurnsFromPaths(A, S);
       int nbOfTurns = turns.length();
       //Rcpp::Rcout <<"Path="<< A << ", turns=" << turns<<std::endl;
-      std::shared_ptr<TreeNode> currNode;
-      std::shared_ptr<TreeNode> parentNode;
+      Node* currNode;
+      Graph graph;
+      if(S == 0)
+      {
+        graph = S0;
+      } 
+      else
+      {
+        graph = S1;
+      }
+      
+
       for (int j = 0; j < nbOfTurns; j++)
       {
         std::string currTurn = Rcpp::as<std::string>(turns(j));
-        //Rcpp::Rcout <<"j=" <<j <<", currTurn="<< currTurn<<std::endl;
-        if (j == 0)
-        {
-          if (S == 0)
-          {
-            currNode = getChildNode(rootS1, currTurn);
-            parentNode = rootS1;
-            if (!currNode)
-            {
-              //Rcpp::Rcout <<"currTurn="<< currTurn <<" is not child of "<< rootS1->turn <<std::endl;
-            }
-          }
-          else
-          {
-            currNode = getChildNode(rootS2, currTurn);
-            parentNode = rootS2;
-            if (!currNode)
-            {
-              //Rcpp::Rcout <<"currTurn="<< currTurn <<" is not child of "<< rootS2->turn <<std::endl;
-            }
-          }
-        }
-        else
-        {
-          parentNode = currNode;
-          currNode = getChildNode(currNode, currTurn);
-          if (!currNode)
-          {
-            //Rcpp::Rcout <<"currNode is null"<<std::endl;
-          }
-        }
+        currNode = graph.getNode(currTurn);
+        //Edge edge = graph.getEdge(prevNode->node, currNode->node);
 
-        if (!currNode)
-        {
-          //Rcpp::Rcout <<"currNode is null"<<std::endl;
-        }
-        //Rcpp::Rcout <<"currNode.turn="<< currNode->turn<<std::endl;
-        episodeTurns.push_back(currNode);
-        //Rcpp::Rcout <<"Adding state="<< S << " to episodeTurnStates"<<std::endl;
+        episodeTurns.push_back(currNode->node);
         episodeTurnStates.push_back(S);
-        //Rcpp::Rcout <<"session_turn_count="<< session_turn_count<<std::endl;
-        //Rcpp::Rcout <<"turn_time=" << turn_times_session(session_turn_count) <<std::endl;
         episodeTurnTimes.push_back(turn_times_session(session_turn_count));
 
-        //Change softmax function - input row of credits, first element is always the selected turn, return prob of turn
-
-        arma::rowvec probRow(17);
-        probRow.fill(-1);
-        probRow(16) = pathIds_session(session_turn_count);
-        // double prob_a = softmax(currNode,parentNode);
-        // unsigned int idx = getTurnIdx(currNode->turn, S);
-        // probRow(idx) = prob_a;
-        for (auto child = parentNode->child.begin(); child != parentNode->child.end(); child++)
-        {
-          std::shared_ptr<TreeNode> stgPtr = (*child);
-          unsigned int idx = getTurnIdx(stgPtr->turn, S);
-          probRow(idx) = softmax(stgPtr, parentNode);
-          //Rcpp::Rcout <<"probRow(idx)="<< probRow(idx) << ", idx=" <<idx<<std::endl;
-        }
-
-        //Rcpp::Rcout <<"prob_a="<< prob_a<<std::endl;
-        mseMatrix = arma::join_vert(mseMatrix, probRow);
         session_turn_count++;
       }
+      
+
+        arma::rowvec probRow(13);
+        probRow.fill(-1);
+        probRow(12) = pathIds_session(session_turn_count);
+        
+        for(int state=0;state<2;state++)
+        {
+          for(int path=0;path<6;path++)
+          {
+            Rcpp::StringVector turnVec = getTurnsFromPaths(path,state);
+            if(state==0)
+            { 
+              turnVec.push_front("E");
+            }
+            else
+            {
+              turnVec.push_front("I");
+            }
+            double pathProb = 1;
+            for(int k=0;k<(turnVec.length()-1);k++)
+            {
+              std::string turn1 = Rcpp::as<std::string>(turnVec[k]);
+              std::string turn2 = Rcpp::as<std::string>(turnVec[k+1]);
+              Edge e = graph.getEdge(turn1,turn2);
+              pathProb = e.probability * pathProb;
+            }
+            int index = path+ (6*state);
+            Rcpp::Rcout <<  "index=" << index << ", pathProb=" <<pathProb<<std::endl;
+            probRow[index] = pathProb;
+          }
+        }        
+        
+        mseMatrix = arma::join_vert(mseMatrix, probRow);
+
 
       //log_lik=log_lik+ logProb;
 
@@ -673,8 +647,9 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
 
         avg_score = avg_score + (score_episode - avg_score) / episode;
 
-        Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode);
-        //Rcpp::Rcout <<  "H="<<H<<std::endl;
+        Aca3CreditUpdate(episodeTurns, episodeTurnStates, episodeTurnTimes, alpha, score_episode, &S0, &S1);
+        S0.updateEdgeProbs();
+        S1.updateEdgeProbs();
         score_episode = 0;
         episode = episode + 1;
         resetVector = true;
@@ -683,14 +658,14 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
         episodeTurnTimes.clear();
       }
 
-      decayCredits(rootS1, gamma1);
-      decayCredits(rootS2, gamma1);
+      decayCredits(S0, gamma1);
+      decayCredits(S1, gamma1);
       S = S_prime;
 
       //trial=trial+1;
     }
-    decayCredits(rootS1, gamma2);
-    decayCredits(rootS2, gamma2);
+    decayCredits(S0, gamma2);
+    decayCredits(S1, gamma2);
   }
 
   return (mseMatrix);

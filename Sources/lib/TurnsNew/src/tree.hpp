@@ -18,6 +18,16 @@ struct Edge
     double probability;
 };
 
+struct Paths
+{
+    Rcpp::StringVector Path0;
+    Rcpp::StringVector Path1;
+    Rcpp::StringVector Path2;
+    Rcpp::StringVector Path3;
+    Rcpp::StringVector Path4;
+    Rcpp::StringVector Path5;
+};
+
 // A class to represent a graph object
 class Graph
 {
@@ -25,6 +35,8 @@ public:
     // a vector of vectors to represent an adjacency list
     std::vector<Node> nodes;
     std::vector<std::vector<Edge>> adjList;
+    Paths mazePaths = Paths();
+    
 
     int getNodeIndex(std::string nodeName)
     {
@@ -67,6 +79,7 @@ public:
             graph = Rcpp::as<Rcpp::S4>(turnModel.slot("S0"));
             rcppNodeList = turnModel.slot("nodes.S0");
             rcppEdgeList = turnModel.slot("edges.S0");
+
         }
         else
         {
@@ -75,12 +88,21 @@ public:
             rcppEdgeList = turnModel.slot("edges.S1");
         }
 
+        mazePaths.Path0 = Rcpp::as<Rcpp::StringVector>(graph.slot("Path0"));
+        mazePaths.Path1 = Rcpp::as<Rcpp::StringVector>(graph.slot("Path1"));
+        mazePaths.Path2 = Rcpp::as<Rcpp::StringVector>(graph.slot("Path2"));
+        mazePaths.Path3 = Rcpp::as<Rcpp::StringVector>(graph.slot("Path3"));
+        mazePaths.Path4 = Rcpp::as<Rcpp::StringVector>(graph.slot("Path4"));
+        mazePaths.Path5 = Rcpp::as<Rcpp::StringVector>(graph.slot("Path5"));
+
         for (int i = 0; i < rcppNodeList.size(); i++)
         {
             Node n = {Rcpp::as<std::string>(rcppNodeList[i]), 0};
+            //Rcpp::Rcout <<"i=" << i <<", node="<<n.node<<std::endl;
             nodes.push_back(n);
         }
         int N = nodes.size();
+        //Rcpp::Rcout <<"N=" << N<<std::endl;
         adjList.resize(N);
         for (int i = 0; i < rcppEdgeList.size(); i++)
         {
@@ -90,13 +112,17 @@ public:
             SEXP prob = edge.slot("prob");
             Rcpp::NumericVector probVec(prob);
 
-            //Rcpp::Rcout <<"vec="<<vec << ", probVec=" << probVec<<std::endl;
+            
             Node *src = getNode(Rcpp::as<std::string>(vec[0]));
             Node *dest = getNode(Rcpp::as<std::string>(vec[1]));
             Edge e = {src, dest, probVec[0]};
             int nodeIndex = getNodeIndex(src->node);
+            //Rcpp::Rcout <<"nodeIndex=" << nodeIndex <<", vec="<<vec << ", probVec=" << probVec<<std::endl;
             adjList[nodeIndex].push_back(e);
         }
+        
+        
+        
     }
 
     Edge getEdge(std::string src, std::string dest)
@@ -124,6 +150,7 @@ public:
     void printGraph()
     {
         int N = nodes.size();
+        //Rcpp::Rcout <<"N=" << N<<std::endl;
         for (int i = 0; i < N; i++)
         {
             // print the current vertex number
@@ -170,6 +197,68 @@ public:
                 
             }
         }
+    }
+
+    Rcpp::StringVector getTurnsFromPaths(int path)
+    {
+        Rcpp::StringVector turns;
+        if(path == 0)
+        {
+            turns = mazePaths.Path0;
+        }
+        else if(path == 1)
+        {
+            turns = mazePaths.Path1;
+        }
+        else if(path == 2)
+        {
+            turns = mazePaths.Path2;
+        }
+        else if(path == 3)
+        {
+            turns = mazePaths.Path3;
+        }
+        else if(path == 4)
+        {
+            turns = mazePaths.Path4;
+        }
+        else if(path == 5)
+        {
+            turns = mazePaths.Path5;
+        }
+
+        return(turns);
+    }
+
+    int getPathFromTurns(Rcpp::StringVector turns)
+    {
+        int path;
+        if(Rcpp::setequal(turns,mazePaths.Path0))
+        {
+            path = 0;
+        }
+        else if(Rcpp::setequal(turns,mazePaths.Path1))
+        {
+            path = 1;
+        }
+        else if(Rcpp::setequal(turns,mazePaths.Path2))
+        {
+            path = 2;
+        }
+        else if(Rcpp::setequal(turns,mazePaths.Path3))
+        {
+            path = 3;
+        }
+        else if(Rcpp::setequal(turns,mazePaths.Path4))
+        {
+            path = 4;
+        }
+        else if(Rcpp::setequal(turns,mazePaths.Path5))
+        {
+            path = 5;
+        }
+
+        return(path);
     }
 };
 

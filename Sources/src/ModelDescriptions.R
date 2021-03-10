@@ -9,12 +9,12 @@ setClass("Graph",
          representation(
            Name = "character",
            State = "numeric",
-           Path0 = "list",
-           Path1 = "list",
-           Path2 = "list",
-           Path3 = "list",
-           Path4 = "list",
-           Path5 = "list"
+           Path0 = "character",
+           Path1 = "character",
+           Path2 = "character",
+           Path3 = "character",
+           Path4 = "character",
+           Path5 = "character"
          )
 )
 
@@ -67,21 +67,21 @@ nodeListS1 = c("I","hc1","jka1","c2d","c2ba1","a2bc1","a2kj","a2gf","c2h")
 
 
 graphS0 = new("Graph", Name="turnsS0",State=0,
-              Path0 = list(edge1,edge3),
-              Path1 = list(edge2,edge6),
-              Path2 = list(edge1,edge4,edge9),
-              Path3 = list(edge2,edge5,edge8),
-              Path4 = list(edge2,edge5,edge7),
-              Path5 = list(edge1,edge4,edge10)
-)
+              Path0 = c("dc1","c2h"),
+              Path1 = c("fga1","a2kj"),
+              Path2 = c("dc1","c2ba1","a2kj"),
+              Path3 = c("fga1","a2bc1","c2h"),
+              Path4 = c("fga1","a2bc1","c2d"),
+              Path5 = c("dc1","c2ba1","a2gf")
+            )
 
 graphS1 = new("Graph", Name ="turnsS1",State=1,
-              Path0 = list(edge11,edge13),
-              Path1 = list(edge12,edge18),
-              Path2 = list(edge11,edge14,edge16),
-              Path3 = list(edge12,edge17,edge19),
-              Path4 = list(edge12,edge17,edge20),
-              Path5 = list(edge11, edge14,edge15))
+              Path0 = c("hc1","c2d"),
+              Path1 = c("jka1","a2gf"),
+              Path2 = c("hc1","c2ba1","a2gf"),
+              Path3 = c("jka1","a2bc1","c2d"),
+              Path4 = c("jka1","a2bc1","c2h"),
+              Path5 = c("hc1","c2ba1","a2kj"))
 
 turnsModel = new("Model", Name = "TurnsModel",
                  S0 = graphS0,

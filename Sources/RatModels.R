@@ -43,7 +43,7 @@ for (i in c(2:6)) {
   allpaths = enregres$allpaths
   boxTimes = enregres$boxTimes
   
-  ratdata = populateRatModel(allpaths=allpaths,rat=rats[i],donnees_ash[[i]])
+  ratdata = populateRatModel(allpaths=allpaths,rat=rats[i],donnees_ash[[i]],turnsModel)
   
   # #### Holdout Validation ########################################
   

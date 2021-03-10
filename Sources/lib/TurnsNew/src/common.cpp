@@ -13,7 +13,6 @@ using namespace Rcpp;
 
 //Function simulateTurnTimeFromR = Environment::global_env()["simulateTurnTime"];
 
-
 int aca_getNextState(int curr_state, int action, int last_turn)
 {
   //Rcpp::Rcout << "curr_state=" << curr_state << ", action=" << action << ", last_turn=" << last_turn << std::endl;
@@ -65,7 +64,6 @@ Edge softmax_action_sel(Graph graph, std::vector<Edge> edges)
   return (edges[action_selected]);
 }
 
-
 //allpaths_num,turnTimes,0,1,model=1,turnMethod = 1
 // [[Rcpp::export()]]
 Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double alpha, double gamma1, double gamma2, Rcpp::S4 turnModel, arma::vec turnStages)
@@ -90,10 +88,10 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
 
   //Rcpp::Rcout << "sessionVec=" << sessionVec << std::endl;
   //Rcpp::Rcout << "uniqSessIdx=" << uniqSessIdx << std::endl;
-  Graph S0 (turnModel, 0);
-  Graph S1 (turnModel, 1);
+  Graph S0(turnModel, 0);
+  Graph S1(turnModel, 1);
 
-  int actionNb=0;
+  int actionNb = 0;
 
   // Loop through each session
   for (unsigned int session = 0; session < (uniqSessIdx.n_elem); session++)
@@ -139,15 +137,15 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         resetVector = false;
       }
 
-      Node* currNode;
-      std::vector<Edge>* edges;
+      Node *currNode;
+      std::vector<Edge> *edges;
       Rcpp::StringVector turnNames;
       Graph graph;
-      if(S == 0)
+      if (S == 0)
       {
         graph = S0;
         edges = graph.getOutgoingEdges("E");
-      } 
+      }
       else
       {
         graph = S1;
@@ -159,11 +157,20 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         Edge edgeSelected = softmax_action_sel(graph, *edges);
         std::string turnSelected = edgeSelected.dest->node;
         currNode = edgeSelected.dest;
-        
 
-        int turnNb = getTurnIdx(currNode->node, S);
-        int turncount = turnIdx+1;
-        double turnTime = simulateTurnDuration(turnTimes,allpaths,turnNb,turncount, turnStages);
+        
+        int turnNb;
+        if (S==0)
+        {
+          turnNb = S0.getNodeIndex(currNode->node); 
+        }
+        else
+        {
+          turnNb = S1.getNodeIndex(currNode->node); 
+        }
+         
+        int turncount = turnIdx + 1;
+        double turnTime = simulateTurnDuration(turnTimes, allpaths, turnNb, turncount, turnStages);
 
         //Rcpp::Rcout << "S=" << S << ", turnNb=" << turnNb << std::endl;
         generated_TurnsData_sess(turnIdx, 0) = turnNb;
@@ -172,7 +179,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         generated_TurnsData_sess(turnIdx, 3) = turnTime;
         generated_TurnsData_sess(turnIdx, 4) = sessId;
         generated_TurnsData_sess(turnIdx, 5) = actionNb;
-        
+
         turnNames.push_back(turnSelected);
         episodeTurns.push_back(currNode->node);
         episodeTurnStates.push_back(S);
@@ -183,7 +190,16 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
         edges = graph.getOutgoingEdges(currNode->node);
       }
 
-      int A = getPathFromTurns(turnNames, S);
+      int A;
+      if(S == 0)
+      {
+        A = S0.getPathFromTurns(turnNames);
+      }
+      else
+      {
+       A = S1.getPathFromTurns(turnNames); 
+      }
+     
       //Rcpp::Rcout <<"i=" <<i << ", A=" << A << ", S=" << S << ", sessId=" <<sessId<< std::endl;
       generated_PathData_sess(i, 0) = A;
       generated_PathData_sess(i, 1) = S;
@@ -202,7 +218,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       }
 
       int last_turn = generated_TurnsData_sess((turnIdx - 1), 0);
-      
+
       int S_prime = aca_getNextState(S, A, last_turn);
       //Rcpp::Rcout <<"last_turn=" <<last_turn << ", S=" <<S <<", A=" <<A << ", S_prime=" << S_prime << std::endl;
 
@@ -241,7 +257,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
       S = S_prime;
     }
 
-   //Rcpp::Rcout << "Here3" << std::endl;
+    //Rcpp::Rcout << "Here3" << std::endl;
     decayCredits(S0, gamma2);
     decayCredits(S1, gamma2);
 
@@ -250,7 +266,7 @@ Rcpp::List simulateTurnsModels(arma::mat allpaths, arma::mat turnTimes, double a
     //   generated_TurnsData_sess.shed_rows((turnIdx), ((nrow * 2) - 1));
     // }
     //Rcpp::Rcout << "Here4" << std::endl;
-    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess.rows(0,(turnIdx-1)));
+    generated_TurnData = arma::join_cols(generated_TurnData, generated_TurnsData_sess.rows(0, (turnIdx - 1)));
     //Rcpp::Rcout <<  "H after session=" << H<<std::endl;
     //Rcpp::Rcout << "Here5" << std::endl;
     generated_PathData = arma::join_cols(generated_PathData, generated_PathData_sess);
@@ -287,15 +303,15 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
   }
   else
   {
-     turnTime_method = turnTimes.col(5);
+    turnTime_method = turnTimes.col(5);
   }
 
   int episode = 1;
 
-  Graph S0 (turnModel, 0);
-  S0.printGraph();
-  Graph S1 (turnModel, 1);
-  S1.printGraph();
+  Graph S0(turnModel, 0);
+  //S0.printGraph();
+  Graph S1(turnModel, 1);
+  //S1.printGraph();
 
   //Rcpp::Rcout <<"rootS1.turn ="<<rootS1->turn<<std::endl;
   //Rcpp::Rcout <<"rootS2.turn ="<<rootS2->turn<<std::endl;
@@ -374,18 +390,26 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
 
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
 
-      Rcpp::StringVector turns = getTurnsFromPaths(A, S);
+      Rcpp::StringVector turns;
+      if(S==0)
+      {
+        turns = S0.getTurnsFromPaths(A);
+      } 
+      else
+      {
+        turns = S1.getTurnsFromPaths(A);
+      }
       int nbOfTurns = turns.length();
       //Rcpp::Rcout <<"turns="<< turns << std::endl;
 
-      Node* prevNode;
-      Node* currNode;
+      Node *prevNode;
+      Node *currNode;
       Graph graph;
-      if(S == 0)
+      if (S == 0)
       {
         graph = S0;
         prevNode = graph.getNode("E");
-      } 
+      }
       else
       {
         graph = S1;
@@ -409,7 +433,7 @@ std::vector<double> getTurnsLikelihood(arma::mat allpaths, arma::mat turnTimes, 
         mseMatrix.push_back(logProb);
 
         session_turn_count++;
-        prevNode =  currNode;
+        prevNode = currNode;
       }
 
       //log_lik=log_lik+ logProb;
@@ -470,9 +494,10 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
   arma::vec allpath_states = allpaths.col(1);
   arma::vec allpath_rewards = allpaths.col(2);
   arma::vec sessionVec = allpaths.col(4);
+  arma::vec allpaths_pathNb = allpaths.col(5);
   arma::vec uniqSessIdx = arma::unique(sessionVec);
   arma::vec pathIds;
-  if(sim == 1)
+  if (sim == 1)
   {
     pathIds = turnTimes.col(5);
   }
@@ -488,12 +513,16 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
   }
   else
   {
-   turnTime_method = turnTimes.col(5);
+    turnTime_method = turnTimes.col(5);
   }
   int episode = 1;
 
-  Graph S0 (turnModel, 0);
-  Graph S1 (turnModel, 1);
+  Graph S0(turnModel, 0);
+  Graph S1(turnModel, 1);
+  //Rcpp::Rcout <<"Print S0"<<std::endl;
+  //S0.printGraph();
+  //Rcpp::Rcout <<"Print S1"<<std::endl;
+  //S1.printGraph();
 
   //Rcpp::Rcout <<"rootS1.turn ="<<rootS1->turn<<std::endl;
   //Rcpp::Rcout <<"rootS2.turn ="<<rootS2->turn<<std::endl;
@@ -507,10 +536,11 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
     arma::vec actions_sess = allpath_actions.elem(sessionIdx);
     arma::vec states_sess = allpath_states.elem(sessionIdx);
     arma::vec rewards_sess = allpath_rewards.elem(sessionIdx);
+    arma::vec allpaths_pathNb_sess = allpaths_pathNb.elem(sessionIdx);
 
     arma::uvec turnTimes_idx = arma::find(turnTimes.col(4) == sessId);
     arma::vec turn_times_session = turnTime_method.elem(turnTimes_idx);
-    arma::vec pathIds_session = pathIds.elem(turnTimes_idx);
+    
     arma::uword session_turn_count = 0;
 
     int initState = 0;
@@ -525,7 +555,7 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
     std::vector<std::string> episodeTurns;
     std::vector<int> episodeTurnStates;
     std::vector<double> episodeTurnTimes;
-
+    //Rcpp::Rcout <<"nrow="<<nrow<<std::endl;
     for (int i = 0; i < (nrow - 1); i++)
     {
 
@@ -573,20 +603,27 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
 
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
 
-      Rcpp::StringVector turns = getTurnsFromPaths(A, S);
+      Rcpp::StringVector turns;
+      if(S==0)
+      {
+        turns = S0.getTurnsFromPaths(A);
+      } 
+      else
+      {
+        turns = S1.getTurnsFromPaths(A);
+      }
       int nbOfTurns = turns.length();
       //Rcpp::Rcout <<"Path="<< A << ", turns=" << turns<<std::endl;
-      Node* currNode;
+      Node *currNode;
       Graph graph;
-      if(S == 0)
+      if (S == 0)
       {
         graph = S0;
-      } 
+      }
       else
       {
         graph = S1;
       }
-      
 
       for (int j = 0; j < nbOfTurns; j++)
       {
@@ -600,41 +637,52 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
 
         session_turn_count++;
       }
-      
+      //Rcpp::Rcout << "Here5" << std::endl;
+      arma::rowvec probRow(13);
+      probRow.fill(-1);
+      probRow(12) = allpaths_pathNb_sess(i);
 
-        arma::rowvec probRow(13);
-        probRow.fill(-1);
-        probRow(12) = pathIds_session(session_turn_count);
+      for (int path = 0; path < 6; path++)
+      {
+        //Rcpp::Rcout << "path=" << path << ", state=" << S << std::endl;
         
-        for(int state=0;state<2;state++)
+        Rcpp::StringVector turnVec;
+        if (S == 0)
         {
-          for(int path=0;path<6;path++)
+          turnVec = S0.getTurnsFromPaths(path);
+          turnVec.push_front("E");
+        }
+        else
+        {
+          turnVec = S1.getTurnsFromPaths(path);
+          turnVec.push_front("I");
+        }
+        //Rcpp::Rcout << "turnVec=" << turnVec << std::endl;
+        double pathProb = 1;
+        for (int k = 0; k < (turnVec.length() - 1); k++)
+        {
+          std::string turn1 = Rcpp::as<std::string>(turnVec[k]);
+          std::string turn2 = Rcpp::as<std::string>(turnVec[k + 1]);
+          //Rcpp::Rcout << "turn1=" << turn1 << ", turn2=" << turn2 << std::endl;
+          Edge e;
+          if (S == 0)
           {
-            Rcpp::StringVector turnVec = getTurnsFromPaths(path,state);
-            if(state==0)
-            { 
-              turnVec.push_front("E");
-            }
-            else
-            {
-              turnVec.push_front("I");
-            }
-            double pathProb = 1;
-            for(int k=0;k<(turnVec.length()-1);k++)
-            {
-              std::string turn1 = Rcpp::as<std::string>(turnVec[k]);
-              std::string turn2 = Rcpp::as<std::string>(turnVec[k+1]);
-              Edge e = graph.getEdge(turn1,turn2);
-              pathProb = e.probability * pathProb;
-            }
-            int index = path+ (6*state);
-            Rcpp::Rcout <<  "index=" << index << ", pathProb=" <<pathProb<<std::endl;
-            probRow[index] = pathProb;
+            e = S0.getEdge(turn1, turn2);
           }
-        }        
-        
-        mseMatrix = arma::join_vert(mseMatrix, probRow);
+          else
+          {
+            e = S1.getEdge(turn1, turn2);
+          }
 
+          //Rcpp::Rcout << "Edge prob=" << e.probability << std::endl;
+          pathProb = e.probability * pathProb;
+        }
+        int index = path + (6 * S);
+        //Rcpp::Rcout << "index=" << index << ", pathProb=" << pathProb << std::endl;
+        probRow[index] = pathProb;
+      }
+      //Rcpp::Rcout << "probRow=" << probRow << std::endl;
+      mseMatrix = arma::join_vert(mseMatrix, probRow);
 
       //log_lik=log_lik+ logProb;
 
@@ -661,11 +709,13 @@ arma::mat getProbMatrix(arma::mat allpaths, arma::mat turnTimes, double alpha, d
       decayCredits(S0, gamma1);
       decayCredits(S1, gamma1);
       S = S_prime;
-
+      //Rcpp::Rcout <<  "Here1"<<std::endl;
       //trial=trial+1;
     }
+    //Rcpp::Rcout <<  "Here2"<<std::endl;
     decayCredits(S0, gamma2);
     decayCredits(S1, gamma2);
+    //Rcpp::Rcout <<  "Here3"<<std::endl;
   }
 
   return (mseMatrix);

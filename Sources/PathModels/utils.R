@@ -403,7 +403,7 @@ getTurnDuration=function(path, state, enregRows)
 }
 
 
-getTurnsMatrix=function(allpaths,enreg)
+getTurnsMatrix=function(allpaths,enreg,turnsModel)
 {
   totalTurns = 3*length(allpaths[,1])
   turnTimes = matrix(0,totalTurns,6)
@@ -421,7 +421,53 @@ getTurnsMatrix=function(allpaths,enreg)
     {
       path = as.numeric(allpaths[idx_ses[i],5])-1
       state = as.numeric(allpaths[idx_ses[i],7])-1
-      turns = TurnsNew::getTurnsFromPaths(path,state)
+      
+      pathSlot = ""
+      nodeList = ""
+      stateSlot = ""
+      
+      if(path == 0)
+      {
+        pathSlot = "Path0"
+      }
+      else if(path == 1)
+      {
+        pathSlot = "Path1"
+      }
+      else if(path == 2)
+      {
+        pathSlot = "Path2"
+      }
+      else if(path == 3)
+      {
+        pathSlot = "Path3"
+      }
+      else if(path == 4)
+      {
+        pathSlot = "Path4"
+      }
+      else if(path == 5)
+      {
+        pathSlot = "Path5"
+      }
+      else if(path == 6)
+      {
+        next
+      }
+      
+      if(state==0)
+      {
+        nodeList = "nodes.S0"
+        stateSlot = "S0"
+      }
+      else
+      {
+        nodeList = "nodes.S1"
+        stateSlot = "S1"
+      }
+      
+      
+      turns = slot(slot(turnsModel, stateSlot),pathSlot)
       
       if(i==1)
       {
@@ -436,6 +482,8 @@ getTurnsMatrix=function(allpaths,enreg)
       enregRows = enreg[[ses]]$tab[idx,]
       
       turntimes = getTurnDuration(path, state, enregRows)
+      
+      
       if(length(turns) >0)
       {
         for(j in 1:length(turns))
@@ -443,7 +491,7 @@ getTurnsMatrix=function(allpaths,enreg)
           turnTimes[turnIdx,1] = idx_ses[i]
           turnTimes[turnIdx,2] = path
           turnTimes[turnIdx,3] = state
-          turnTimes[turnIdx,4] = TurnsNew::getTurnIdx(turns[j],state)
+          turnTimes[turnIdx,4] = which(slot(turnsModel, nodeList) == turns[j])
           turnTimes[turnIdx,5] = ses
           turnTimes[turnIdx,6] = turntimes[[j]]
           turnIdx = turnIdx+1
@@ -1281,7 +1329,7 @@ enregCombine=function(enreg,rat){
 }
 
 
-populateRatModel=function(rat,allpaths,enreg)
+populateRatModel=function(rat,allpaths,enreg,turnsModel)
 {
   
   allpaths = updateACAPathNbmse(allpaths)
@@ -1289,7 +1337,7 @@ populateRatModel=function(rat,allpaths,enreg)
   allpaths_num = matrix(as.numeric(unlist(allpaths[,c(5,7,6,2,4)])),nrow=nrow(allpaths[,c(5,7,6,2,4)]))
   allpaths_num = cbind(allpaths_num,c(1:length(allpaths_num[,1])))
   allpaths_num = cbind(allpaths_num,as.numeric(allpaths[,3]))
-  turnTimes = getTurnsMatrix(allpaths,enreg)
+  turnTimes = getTurnsMatrix(allpaths,enreg,turnsModel)
   
   ratdata = new("RatData", rat = rat,allpaths = allpaths_num,turnTimes = turnTimes)
   

@@ -13,6 +13,8 @@ source("src/Validate.R")
 source("src/ModelUpdates.R")
 source("src/BaseModels.R")
 source("src/ModelDescriptions.R")
+source("src/TurnModel.R")
+source("src/HybridModel1.R")
 source("PathModels/utils.R")
 
 
@@ -43,13 +45,13 @@ for (i in c(2:6)) {
   allpaths = enregres$allpaths
   boxTimes = enregres$boxTimes
   
-  ratdata = populateRatModel(allpaths=allpaths,rat=rats[i],donnees_ash[[i]],turnsModel)
+  ratdata = populateRatModel(allpaths=allpaths,rat=rats[i],donnees_ash[[i]],TurnModel)
   
   # #### Holdout Validation ########################################
   
   validateTestData = new("TestData", pathModels=c("aca3Paths"), turnModels=c("aca3Turns"))
-  debug(HoldoutTest)
-  HoldoutTest(ratdata, validateTestData)
+  # debug(HoldoutTest)
+  # HoldoutTest(ratdata, validateTestData)
   # ##### Model Selection On Acutal Data #########################3
   
   #mat_res = windowCompare(generated_data,models, sim=2)

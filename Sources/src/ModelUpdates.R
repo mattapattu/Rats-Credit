@@ -1,7 +1,7 @@
 library(DEoptim)
 library(rlist)
 
-cc=function(ratdata, models,sim)
+getModelResults=function(ratdata, models,sim)
 {
   end_index = getEndIndex(ratdata@allpaths, sim, limit=0.95)
   start_index = round(end_index/2)

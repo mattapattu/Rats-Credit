@@ -92,10 +92,14 @@ getMinimumLikelihood=function(allmodelRes,testingdata)
     {
       modelData = getModelData(allmodelRes,m,crAssgn)
       lik = modelData@likelihood
+      modelName = paste(modelData@Model,modelData@creditAssignment,sep=".")
+      
+      print(sprintf("model=%s,likelihood=%f",modelName,lik))
+      
       if(lik < min)
       {
         min = lik
-        min_method = paste(modelData@Model,modelData@creditAssignment,sep=".")
+        min_method = modelName
       }
     }
   }

@@ -14,6 +14,9 @@ source("src/ModelUpdates.R")
 source("src/ModelDesc.R")
 source("src/TurnModel.R")
 source("src/HybridModel1.R")
+source("src/HybridModel2.R")
+source("src/HybridModel3.R")
+source("src/HybridModel4.R")
 source("src/BaseModels.R")
 source("PathModels/utils.R")
 
@@ -47,22 +50,18 @@ for (i in c(2:6)) {
   
   ratdata = populateRatModel(allpaths=allpaths,rat=rats[i],donnees_ash[[i]],TurnModel)
   
+  testData = new("TestModels", Models=c("Paths","Hybrid1","Hybrid2","Hybrid3","Hybrid4","Turns"), creditAssignment=c("aca3"))
+  
+  
   # #### Holdout Validation ########################################
   
-  validateTestData = new("TestModels", Models=c("Paths","Hybrid1","Turns"), creditAssignment=c("aca3"))
-  debug(HoldoutTest)
-  HoldoutTest(ratdata, validateTestData)
+  #debug(HoldoutTest)
+  #HoldoutTest(ratdata, testData)
   # ##### Model Selection On Acutal Data #########################3
   
-  #mat_res = windowCompare(generated_data,models, sim=2)
-  #debug(getModelData)
-  
-  
-  #turnmodels=c("acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
-  #pathmodels=c("aca3")
-  #turnmodels=c("aca3Turns")
-  #debug(getModelData)
-  #res1 = getModelData(generated_data, pathmodels, window = window, sim=2)
-  allmodelRes = getModelResults(generated_data,models,sim)
-  min_method = getMinimumLikelihood(allmodelRes)  
+  #debug(getModelResults)
+  allmodelRes = getModelResults(ratdata,testData,sim=2)
+  min_method = getMinimumLikelihood(allmodelRes,testData)  
+  print(sprintf("%s is best mode for %s",min_method,rats[i]))
+  save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))
 }

@@ -1,19 +1,22 @@
+allModels = new("AllModels",Turns = TurnModel,Hybrid1 = Hybrid1)
+
 setClass("RatData", 
          slots = list(
            rat = "character",
            allpaths="matrix",
            turnTimes = "matrix",
            hybridModel1 = "matrix",
-           hybridModel2 = "matrix")
+           hybridModel2 = "matrix",
+           hybridModel3 = "matrix",
+           hybridModel4 = "matrix")
 )
 
 
-setClass("TestData", 
+setClass("TestModels", 
          slots = list(
-           pathModels="vector",
-           turnModels = "vector",
-           hybridModels1 = "vector",
-           hybridModels2 = "vector")
+           Models="character",
+           creditAssignment = "character"
+           )
 )
 
 setClass("BaseModel", 
@@ -26,10 +29,10 @@ setClass("BaseModel",
            type="character")
          )
 
-#### func callOptimize ###
 setClass("ModelData", 
          slots = list(
-           Name = "character", 
+           Model = "character", 
+           creditAssignment = "character",
            alpha = "numeric",
            gamma1 = "numeric",
            gamma2 = "numeric",
@@ -40,14 +43,45 @@ setClass("ModelData",
            )
         )
 
+setClass("ModelDataList",
+         slots = list(
+           Model = "character", 
+           aca = "ModelData",
+           aca2 = "ModelData",
+           aca3 = "ModelData",
+           gb = "ModelData",
+           sarsa = "ModelData"
+         )
+)
+
+
+setClass("AllModelRes", 
+         representation(
+           models = "vector",
+           Paths = "ModelDataList",
+           Turns = "ModelDataList",
+           Hybrid1 = "ModelDataList",
+           Hybrid2 = "ModelDataList",
+           Hybrid3 = "ModelDataList",
+           Hybrid4 = "ModelDataList",
+           type = "character"),
+         contains = "ModelData"
+)
+
+
 #### func setModelParams ###
-setGeneric("setModelParams", function(x,modelParams) 
-  standardGeneric("setModelParams") )
+setGeneric("setModelParams", function(x,modelParams) standardGeneric("setModelParams"))
+setGeneric("callOptimize", function(x,ratdata,allModels)  standardGeneric("callOptimize"))
+setGeneric("setModelResults", function(x,ratdata, allModels)  standardGeneric("setModelResults"))
+setGeneric("simulateData", function(x,ratdata,allModels) standardGeneric("simulateData"))
+setGeneric("addModelData", function(x,modelData) standardGeneric("addModelData"))
+setGeneric("getModelData", function(x,modelName,creditAssignment) standardGeneric("getModelData"))
+
 
 setMethod("setModelParams",  signature=c("ModelData","numeric"),
           definition=function(x,modelParams)
           {
-            if(x@Name == "aca3Paths"||x@Name == "aca3Turns" )
+            if(x@creditAssignment == "aca3")
             {
               x@alpha = modelParams[1]
               x@gamma1 = modelParams[2]
@@ -58,17 +92,13 @@ setMethod("setModelParams",  signature=c("ModelData","numeric"),
           }
 )
 
-#### func callOptimize ###
 
-setGeneric("callOptimize", function(x,ratdata) 
-  standardGeneric("callOptimize") )
-
-setMethod("callOptimize",  signature=c("ModelData","RatData"),
-          definition=function(x,ratdata)
+setMethod("callOptimize",  signature=c("ModelData","RatData","AllModels"),
+          definition=function(x,ratdata,allModels)
           {
             endLearningStage = getEndIndex(ratdata@allpaths,sim=x@sim, limit=0.95)
             endLearningStage = endLearningStage/2
-            if(x@Name == "aca3Paths")
+            if(x@Model == "Paths")
             {
               argList = list(lower = c(0,0,0), 
                              upper = c(1,1,1),
@@ -78,14 +108,16 @@ setMethod("callOptimize",  signature=c("ModelData","RatData"),
                              sim = x@sim)
               res = optimize(aca_negLogLik1,argList)
             }
-            else if(x@Name == "aca3Turns")
+            else
             {
+              model = x@Model
               argList = list(lower = c(0,0,0), 
                              upper = c(1,1,1),
                              allpaths = ratdata@allpaths, 
                              turnTimes = ratdata@turnTimes,
                              half_index = endLearningStage, 
-                             model = 5, 
+                             creditAssignment = "aca3",
+                             turnModel = slot(allModels,model),
                              sim = x@sim)
               
               res = optimize(negLogLikFunc,argList)
@@ -98,35 +130,35 @@ setMethod("callOptimize",  signature=c("ModelData","RatData"),
 )
 
 
-
-#### func setResults ###
-setGeneric("setResults", function(x,ratdata) 
-  standardGeneric("setResults") )
-
-setMethod("setResults",  signature=c("ModelData","RatData"),
-          definition=function(x,ratdata)
+setMethod("setModelResults",  signature=c("ModelData","RatData","AllModels"),
+          definition=function(x,ratdata,allModels)
           {
             endLearningStage = getEndIndex(ratdata@allpaths,sim=x@sim, limit=0.95)
             endLearningStage = endLearningStage/2
-            baseModel = getBaseModel(x@Name)
-            x@probMatrix = baseModel@probMatFunc(ratdata@allpaths,x@alpha,x@gamma1,x@gamma2,x@sim)
-            likelihood = baseModel@likelihoodFunc(ratdata@allpaths,x@alpha,x@gamma1,x@gamma2,x@sim)
+            baseModel = getBaseModel(x@Model)
+            
 
             
-            if(x@Name == "aca3Paths")
+            if(x@Model == "Paths")
             {
               
+              x@probMatrix = baseModel@probMatFunc(ratdata@allpaths,x@alpha,x@gamma1,x@gamma2,x@sim)
+              likelihood = baseModel@likelihoodFunc(ratdata@allpaths,x@alpha,x@gamma1,x@gamma2,x@sim)
               x@likelihood = sum(likelihood[-(1:endLearningStage)])
             }
-            else if(x@type == "aca3Turns")
+            else
             {
+              modelName = x@Model
+              model = slot(allModels,modelName)
+              x@probMatrix = baseModel@probMatFunc(ratdata@allpaths,ratdata@turnTimes, x@alpha,x@gamma1,x@gamma2,1,model,x@sim)
+              likelihood = baseModel@likelihoodFunc(ratdata@allpaths,ratdata@turnTimes,x@alpha,x@gamma1,x@gamma2,1, model,x@sim)
               if(x@sim==1)
               {
-                endLearningStage = last(which(turnTimes[,6]<=endLearningStage))
+                endLearningStage = last(which(ratdata@turnTimes[,6]<=endLearningStage))
               }
               else
               {
-                endLearningStage = last(which(turnTimes[,1]<=endLearningStage))
+                endLearningStage = last(which(ratdata@turnTimes[,1]<=endLearningStage))
               }
               x@likelihood = sum(likelihood[-(1:endLearningStage)])
               
@@ -135,12 +167,8 @@ setMethod("setResults",  signature=c("ModelData","RatData"),
           }
         )
 
-#### func simulateData ###
-setGeneric("simulateData", function(x,ratdata) 
-  standardGeneric("simulateData") )
-
-setMethod("simulateData",  signature=c("ModelData","RatData"),
-          definition=function(x,ratdata)
+setMethod("simulateData",  signature=c("ModelData","RatData","AllModels"),
+          definition=function(x,ratdata,allModels)
           {
             endStage1 = getEndIndex(ratdata@allpaths,sim=2,limit=0.5)
             turnIdxStage1 = last(which(ratdata@turnTimes[,1]<=endStage1))
@@ -154,7 +182,7 @@ setMethod("simulateData",  signature=c("ModelData","RatData"),
             
             
             
-            if(x@Name == "aca3Paths")
+            if(x@Model == "Paths")
             {
               argList = list(allpaths = ratdata@allpaths, 
                              turnTimes = ratdata@turnTimes,
@@ -162,18 +190,20 @@ setMethod("simulateData",  signature=c("ModelData","RatData"),
                              gamma1 = x@gamma1,
                              gamma2 = x@gamma2,
                              pathStages = pathstages)
-              generated_data = do.call(Aca3Paths@simulateFunc,argList)
+              generated_data = do.call(pathModelFuncs@simulateFunc,argList)
             }
-            else if(x@Name == "aca3Turns")
+            else
             {
+              model = x@Model
               argList = list(allpaths = ratdata@allpaths, 
                              turnTimes = ratdata@turnTimes,
                              alpha = x@alpha,
                              gamma1 = x@gamma1,
                              gamma2 = x@gamma2,
+                             turnModel = allModels@model,
                              turnStages = turnstages)
               
-              generated_data = do.call(Aca3Turns@simulateFunc,argList)
+              generated_data = do.call(turnModelFuncs@simulateFunc,argList)
             }
             
             
@@ -183,48 +213,25 @@ setMethod("simulateData",  signature=c("ModelData","RatData"),
 )
 
 
-setClass("AllModels", 
-         representation(
-           models = "vector",
-           aca3Paths = "ModelData",
-           aca3Turns = "ModelData",
-           type = "character"),
-           contains = "ModelData"
-         )
-
-setGeneric("addModelDataToResult", function(x,modelName, modelData) 
-  standardGeneric("addModelDataToResult") )
-setMethod("addModelDataToResult",  signature=c("AllModels","character","ModelData"),
-          function(x,modelName, modelData)
+setMethod("addModelData",  signature=c("AllModelRes","ModelData"),
+          function(x,modelData)
           {
-            if(modelName == "aca3Paths")
-            {
-              x@aca3Paths = modelData
-            }
-            else if(modelName == "aca3Turns")
-            {
-              x@aca3Turns = modelData
-            }
+            model = modelData@Model
+            creditAssignment = modelData@creditAssignment
+            
+
+            slot(slot(x,model),creditAssignment) = modelData
             
             return(x)
           }
 )
 
-setGeneric("getModelData", function(x,modelName) 
-  standardGeneric("getModelData") )
-setMethod("getModelData",  signature=c("AllModels","character"),
-          function(x,modelName)
+
+setMethod("getModelData",  signature=c("AllModelRes","character","character"),
+          function(x,modelName,creditAssignment)
           {
-            if(modelName == "aca3Paths")
-            {
-              modelData = x@aca3Paths 
-            }
-            else if(modelName == "aca3Turns")
-            {
-              modelData = x@aca3Turns
-            }
             
-            return(modelData)
+            return(slot(slot(x,modelName),creditAssignment))
           }
 )
 
@@ -234,32 +241,30 @@ setMethod("getModelData",  signature=c("AllModels","character"),
 
 ### Models 
 
-Aca3Paths = new("BaseModel", 
-                Name = "aca3Paths", 
+pathModelFuncs = new("BaseModel", 
+                Name = "PathModel", 
                 simulateFunc = Aca3::simulateTrials, 
                 likelihoodFunc = Aca3::getPathLikelihood,
                 probMatFunc = Aca3::getProbMatrix,
-                rule = "aca3", 
                 type = "paths")
 
-Aca3Turns = new("BaseModel", 
-                Name = "aca3Turns", 
+turnModelFuncs = new("BaseModel", 
+                Name = "TurnModel", 
                 simulateFunc = TurnsNew::simulateTurnsModels, 
                 likelihoodFunc = TurnsNew::getTurnsLikelihood,
                 probMatFunc = TurnsNew::getProbMatrix,
-                rule = "aca3", 
                 type = "turns")
 
 
 getBaseModel=function(modelName)
 {
-  if(modelName == "aca3Paths")
+  if(modelName == "Paths")
   {
-    baseModel = Aca3Paths
+    baseModel = pathModelFuncs
   }
-  else if(modelName == "aca3Turns")
+  else
   {
-    baseModel = Aca3Paths
+    baseModel = turnModelFuncs
   } 
   return(baseModel)
 }

@@ -39,21 +39,4 @@ setClass("AllModels",
            Hybrid3 = "Model",
            Hybrid4 = "Model"
          ))
-
-allModels = new("AllModels",Turns = TurnModel,Hybrid1 = Hybrid1)
-
-                
-getModel(modelName)
-{
-  if(modelName == "Turns")
-    {
-      model = TurnModel
-    }
-    else if(modelName == "Hybrid1")
-    {
-      model = Hybrid1
-    } 
-    return(model)
-  }
   
-}

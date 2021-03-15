@@ -1,7 +1,7 @@
 library(DEoptim)
 library(rlist)
 
-getModelResults=function(ratdata, models,sim)
+getModelResults=function(ratdata, testingdata,sim)
 {
   end_index = getEndIndex(ratdata@allpaths, sim, limit=0.95)
   start_index = round(end_index/2)
@@ -10,27 +10,27 @@ getModelResults=function(ratdata, models,sim)
     return()
   }
   
-  allmodels = new("AllModels", models=models)
+  allmodelRes = new("AllModelRes")
+  models = testingdata@Models
+  creditAssignment = testingdata@creditAssignment
   for(model in models)
   {
-    modelData = updateModelData(ratdata, new("ModelData", Name=model, sim=sim))
-    allmodels = addModelDataToResult(allmodels,model,modelData)
+    for(method in creditAssignment)
+    {
+      modelData = updateModelData(ratdata, new("ModelData", Model=model, creditAssignment = method, sim=sim))
+      allmodelRes = addModelData(allmodelRes,modelData) 
+    }
+    
+    
   }
-  return(allmodels)
+  return(allmodelRes)
 }
 
 updateModelData=function(ratdata,modelData)
 {
-  modelName = modelData@Name
-  # endLearningStage = getEndIndex(allpaths_num,sim=2, limit=0.95)
-  # endLearningStage = endLearningStage/2
-  
-  
-  res = callOptimize(modelData,ratdata)
-  
-  
+  res = callOptimize(modelData,ratdata,allModels)
   modelData = setModelParams(modelData,res)
-  modelData = setResults(modelData,ratdata)
+  modelData = setModelResults(modelData,ratdata,allModels)
   
   
   return(modelData)
@@ -94,32 +94,31 @@ aca_negLogLik1=function(par,allpaths,model,half_index, sim) {
 }
 
 
-negLogLikFunc=function(par,allpaths,turnTimes,half_index,model,sim) {
+negLogLikFunc=function(par,allpaths,turnTimes,half_index,creditAssignment,turnModel,sim) {
   
   alpha = par[1]
   
- if(model == 5){
+ if(creditAssignment == "aca3"){
     gamma1 = par[2]
     gamma2 = par[3]
     # reward = par[4]
     # reward = 1+reward*9
     reward = 1
     # 
-    probMatrix = TurnsNew::getProbMatrix(allpaths,turnTimes,alpha,gamma1,gamma2,1,sim)
-    pathProbMatrix = TurnsModels::getPathProbMatrix(probMatrix,allpaths,sim)
-    path4Probs = pathProbMatrix[which(pathProbMatrix[,4]>0),4]
+    probMatrix = TurnsNew::getProbMatrix(allpaths,turnTimes,alpha,gamma1,gamma2,1,turnModel,sim)
+    path4Probs = probMatrix[which(probMatrix[,4]>0),4]
     path4AboveLim = which(path4Probs >= 0.95)
     result <- rle(diff(path4AboveLim))
     path4Converged = any(result$lengths>=30 & result$values==1)
     
-    path10Probs = pathProbMatrix[which(pathProbMatrix[,10]>0),10]
+    path10Probs = probMatrix[which(probMatrix[,10]>0),10]
     path10AboveLim = which(path10Probs >= 0.95)
     result <- rle(diff(path10AboveLim))
     path10Converged = any(result$lengths>=30 & result$values==1)
     
     if(path4Converged &&  path10Converged)
     {
-      turnlik=TurnsNew::getTurnsLikelihood(allpaths[1:half_index,],turnTimes,alpha,gamma1,gamma2,1,sim)
+      turnlik=TurnsNew::getTurnsLikelihood(allpaths[1:half_index,],turnTimes,alpha,gamma1,gamma2,1,turnModel,sim)
     }
     else
     {

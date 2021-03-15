@@ -3,23 +3,24 @@
 
 HoldoutTest=function(ratdata, testingdata)
 {
-  validated = TRUE
-  
-  pathmodels = testingdata@pathModels
-  turnmodels = testingdata@turnModels
-  
-  models = c(pathmodels,turnmodels)
-  
-  mat_res = matrix(0, length(models), length(models))
-  colnames(mat_res) <- models
-  rownames(mat_res) <- models
+  models = testingdata@Models
+  creditAssignment = testingdata@creditAssignment
+
+  modelNames = as.vector(sapply(creditAssignment, function(x) paste(models, x, sep=".")))
+
+  mat_res = matrix(0, length(modelNames), length(modelNames))
+  colnames(mat_res) <- modelNames
+  rownames(mat_res) <- modelNames
   
 
-  print(sprintf("models: %s",toString(models)))
-  for(model in models){
-    print(sprintf("model= %s",model))
+  print(sprintf("models: %s",toString(modelNames)))
+  
+  for(model in modelNames){
+    print(sprintf("model= %s",modelNames))
     
-    trueModelData = new("ModelData", Name = model, sim=2)
+    modelName = strsplit(model,"\\.")[[1]][1]
+    creditAssignment = strsplit(model,"\\.")[[1]][2]
+    trueModelData = new("ModelData", Model = modelName, creditAssignment = creditAssignment, sim=2)
     trueModelData = updateModelData(ratdata,trueModelData)
     
     
@@ -31,7 +32,8 @@ HoldoutTest=function(ratdata, testingdata)
       total_trials = length(allpaths[,1])
       init_state = as.numeric(allpaths[1,2])-1
       
-      generated_data = simulateData(trueModelData,ratdata)
+      generated_data = simulateData(trueModelData,ratdata,allModels)
+      
       end_index = getEndIndex(generated_data@allpaths, sim=1, limit=0.95)
       
       if(end_index == -1){
@@ -47,8 +49,8 @@ HoldoutTest=function(ratdata, testingdata)
         
       }
       
-      allmodelRes = getModelResults(generated_data,models,sim=1)
-      min_method = getMinimumLikelihood(allmodelRes)
+      allmodelRes = getModelResults(generated_data,testingdata,sim=1)
+      min_method = getMinimumLikelihood(allmodelRes,testingdata)
       mat_res[toString(model),toString(min_method)] = mat_res[toString(model),toString(min_method)] + 1
       
       #print(sprintf("iter=%i", iter))
@@ -78,25 +80,25 @@ HoldoutTest=function(ratdata, testingdata)
 
 
 
-getMinimumLikelihood=function(allmodelRes)
+getMinimumLikelihood=function(allmodelRes,testingdata)
 {
   min_index = 0
   min = 100000
   min_method = "null"
   
-  
-  for(m in allmodelRes@models)
+  for(m in testingdata@Models)
   {
-    modelData = getModelData(allmodelRes,m)
-    lik = modelData@likelihood
-    if(lik < min)
+    for(crAssgn in testingdata@creditAssignment)
     {
-      min = lik
-      min_method = modelData@Name
+      modelData = getModelData(allmodelRes,m,crAssgn)
+      lik = modelData@likelihood
+      if(lik < min)
+      {
+        min = lik
+        min_method = paste(modelData@Model,modelData@creditAssignment,sep=".")
+      }
     }
-    
   }
-  
   return(min_method)
 }
 

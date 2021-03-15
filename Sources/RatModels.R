@@ -9,12 +9,12 @@ library(sp) #for spatial polygons
 
 
 setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
-source("src/Validate.R")
+source("src/ValidateModels.R")
 source("src/ModelUpdates.R")
-source("src/BaseModels.R")
-source("src/ModelDescriptions.R")
+source("src/ModelDesc.R")
 source("src/TurnModel.R")
 source("src/HybridModel1.R")
+source("src/BaseModels.R")
 source("PathModels/utils.R")
 
 
@@ -49,16 +49,16 @@ for (i in c(2:6)) {
   
   # #### Holdout Validation ########################################
   
-  validateTestData = new("TestData", pathModels=c("aca3Paths"), turnModels=c("aca3Turns"))
-  # debug(HoldoutTest)
-  # HoldoutTest(ratdata, validateTestData)
+  validateTestData = new("TestModels", Models=c("Paths","Hybrid1","Turns"), creditAssignment=c("aca3"))
+  debug(HoldoutTest)
+  HoldoutTest(ratdata, validateTestData)
   # ##### Model Selection On Acutal Data #########################3
   
   #mat_res = windowCompare(generated_data,models, sim=2)
   #debug(getModelData)
   
-  pathmodels=c("aca","gb","aca2","aca3","sarsa")
-  turnmodels=c("acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
+  
+  #turnmodels=c("acaTurns","gbTurns","aca2Turns","aca3Turns","sarsaTurns")
   #pathmodels=c("aca3")
   #turnmodels=c("aca3Turns")
   #debug(getModelData)

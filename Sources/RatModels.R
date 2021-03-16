@@ -9,15 +9,15 @@ library(sp) #for spatial polygons
 
 
 setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
-source("src/ValidateModels.R")
-source("src/ModelUpdates.R")
-source("src/ModelDesc.R")
+source("src/ValidationFunc.R")
+source("src/ModelUpdateFunc.R")
+source("src/ModelClasses.R")
 source("src/TurnModel.R")
 source("src/HybridModel1.R")
 source("src/HybridModel2.R")
 source("src/HybridModel3.R")
 source("src/HybridModel4.R")
-source("src/BaseModels.R")
+source("src/Baseclasses.R")
 source("PathModels/utils.R")
 
 
@@ -56,12 +56,12 @@ for (i in c(2:6)) {
   # #### Holdout Validation ########################################
   
   #debug(HoldoutTest)
-  #HoldoutTest(ratdata, testData)
+  HoldoutTest(ratdata, testData)
   # ##### Model Selection On Acutal Data #########################3
   
   #debug(getModelResults)
-  allmodelRes = getModelResults(ratdata,testData,sim=2)
-  min_method = getMinimumLikelihood(allmodelRes,testData)  
-  print(sprintf("%s is best mode for %s",min_method,rats[i]))
-  save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))
+  # allmodelRes = getModelResults(ratdata,testData,sim=2)
+  # min_method = getMinimumLikelihood(allmodelRes,testData)  
+  # print(sprintf("%s is best mode for %s",min_method,rats[i]))
+  # save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))
 }

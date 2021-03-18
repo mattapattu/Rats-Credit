@@ -56,12 +56,12 @@ for (i in c(2:6)) {
   # #### Holdout Validation ########################################
   
   #debug(HoldoutTest)
-  HoldoutTest(ratdata, testData)
+  #HoldoutTest(ratdata, testData)
   # ##### Model Selection On Acutal Data #########################3
   
   #debug(getModelResults)
-  # allmodelRes = getModelResults(ratdata,testData,sim=2)
-  # min_method = getMinimumLikelihood(allmodelRes,testData)  
-  # print(sprintf("%s is best mode for %s",min_method,rats[i]))
-  # save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))
+  allmodelRes = getModelResults(ratdata,testData,sim=2)
+  min_method = getMinimumLikelihood(allmodelRes,testData)
+  print(sprintf("%s is best model for %s",min_method,rats[i]))
+  save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))
 }

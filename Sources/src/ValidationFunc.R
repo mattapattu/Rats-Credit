@@ -16,7 +16,7 @@ HoldoutTest=function(ratdata, testingdata)
   print(sprintf("models: %s",toString(modelNames)))
   
   for(model in modelNames){
-    print(sprintf("model= %s",modelNames))
+    print(sprintf("model= %s",model))
     
     modelName = strsplit(model,"\\.")[[1]][1]
     creditAssignment = strsplit(model,"\\.")[[1]][2]
@@ -28,7 +28,7 @@ HoldoutTest=function(ratdata, testingdata)
     start_index = 0
     end_index = 0
     missedOptimalIter = 0
-    while(iter <= 100){
+    while(iter <= 1){
       total_trials = length(allpaths[,1])
       init_state = as.numeric(allpaths[1,2])-1
       

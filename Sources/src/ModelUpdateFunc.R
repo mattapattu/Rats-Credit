@@ -41,8 +41,9 @@ updateModelData=function(ratdata,modelData)
 optimize=function(fn,argList)
 {
   np.val = length(argList$lower) * 10
-  myList <- DEoptim.control(NP=np.val, F=2, CR = 0.9,trace = FALSE, itermax = 100,parallelType = 1,reltol = 0.0005, steptol = 10)
+  myList <- DEoptim.control(NP=np.val, F=2, CR = 0.9,trace = FALSE, itermax = 100,reltol = 0.0005, steptol = 10)
   out<-do.call("DEoptim",list.append(argList, fn=fn, myList))
+  
   return(out$optim$bestmem)
   
 }
@@ -94,9 +95,10 @@ aca_negLogLik1=function(par,allpaths,model,half_index, sim) {
 }
 
 
-negLogLikFunc=function(par,allpaths,turnTimes,half_index,creditAssignment,turnModel,sim) {
+negLogLikFunc=function(par,ratdata,half_index,modelData,testModel,sim) {
   
   alpha = par[1]
+  creditAssignment = modelData@creditAssignment
   
  if(creditAssignment == "aca3"){
     gamma1 = par[2]
@@ -105,7 +107,10 @@ negLogLikFunc=function(par,allpaths,turnTimes,half_index,creditAssignment,turnMo
     # reward = 1+reward*9
     reward = 1
     # 
-    probMatrix = TurnsNew::getProbMatrix(allpaths,turnTimes,alpha,gamma1,gamma2,1,turnModel,sim)
+    modelData@alpha = alpha
+    modelData@gamma1 = gamma1
+    modelData@gamma2 = gamma2
+    probMatrix = TurnsNew::getProbMatrix(ratdata,modelData,testModel,sim)
     path4Probs = probMatrix[which(probMatrix[,4]>0),4]
     path4AboveLim = which(path4Probs >= 0.95)
     result <- rle(diff(path4AboveLim))
@@ -118,7 +123,8 @@ negLogLikFunc=function(par,allpaths,turnTimes,half_index,creditAssignment,turnMo
     
     if(path4Converged &&  path10Converged)
     {
-      turnlik=TurnsNew::getTurnsLikelihood(allpaths[1:half_index,],turnTimes,alpha,gamma1,gamma2,1,turnModel,sim)
+      ratdata@allpaths = ratdata@allpaths[1:half_index,]
+      turnlik=TurnsNew::getTurnsLikelihood(ratdata,modelData,testModel,sim)
     }
     else
     {

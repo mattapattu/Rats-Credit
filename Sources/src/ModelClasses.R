@@ -23,6 +23,7 @@ setClass("Model",
          representation(
            S0 = "Graph",
            S1 = "Graph",
+           nodeGroups = "list",
            edges.S0 = "list",
            edges.S1 = "list",
            nodes.S0 = "character",

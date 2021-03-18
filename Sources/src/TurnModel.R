@@ -52,9 +52,13 @@ graphS1 = new("Graph", Name ="turnsS1",State=1,
               Path4 = c("jka1","a2bc1","c2h"),
               Path5 = c("hc1","c2ba1","a2kj"))
 
+
+groups = list(grp1=c(1,2,3,6,7,8),grp2=c(4,5))
+
 TurnModel = new("Model", Name = "TurnModel",
                  S0 = graphS0,
                  S1 = graphS1,
+                 nodeGroups = groups,
                  edges.S0 = edgeListS0,
                  edges.S1 = edgeListS1,
                  nodes.S0 = nodeListS0,

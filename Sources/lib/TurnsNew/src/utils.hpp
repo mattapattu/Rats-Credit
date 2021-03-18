@@ -29,14 +29,6 @@ Rcpp::IntegerVector cumsum1(Rcpp::IntegerVector x)
 }
 
 
-void decayCredits(Graph graph, double gamma)
-{
-  std::vector<Node> nodes = graph.nodes;
-    for (auto &node : nodes)
-    {
-        node.credit = gamma*node.credit;
-    }
-}
 
 
 
@@ -61,12 +53,9 @@ std::vector<double> quartiles(std::vector<double> samples)
 }
 
 // [[Rcpp::export]]
-double simulateTurnDuration(arma::mat turnTimes, arma::mat allpaths, int turnId, int turnNb, arma::vec turnStages)
+double simulateTurnDuration(arma::mat turnTimes, arma::mat allpaths, int turnId, int turnNb, arma::vec turnStages, Rcpp::List nodeGroups)
 {
-  std::vector<int> grp1 = {0,2,7,8,10,15};
-  std::vector<int> grp2 = {1,5,6,9,13,14};
-  std::vector<int> grp3 = {3,4,11,12};
-
+  
   int start = -1;
   int end = 0;
   if(turnNb < turnStages(1))
@@ -91,24 +80,33 @@ double simulateTurnDuration(arma::mat turnTimes, arma::mat allpaths, int turnId,
   
   arma::mat turnTimes_submat = turnTimes.rows(start,end);
   arma::vec turnId_submat = turnTimes_submat.col(3);
-  arma::uvec idx;
 
   //Rcpp::Rcout << "turnTimes_submat=" << turnTimes_submat << std::endl;
-
-  if(std::find(grp1.begin(), grp1.end(), turnId) != grp1.end())
+  Rcpp::IntegerVector idx;
+  for(int i=0;i<nodeGroups.size();i++)
   {
-    idx = arma::find(turnId_submat == 0 || turnId_submat == 2|| turnId_submat == 7||turnId_submat == 8 || turnId_submat == 10|| turnId_submat == 15);
+    Rcpp::CharacterVector vecGrp = Rcpp::as<Rcpp::CharacterVector>(nodeGroups[i]);
+    Rcpp::CharacterVector turnIds = Rcpp::as<Rcpp::CharacterVector>(Rcpp::wrap(turnId_submat));
+    
+     Rcpp::CharacterVector table(1);
+     table(0) = turnId;
+     Rcpp::IntegerVector vec =  Rcpp::match(vecGrp , table ) ;
+     //Rcpp::Rcout <<"vecGrp=" <<vecGrp << ", turnId=" <<turnId << ", vec=" <<vec << std::endl;
+     bool res = Rcpp::any(!Rcpp::is_na(vec));
+     if(res)
+     {
+       Rcpp::IntegerVector v = Rcpp::seq(0, turnId_submat.size()-1);
+       Rcpp::IntegerVector vec =  Rcpp::match(turnIds, vecGrp ) ;
+       idx = v[!Rcpp::is_na(vec)];
+       break;
+     }
   }
-  else if(std::find(grp2.begin(), grp2.end(), turnId) != grp2.end())
-  {
-    idx = arma::find(turnId_submat == 1 || turnId_submat == 5|| turnId_submat == 6||turnId_submat == 9 || turnId_submat == 13|| turnId_submat == 14);
-  }
-  else if(std::find(grp3.begin(), grp3.end(), turnId) != grp3.end())
-  {
-    idx = arma::find(turnId_submat == 3 || turnId_submat == 4|| turnId_submat == 11||turnId_submat == 12);
-  }
+  
+  arma::uvec arma_idx = Rcpp::as<arma::uvec>(idx);
+  //Rcpp::Rcout <<"arma_idx=" <<arma_idx << std::endl;
+ 
   arma::vec turndurations_submat = turnTimes_submat.col(5);
-  arma::vec sample = turndurations_submat.elem(idx);
+  arma::vec sample = turndurations_submat.elem(arma_idx);
   std::vector<double> q = quartiles(arma::conv_to<std::vector<double>>::from(sample));
   arma::uvec final_sample_ids = arma::find(sample >= q[0] && sample <= q[2]);
   arma::vec fin_sample = sample.elem(final_sample_ids);
@@ -118,6 +116,80 @@ double simulateTurnDuration(arma::mat turnTimes, arma::mat allpaths, int turnId,
   double duration = Rcpp::RcppArmadillo::sample(fin_sample, 1, true, pvec)[0];
   return(duration);
 }
+
+
+
+arma::mat simulatePathTime(arma::mat turnTimes, arma::mat allpaths, int pathNb, int path, arma::vec pathStages)
+{
+  std::vector<int> grp1 = {0};
+  std::vector<int> grp2 = {1};
+  std::vector<int> grp3 = {3,4};
+  std::vector<int> grp4 = {2,5};
+
+
+  int start = -1;
+  int end = 0;
+  if(pathNb < pathStages(1))
+  {
+    start = 1;
+    end = pathStages(1)-1;
+  }
+  else if(pathNb >= pathStages(1) && pathNb < pathStages(2))
+  {
+    start = pathStages(1);
+    end = pathStages(2)-1;
+  }
+  else if(pathNb >= pathStages(2))
+  {
+    start = pathStages(2);
+    end = pathStages(3);
+  }
+
+  start = start-1;
+  end = end-1;
+  Rcpp::Rcout << "start=" << start << ", end=" << end << std::endl;
+  arma::mat allpaths_submat = allpaths.rows(start,end);
+  arma::vec path_submat = allpaths_submat.col(0) - 1;
+  arma::uvec allpathsubmat_idx;
+  if(std::find(grp1.begin(), grp1.end(), path) != grp1.end())
+  {
+    Rcpp::Rcout << "Here1" << std::endl;
+    allpathsubmat_idx = arma::find(path_submat == 0);
+  }
+  else if(std::find(grp2.begin(), grp2.end(), path) != grp2.end())
+  {
+    Rcpp::Rcout << "Here2" << std::endl;
+    allpathsubmat_idx = arma::find(path_submat == 1);
+  }
+  else if(std::find(grp3.begin(), grp3.end(), path) != grp3.end())
+  {
+    Rcpp::Rcout << "Here3" << std::endl;
+    allpathsubmat_idx = arma::find( path_submat == 3||path_submat == 4 );
+  }
+  else if(std::find(grp4.begin(), grp4.end(), path) != grp4.end())
+  {
+    Rcpp::Rcout << "Here4" << std::endl;
+    allpathsubmat_idx = arma::find(path_submat == 2 || path_submat == 5);
+  }
+  
+ Rcpp::Rcout << "allpathsubmat_idx.n_elem=" << allpathsubmat_idx.n_elem << std::endl;
+  
+  arma::mat allpath_submat2 = allpaths_submat.rows(allpathsubmat_idx);
+  arma::vec sample = allpath_submat2.col(3);
+  std::vector<double> q = quartiles(arma::conv_to<std::vector<double>>::from(sample));
+  arma::uvec final_sample_ids = arma::find(sample >= q[0] && sample <= q[2]);
+  double probability = (double) 1/(double) final_sample_ids.n_elem;
+  arma::vec pvec(final_sample_ids.n_elem); 
+  pvec.fill(probability);
+  arma::uword sampled_id = Rcpp::RcppArmadillo::sample(final_sample_ids, 1, true, pvec)[0];
+  int actionNb = allpath_submat2(sampled_id,5);
+  arma::uvec turnIdx = arma::find(turnTimes.col(0) == actionNb);
+  arma::mat turn_submat = turnTimes.rows(turnIdx);
+  arma::uvec colIds = {0,5}; //3 = ActionNb, 5 = actionNb
+  arma::mat turnDurations = turn_submat.cols(colIds);
+  return(turnDurations);
+}
+
 
 
 

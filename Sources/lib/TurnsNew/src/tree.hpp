@@ -40,17 +40,17 @@ public:
 
     int getNodeIndex(std::string nodeName)
     {
-        int i = 0;
-        for (auto &node : nodes)
+        int index = -1;
+        for(unsigned int i=0;i<nodes.size();i++)
         {
 
-            if (node.node == nodeName)
+            if (nodes[i].node == nodeName)
             {
+                index = i;
                 break;
             }
-            i++;
         }
-        return (i);
+        return (index);
     }
 
     Node *getNode(std::string nodeName)
@@ -164,6 +164,15 @@ public:
             std::cout << std::endl;
         }
     }
+
+    void decayCredits(double gamma)
+    {
+        for (auto &node : nodes)
+        {
+            node.credit = gamma*node.credit;
+        }
+    }
+
     
     void updateEdgeProbs()
     {
@@ -232,7 +241,7 @@ public:
 
     int getPathFromTurns(Rcpp::StringVector turns)
     {
-        int path;
+        int path=-1;
         if(Rcpp::setequal(turns,mazePaths.Path0))
         {
             path = 0;

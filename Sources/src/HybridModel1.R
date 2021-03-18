@@ -48,9 +48,12 @@ graphS1 = new("Graph", Name ="turnsS1",State=1,
               Path4 = c("jkabc1","c2h"),
               Path5 = c("hcba1","a2kj"))
 
+groups = list(grp1=c(1),grp2=c(2,3,4), grp3 = c(5,6,7,8))
+
 Hybrid1 = new("Model", Name = "Hybrid1",
                  S0 = graphS0,
                  S1 = graphS1,
+                 nodeGroups = groups,
                  edges.S0 = edgeListS0,
                  edges.S1 = edgeListS1,
                  nodes.S0 = nodeListS0,

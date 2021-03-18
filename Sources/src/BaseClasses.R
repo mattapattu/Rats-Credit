@@ -124,18 +124,18 @@ setMethod("callOptimize",  signature=c("ModelData","RatData","AllModels"),
               endLearningStage = endLearningStage/2
               argList = list(lower = c(0,0,0), 
                              upper = c(1,1,1),
-                             allpaths = ratdata@allpaths, 
-                             turnTimes = testTurnTimes,
+                             ratdata = ratdata,
                              half_index = endLearningStage, 
-                             creditAssignment = "aca3",
-                             turnModel = TurnModel,
+                             modelData = x,
+                             testModel = TurnModel,
                              sim = x@sim)
               res = optimize(negLogLikFunc,argList)
             }
             else
             {
               testModel = slot(allModels,model)
-              testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=2)
+              testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
+              hybridRatdata = new("RatData",allpaths=ratdata@allpaths,turnTimes =testTurnTimes )
               if(x@sim == 1)
               {
                 endLearningStage = last(which(testTurnTimes[,6]<=endLearningStage))
@@ -148,11 +148,10 @@ setMethod("callOptimize",  signature=c("ModelData","RatData","AllModels"),
 
               argList = list(lower = c(0,0,0), 
                              upper = c(1,1,1),
-                             allpaths = ratdata@allpaths, 
-                             turnTimes = testTurnTimes,
+                             ratdata = hybridRatdata,
                              half_index = endLearningStage, 
-                             creditAssignment = "aca3",
-                             turnModel = testModel,
+                             modelData = x,
+                             testModel = testModel,
                              sim = x@sim)
               
               res = optimize(negLogLikFunc,argList)
@@ -190,15 +189,16 @@ setMethod("setModelResults",  signature=c("ModelData","RatData","AllModels"),
                 endLearningStage = last(which(testTurnTimes[,1]<=endLearningStage))
               }
               endLearningStage = endLearningStage/2
-              x@probMatrix = baseModel@probMatFunc(ratdata@allpaths,testTurnTimes, x@alpha,x@gamma1,x@gamma2,1,TurnModel,x@sim)
-              likelihood = baseModel@likelihoodFunc(ratdata@allpaths,testTurnTimes,x@alpha,x@gamma1,x@gamma2,1, TurnModel,x@sim)
+              x@probMatrix = baseModel@probMatFunc(ratdata, x,TurnModel,x@sim)
+              likelihood = baseModel@likelihoodFunc(ratdata, x,TurnModel,x@sim)
               x@likelihood = (-1) * sum(likelihood[-(1:endLearningStage)])
               
             }
             else
             {
               testModel = slot(allModels,model)
-              testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=2)
+              testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
+              hybridRatdata = new("RatData",allpaths=ratdata@allpaths,turnTimes =testTurnTimes )
               if(x@sim == 1)
               {
                 endLearningStage = last(which(testTurnTimes[,6]<=endLearningStage))
@@ -208,8 +208,8 @@ setMethod("setModelResults",  signature=c("ModelData","RatData","AllModels"),
                 endLearningStage = last(which(testTurnTimes[,1]<=endLearningStage))
               }
               endLearningStage = endLearningStage/2
-              x@probMatrix = baseModel@probMatFunc(ratdata@allpaths,testTurnTimes, x@alpha,x@gamma1,x@gamma2,1,testModel,x@sim)
-              likelihood = baseModel@likelihoodFunc(ratdata@allpaths,testTurnTimes,x@alpha,x@gamma1,x@gamma2,1, testModel,x@sim)
+              x@probMatrix = baseModel@probMatFunc(hybridRatdata,x,testModel,x@sim)
+              likelihood = baseModel@likelihoodFunc(hybridRatdata,x,testModel,x@sim)
               x@likelihood = (-1) *sum(likelihood[-(1:endLearningStage)])
             }
             return(x)
@@ -220,15 +220,9 @@ setMethod("simulateData",  signature=c("ModelData","RatData","AllModels"),
           definition=function(x,ratdata,allModels)
           {
             endStage1 = getEndIndex(ratdata@allpaths,sim=2,limit=0.5)
-            turnIdxStage1 = last(which(ratdata@turnTimes[,1]<=endStage1))
             endStage2 = getEndIndex(ratdata@allpaths,sim=2,limit=0.95)
-            turnIdxStage2 = last(which(ratdata@turnTimes[,1]<=endStage2))
             endStage3 = length(ratdata@allpaths[,1])
-            turnIdxStage3 = length(ratdata@turnTimes[,1])
-            
             pathstages=c(1,endStage1,endStage2,endStage3)
-            turnstages = c(1,turnIdxStage1,turnIdxStage2,turnIdxStage3)
-            
             
             
             if(x@Model == "Paths")
@@ -241,18 +235,42 @@ setMethod("simulateData",  signature=c("ModelData","RatData","AllModels"),
                              pathStages = pathstages)
               generated_data = do.call(pathModelFuncs@simulateFunc,argList)
             }
+            else if(x@Model == "Turns")
+            {
+              
+              turnIdxStage1 = last(which(ratdata@turnTimes[,1]<=endStage1))
+              turnIdxStage2 = last(which(ratdata@turnTimes[,1]<=endStage2))
+              turnIdxStage3 = length(ratdata@turnTimes[,1])
+              turnstages = c(1,turnIdxStage1,turnIdxStage2,turnIdxStage3)
+              model = x@Model
+              testModel = TurnModel
+              testTurnTimes = ratdata@turnTimes
+              argList = list(ratdata = ratdata, 
+                             testTurnTimes = testTurnTimes,
+                             modelData = x,
+                             testModel = testModel,
+                             turnstages = turnstages)
+              
+              generated_data = TurnsNew::simulateTurnsModels(ratdata,testTurnTimes,x,testModel,turnstages)
+            }
             else
             {
               model = x@Model
-              argList = list(allpaths = ratdata@allpaths, 
-                             turnTimes = ratdata@turnTimes,
-                             alpha = x@alpha,
-                             gamma1 = x@gamma1,
-                             gamma2 = x@gamma2,
-                             turnModel = allModels@model,
-                             turnStages = turnstages)
+              testModel = slot(allModels,model)
+              testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
               
-              generated_data = do.call(turnModelFuncs@simulateFunc,argList)
+              turnIdxStage1 = last(which(testTurnTimes[,1]<=endStage1))
+              turnIdxStage2 = last(which(testTurnTimes[,1]<=endStage2))
+              turnIdxStage3 = length(testTurnTimes[,1])
+              turnstages = c(1,turnIdxStage1,turnIdxStage2,turnIdxStage3)
+              
+              argList = list(ratdata = ratdata, 
+                             testTurnTimes = testTurnTimes,
+                             modelData = x,
+                             testModel = testModel,
+                             turnstages = turnstages)
+              
+              generated_data = TurnsNew::simulateTurnsModels(ratdata,testTurnTimes,x,testModel,turnstages)
             }
             
             

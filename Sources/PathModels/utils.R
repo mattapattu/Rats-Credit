@@ -438,7 +438,8 @@ getTurnsMatrix=function(allpaths,enreg,turnsModel)
           turnTimes[turnIdx,1] = idx_ses[i]
           turnTimes[turnIdx,2] = path
           turnTimes[turnIdx,3] = state
-          turnTimes[turnIdx,4] = which(slot(turnsModel, nodeList) == turns[j])
+          actId = which(slot(turnsModel, nodeList) == turns[j]) - 1
+          turnTimes[turnIdx,4] = actId
           turnTimes[turnIdx,5] = ses
           turnTimes[turnIdx,6] = turntimes[[j]]
           turnIdx = turnIdx+1
@@ -473,7 +474,7 @@ convertTurnTimes=function(ratdata, turnsModel, hybridModel, sim)
     turnsactNbvec = turnTimes[,1]
   }
   
-  totActions = length(turnTimes[,1])
+  totActions = length(turnTimes[,1])*2
   hybridModelMat = matrix(0,totActions,6)
   colnames(hybridModelMat) <- c("ActionNb", "Path", "State","ActionId","Session", "Duration" )
   actIdx = 1;
@@ -536,7 +537,8 @@ convertTurnTimes=function(ratdata, turnsModel, hybridModel, sim)
       hybridModelMat[actIdx,1] = row[6]
       hybridModelMat[actIdx,2] = row[1]
       hybridModelMat[actIdx,3] = row[2]
-      hybridModelMat[actIdx,4] = which(slot(hybridModel, nodeList) == actions[j])
+      actId = which(slot(hybridModel, nodeList) == actions[j]) - 1
+      hybridModelMat[actIdx,4] = actId
       hybridModelMat[actIdx,5] = row[5]
       
       turnVector = slot(slot(turnsModel,currState),currPath)
@@ -544,8 +546,8 @@ convertTurnTimes=function(ratdata, turnsModel, hybridModel, sim)
       
       if(!actions[j] %in% turnVector)
       {
-        sim = intersect(hybridVector,turnVector)
-        res = turnVector[!turnVector %in% sim]
+        common = intersect(hybridVector,turnVector)
+        res = turnVector[!turnVector %in% common]
         res_idx = which(turnVector %in% res)
         turn_idx = which(turnsactNbvec == row[6])
         diff_times = turntimevec[turn_idx[res_idx]]
@@ -562,6 +564,10 @@ convertTurnTimes=function(ratdata, turnsModel, hybridModel, sim)
     }
   }
   hybridModelMat = hybridModelMat[-(actIdx:totActions),]
+  if(sim == 1)
+  {
+    hybridModelMat = cbind(hybridModelMat[,4],hybridModelMat[,3],rep(0,length(hybridModelMat[,3])),hybridModelMat[,6],hybridModelMat[,5],hybridModelMat[,1])
+  }
   return(hybridModelMat)
 }
 

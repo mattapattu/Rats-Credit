@@ -684,7 +684,7 @@ arma::mat simulatePathTime(arma::mat turnTimes, arma::mat allpaths, int pathNb, 
   int actionNb = allpath_submat2(sampled_id,5);
   arma::uvec turnIdx = arma::find(turnTimes.col(0) == actionNb);
   arma::mat turn_submat = turnTimes.rows(turnIdx);
-  arma::uvec colIds = {3,5};
+  arma::uvec colIds = {3,5}; //3 = duration, 5 = actionNb
   arma::mat turnDurations = turn_submat.cols(colIds);
   return(turnDurations);
 }

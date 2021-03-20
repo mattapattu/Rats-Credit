@@ -1,11 +1,11 @@
-library(R.matlab)
-library(SDMTools)
-library(stringr)
-library(eegkit)#Librairie EEG pour l'analyse du LFP
-library("plot3D")
-library(data.tree)
-library(pracma)
-library(sp) #for spatial polygons
+#library(R.matlab)
+#library(SDMTools)
+#library(stringr)
+#library(eegkit)#Librairie EEG pour l'analyse du LFP
+#library("plot3D")
+#library(data.tree)
+#library(pracma)
+#library(sp) #for spatial polygons
 
 
 setwd("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources")
@@ -17,7 +17,7 @@ source("src/HybridModel1.R")
 source("src/HybridModel2.R")
 source("src/HybridModel3.R")
 source("src/HybridModel4.R")
-source("src/Baseclasses.R")
+source("src/BaseClasses.R")
 source("PathModels/utils.R")
 
 
@@ -39,6 +39,16 @@ setwd('..')
 path = getwd()
 time1 = format(Sys.time(), "%F %H-%M")
 names=c('e','f','g','c','d','h','i','j','a','b','k')
+
+cl <- makeCluster(detectCores()-1)
+clusterEvalQ(cl, source("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src/ModelClasses.R"))
+clusterEvalQ(cl, source("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src/TurnModel.R"))
+clusterEvalQ(cl, source("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src/HybridModel1.R"))
+clusterEvalQ(cl, source("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src/HybridModel2.R"))
+clusterEvalQ(cl, source("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src/HybridModel3.R"))
+clusterEvalQ(cl, source("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src/HybridModel4.R"))
+clusterEvalQ(cl, source("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src/BaseClasses.R"))
+
 ### Loop through the enreg of all 6 rats
 for (i in c(2:6)) {
   
@@ -60,7 +70,7 @@ for (i in c(2:6)) {
   # ##### Model Selection On Acutal Data #########################3
   
   #debug(getModelResults)
-  allmodelRes = getModelResults(ratdata,testData,sim=2)
+  allmodelRes = getModelResults(ratdata,testData,sim=2, cl)
   min_method = getMinimumLikelihood(allmodelRes,testData)
   print(sprintf("%s is best model for %s",min_method,rats[i]))
   save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))

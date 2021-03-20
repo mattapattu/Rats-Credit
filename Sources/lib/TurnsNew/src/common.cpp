@@ -8,6 +8,8 @@
 #include "aca3CreditUpdate.hpp"
 #include "utils.hpp"
 #include "tree.hpp"
+#include "Debugger.hpp"
+
 
 using namespace Rcpp;
 
@@ -422,7 +424,7 @@ std::vector<double> getTurnsLikelihood(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcp
         graph = S1;
         prevNode = graph.getNode("I");
       }
-
+      double pathProb = 1;
       for (int j = 0; j < nbOfTurns; j++)
       {
         std::string currTurn = Rcpp::as<std::string>(turns(j));
@@ -435,13 +437,14 @@ std::vector<double> getTurnsLikelihood(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcp
 
         Edge edge = graph.getEdge(prevNode->node, currNode->node);
         double prob_a = edge.probability;
-        //Rcpp::Rcout <<"prob_a="<< prob_a<<std::endl;
-        double logProb = log(prob_a);
-        mseMatrix.push_back(logProb);
-
+                //Rcpp::Rcout <<"prob_a="<< prob_a<<std::endl;
+        pathProb = pathProb* prob_a;      
+        
         session_turn_count++;
         prevNode = currNode;
       }
+      double logProb = log(pathProb);
+      mseMatrix.push_back(logProb);
 
       //log_lik=log_lik+ logProb;
 
@@ -527,6 +530,9 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
 
   Graph S0(testModel, 0);
   Graph S1(testModel, 1);
+
+  Debugger logger;
+  logger.setDebug(debug);
   //Rcpp::Rcout <<"Print S0"<<std::endl;
   //S0.printGraph();
   //Rcpp::Rcout <<"Print S1"<<std::endl;
@@ -609,7 +615,11 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
         returnToInitState = true;
       }
 
+      
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
+       std::ostringstream msg; 
+       msg << "i="<< i << ", S=" << S <<", A=" << A;
+       logger.Print(msg.str()); 
 
       Rcpp::StringVector turns;
       if(S==0)
@@ -622,6 +632,10 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
       }
       int nbOfTurns = turns.length();
       //Rcpp::Rcout <<"Path="<< A << ", turns=" << turns<<std::endl;
+      msg.str("");
+      msg << "turns=";
+      logger.PrintRcppVec(msg.str(),turns); 
+
       Node *currNode;
       Graph graph;
       if (S == 0)
@@ -638,11 +652,19 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
         std::string currTurn = Rcpp::as<std::string>(turns(j));
         currNode = graph.getNode(currTurn);
         //Edge edge = graph.getEdge(prevNode->node, currNode->node);
+        int turnId = graph.getNodeIndex(currTurn);
+        msg.str("");
+        msg << "currTurn=" << currTurn << ", turnId=" << turnId <<", session_turn_count=" <<session_turn_count;
+        logger.Print(msg.str()); 
 
+        double turntime = turn_times_session(session_turn_count);
         episodeTurns.push_back(currNode->node);
         episodeTurnStates.push_back(S);
-        episodeTurnTimes.push_back(turn_times_session(session_turn_count));
+        episodeTurnTimes.push_back(turntime);
 
+        msg  << ", turntime=" << turntime;
+        logger.Print(msg.str()); 
+        
         session_turn_count++;
       }
       //Rcpp::Rcout << "Here5" << std::endl;
@@ -653,6 +675,7 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
       for (int path = 0; path < 6; path++)
       {
         //Rcpp::Rcout << "path=" << path << ", state=" << S << std::endl;
+        
         
         Rcpp::StringVector turnVec;
         if (S == 0)
@@ -666,12 +689,17 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
           turnVec.push_front("I");
         }
         //Rcpp::Rcout << "turnVec=" << turnVec << std::endl;
+        // msg.str("");
+        // msg << "turnVec=";
+        // logger.PrintRcppVec(msg.str(),turnVec); 
         double pathProb = 1;
         for (int k = 0; k < (turnVec.length() - 1); k++)
         {
           std::string turn1 = Rcpp::as<std::string>(turnVec[k]);
           std::string turn2 = Rcpp::as<std::string>(turnVec[k + 1]);
           //Rcpp::Rcout << "turn1=" << turn1 << ", turn2=" << turn2 << std::endl;
+
+          
           Edge e;
           if (S == 0)
           {
@@ -698,6 +726,9 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
       if (returnToInitState)
       {
         //Rcpp::Rcout <<  "Inside end episode"<<std::endl;
+        msg.str("");
+        msg <<"Inside end episode";
+        logger.Print(msg.str()); 
         changeState = false;
         returnToInitState = false;
 
@@ -713,14 +744,19 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
         episodeTurnStates.clear();
         episodeTurnTimes.clear();
       }
-
+      // msg.str("");
+      // msg <<"Here1";
+      // logger.Print(msg.str());
+      
       S0.decayCredits(gamma1);
       S1.decayCredits(gamma1);
       S = S_prime;
-      //Rcpp::Rcout <<  "Here1"<<std::endl;
+      
+      // msg.str("");
+      // msg <<"Here2";
+      // logger.Print(msg.str());
       //trial=trial+1;
     }
-    //Rcpp::Rcout <<  "Here2"<<std::endl;
     S0.decayCredits(gamma2);
     S1.decayCredits(gamma2);
     //Rcpp::Rcout <<  "Here3"<<std::endl;

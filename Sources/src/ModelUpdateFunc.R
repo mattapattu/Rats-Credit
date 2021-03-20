@@ -1,7 +1,8 @@
 library(DEoptim)
 library(rlist)
+library(parallel)
 
-getModelResults=function(ratdata, testingdata,sim)
+getModelResults=function(ratdata, testingdata,sim, cl)
 {
   end_index = getEndIndex(ratdata@allpaths, sim, limit=0.95)
   start_index = round(end_index/2)
@@ -17,7 +18,7 @@ getModelResults=function(ratdata, testingdata,sim)
   {
     for(method in creditAssignment)
     {
-      modelData = updateModelData(ratdata, new("ModelData", Model=model, creditAssignment = method, sim=sim))
+      modelData = updateModelData(ratdata, new("ModelData", Model=model, creditAssignment = method, sim=sim),cl)
       allmodelRes = addModelData(allmodelRes,modelData) 
     }
     
@@ -26,9 +27,9 @@ getModelResults=function(ratdata, testingdata,sim)
   return(allmodelRes)
 }
 
-updateModelData=function(ratdata,modelData)
+updateModelData=function(ratdata,modelData,cl)
 {
-  res = callOptimize(modelData,ratdata,allModels)
+  res = callOptimize(modelData,ratdata,allModels,cl)
   modelData = setModelParams(modelData,res)
   modelData = setModelResults(modelData,ratdata,allModels)
   
@@ -38,10 +39,11 @@ updateModelData=function(ratdata,modelData)
 
 
 
-optimize=function(fn,argList)
+optimize=function(fn,argList,cl)
 {
+ 
   np.val = length(argList$lower) * 10
-  myList <- DEoptim.control(NP=np.val, F=2, CR = 0.9,trace = FALSE, itermax = 100,reltol = 0.0005, steptol = 10)
+  myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9, trace = FALSE, itermax = 200,cluster = cl)
   out<-do.call("DEoptim",list.append(argList, fn=fn, myList))
   
   return(out$optim$bestmem)
@@ -123,8 +125,9 @@ negLogLikFunc=function(par,ratdata,half_index,modelData,testModel,sim) {
     
     if(path4Converged &&  path10Converged)
     {
-      ratdata@allpaths = ratdata@allpaths[1:half_index,]
+      #ratdata@allpaths = ratdata@allpaths[1:half_index,]
       turnlik=TurnsNew::getTurnsLikelihood(ratdata,modelData,testModel,sim)
+      turnlik = turnlik[1:half_index]
     }
     else
     {

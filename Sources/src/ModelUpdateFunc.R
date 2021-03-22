@@ -3,7 +3,7 @@ library(DEoptim)
 library(rlist)
 library(parallel)
 
-getModelResults=function(ratdata, testingdata,sim, cl)
+getModelResults=function(ratdata, testingdata, sim, cl)
 {
   end_index = getEndIndex(ratdata@allpaths, sim, limit=0.95)
   start_index = round(end_index/2)
@@ -12,48 +12,63 @@ getModelResults=function(ratdata, testingdata,sim, cl)
     return()
   }
   
-  allmodelRes = new("AllModelRes")
   models = testingdata@Models
   creditAssignment = testingdata@creditAssignment
-  for(model in models)
+ 
+  worker.nodes = mpi.universe.size()-1
+  print(sprintf("worker.nodes=%i",worker.nodes))
+  cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
+  registerDoParallel(cl)
+  
+  capture.output(clusterEvalQ(cl, .libPaths("/home/amoongat/R/x86_64-redhat-linux-gnu-library/3.6")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/ModelClasses.R")),file='NUL')  
+    
+    resMatrix <-
+      foreach(model=models, .combine='rbind') %:%
+        foreach(method=creditAssignment, .combine='comb') %dopar% {
+          modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
+          callOptimize(modelData,ratdata,allModels,cl)
+      }
+    
+    
+    #modelData = updateModelData(ratdata,resMatrix, models)
+    allmodelRes = getAllModelResults(ratdata, resMatrix,testingdata, sim) 
+    stopCluster(cl)
+  
+  return(allmodelRes)
+}
+
+getAllModelResults=function(ratdata, resMatrix, testingdata, sim)
+{
+  #res = callOptimize(modelData,ratdata,allModels)
+  models = testingdata@models
+  methods = testingdata@creditAssignment
+  for(i in 1:length(models))
   {
-    for(method in creditAssignment)
+    for(j in 1:length(methods))
     {
-      modelData = updateModelData(ratdata, new("ModelData", Model=model, creditAssignment = method, sim=sim),cl)
+      modelData = new("ModelData", Model=models[i], creditAssignment = methods[j], sim=sim)
+      modelData = setModelParams(modelData, resMatrix[i*(j-1),])
+      modelData = setModelResults(modelData,ratdata,allModels)
       allmodelRes = addModelData(allmodelRes,modelData) 
     }
     
     
   }
-  return(allmodelRes)
-}
 
-updateModelData=function(ratdata,modelData,cl)
-{
-  res = callOptimize(modelData,ratdata,allModels,cl)
-  modelData = setModelParams(modelData,res)
-  modelData = setModelResults(modelData,ratdata,allModels)
-  
-  
-  return(modelData)
+  return(allmodelRes)
 }
 
 
 optimize=function(fn,argList,cl)
 { 
-   worker.nodes = mpi.universe.size()-1
-  print(sprintf("worker.nodes=%i",worker.nodes))
-  cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
-  registerDoParallel(cl)
-
-  capture.output(clusterEvalQ(cl, .libPaths("/home/amoongat/R/x86_64-redhat-linux-gnu-library/3.6")),file='NUL')
-  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/ModelClasses.R")),file='NUL')
-  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/TurnModel.R")),file='NUL')
-  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel1.R")),file='NUL')
-  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel2.R")),file='NUL')
-  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel3.R")),file='NUL')
-  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel4.R")),file='NUL')
-  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/BaseClasses.R")),file='NUL') 
+  
+  #capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/TurnModel.R")),file='NUL')
+  #capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel1.R")),file='NUL')
+  #capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel2.R")),file='NUL')
+  #capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel3.R")),file='NUL')
+  #capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel4.R")),file='NUL')
+  #capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/BaseClasses.R")),file='NUL') 
   capture.output(clusterExport(cl, varlist = c("argList","fn"),envir=environment()),file='NUL')
  
   print(sprintf("Inside optimize")) 
@@ -68,7 +83,6 @@ optimize=function(fn,argList,cl)
   #print(summary(out))
   #print(out@solution)
   print(out$optim$bestmem)
-  stopCluster(cl)
   print(time)
   return(out$optim$bestmem)
   

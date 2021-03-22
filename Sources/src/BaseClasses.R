@@ -71,7 +71,7 @@ setClass("AllModelRes",
 
 #### func setModelParams ###
 setGeneric("setModelParams", function(x,modelParams) standardGeneric("setModelParams"))
-setGeneric("callOptimize", function(x,ratdata,allModels, cluster)  standardGeneric("callOptimize"))
+setGeneric("callOptimize", function(x,ratdata,allModels)  standardGeneric("callOptimize"))
 setGeneric("setModelResults", function(x,ratdata, allModels)  standardGeneric("setModelResults"))
 setGeneric("simulateData", function(x,ratdata,allModels) standardGeneric("simulateData"))
 setGeneric("addModelData", function(x,modelData) standardGeneric("addModelData"))

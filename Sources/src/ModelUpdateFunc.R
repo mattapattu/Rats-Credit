@@ -1,7 +1,8 @@
 #library(GA)
 library(DEoptim)
 library(rlist)
-library(parallel)
+library(foreach)
+library(doParallel)    
 
 getModelResults=function(ratdata, testingdata, sim, cl)
 {
@@ -22,10 +23,19 @@ getModelResults=function(ratdata, testingdata, sim, cl)
   
   capture.output(clusterEvalQ(cl, .libPaths("/home/amoongat/R/x86_64-redhat-linux-gnu-library/3.6")),file='NUL')
   capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/ModelClasses.R")),file='NUL')  
-    
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/TurnModel.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel1.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel2.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel3.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel4.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/BaseClasses.R")),file='NUL') 
+  clusterEvalQ(cl, library("TTR"))
+  capture.output(clusterExport(cl, varlist = c("getEndIndex")),file='NUL')
+ 
     resMatrix <-
       foreach(model=models, .combine='rbind') %:%
-        foreach(method=creditAssignment, .combine='comb') %dopar% {
+        foreach(method=creditAssignment, .combine='c') %dopar% {
+	  print(sprintf("Model=%s",model))
           modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
           callOptimize(modelData,ratdata,cl)
       }

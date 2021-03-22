@@ -71,7 +71,7 @@ setClass("AllModelRes",
 
 #### func setModelParams ###
 setGeneric("setModelParams", function(x,modelParams) standardGeneric("setModelParams"))
-setGeneric("callOptimize", function(x,ratdata,allModels)  standardGeneric("callOptimize"))
+setGeneric("callOptimize", function(x,ratdata,cluster)  standardGeneric("callOptimize"))
 setGeneric("setModelResults", function(x,ratdata, allModels)  standardGeneric("setModelResults"))
 setGeneric("simulateData", function(x,ratdata,allModels) standardGeneric("simulateData"))
 setGeneric("addModelData", function(x,modelData) standardGeneric("addModelData"))
@@ -93,8 +93,8 @@ setMethod("setModelParams",  signature=c("ModelData","numeric"),
 )
 
 
-setMethod("callOptimize",  signature=c("ModelData","RatData","AllModels", "ANY"),
-          definition=function(x,ratdata,allModels, cluster)
+setMethod("callOptimize",  signature=c("ModelData","RatData","ANY"),
+          definition=function(x,ratdata,cluster)
           {
             
             endLearningStage = getEndIndex(ratdata@allpaths,sim=x@sim, limit=0.95)

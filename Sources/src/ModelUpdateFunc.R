@@ -27,7 +27,7 @@ getModelResults=function(ratdata, testingdata, sim, cl)
       foreach(model=models, .combine='rbind') %:%
         foreach(method=creditAssignment, .combine='comb') %dopar% {
           modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
-          callOptimize(modelData,ratdata,allModels,cl)
+          callOptimize(modelData,ratdata,cl)
       }
     
     

@@ -1,3 +1,4 @@
+#library(GA)
 library(DEoptim)
 library(rlist)
 library(parallel)
@@ -38,14 +39,37 @@ updateModelData=function(ratdata,modelData,cl)
 }
 
 
-
 optimize=function(fn,argList,cl)
-{
+{ 
+   worker.nodes = mpi.universe.size()-1
+  print(sprintf("worker.nodes=%i",worker.nodes))
+  cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
+  registerDoParallel(cl)
+
+  capture.output(clusterEvalQ(cl, .libPaths("/home/amoongat/R/x86_64-redhat-linux-gnu-library/3.6")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/ModelClasses.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/TurnModel.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel1.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel2.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel3.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel4.R")),file='NUL')
+  capture.output(clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/BaseClasses.R")),file='NUL') 
+  capture.output(clusterExport(cl, varlist = c("argList","fn"),envir=environment()),file='NUL')
  
+  print(sprintf("Inside optimize")) 
   np.val = length(argList$lower) * 10
-  myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9, trace = FALSE, itermax = 200,cluster = cl)
-  out<-do.call("DEoptim",list.append(argList, fn=fn, myList))
-  
+  myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9, trace = FALSE, itermax = 200,parallelType = 2)
+  time <- system.time(out<-do.call("DEoptim",list.append(argList, fn=fn, myList)))
+  #args <- list.append(argList,type = "real-valued", fitness = fn, monitor=FALSE, popSize = 50, maxiter = 100, run = 100, optim = TRUE, parallel = cl)
+  #args <- list.append(argList,type = "real-valued", fitness = fn, monitor=FALSE, popSize = 100, parallel = cl, maxiter = 1000, run = 100,numIslands = 4,migrationRate = 0.2,			  migrationInterval = 50)
+
+  #time<-system.time(out <- do.call("ga",args))
+  #print(sprintf("optimize summary:"))
+  #print(summary(out))
+  #print(out@solution)
+  print(out$optim$bestmem)
+  stopCluster(cl)
+  print(time)
   return(out$optim$bestmem)
   
 }

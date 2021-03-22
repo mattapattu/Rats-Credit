@@ -99,7 +99,7 @@ setMethod("callOptimize",  signature=c("ModelData","RatData","AllModels", "ANY")
             
             endLearningStage = getEndIndex(ratdata@allpaths,sim=x@sim, limit=0.95)
             model = x@Model
-            debug(optimize)
+            #debug(optimize)
             if(model == "Paths")
             {
               endLearningStage = endLearningStage/2
@@ -115,14 +115,6 @@ setMethod("callOptimize",  signature=c("ModelData","RatData","AllModels", "ANY")
             else if(model == "Turns")
             {
               testTurnTimes = ratdata@turnTimes
-              # if(x@sim == 1)
-              # {
-              #   endLearningStage = last(which(testTurnTimes[,6]<=endLearningStage))
-              # }
-              # else
-              # {
-              #   endLearningStage = last(which(testTurnTimes[,1]<=endLearningStage))
-              # }
               endLearningStage = endLearningStage/2
               argList = list(lower = c(0,0,0), 
                              upper = c(1,1,1),
@@ -137,16 +129,7 @@ setMethod("callOptimize",  signature=c("ModelData","RatData","AllModels", "ANY")
             {
               testModel = slot(allModels,model)
               testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
-              #hybridRatdata = new("RatData",allpaths=ratdata@allpaths,turnTimes =testTurnTimes )
               ratdata@turnTimes = testTurnTimes
-              # if(x@sim == 1)
-              # {
-              #   endLearningStage = last(which(testTurnTimes[,6]<=endLearningStage))
-              # }
-              # else
-              # {
-              #   endLearningStage = last(which(testTurnTimes[,1]<=endLearningStage))
-              # }
               endLearningStage = endLearningStage/2
 
               argList = list(lower = c(0,0,0), 
@@ -183,14 +166,6 @@ setMethod("setModelResults",  signature=c("ModelData","RatData","AllModels"),
             else if(model == "Turns")
             {
               testTurnTimes = ratdata@turnTimes
-              # if(x@sim == 1)
-              # {
-              #   endLearningStage = last(which(testTurnTimes[,6]<=endLearningStage))
-              # }
-              # else
-              # {
-              #   endLearningStage = last(which(testTurnTimes[,1]<=endLearningStage))
-              # }
               endLearningStage = endLearningStage/2
               x@probMatrix = baseModel@probMatFunc(ratdata, x,TurnModel,x@sim)
               likelihood = baseModel@likelihoodFunc(ratdata, x,TurnModel,x@sim)
@@ -202,14 +177,6 @@ setMethod("setModelResults",  signature=c("ModelData","RatData","AllModels"),
               testModel = slot(allModels,model)
               testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
               hybridRatdata = new("RatData",allpaths=ratdata@allpaths,turnTimes =testTurnTimes )
-              # if(x@sim == 1)
-              # {
-              #   endLearningStage = last(which(testTurnTimes[,6]<=endLearningStage))
-              # }
-              # else
-              # {
-              #   endLearningStage = last(which(testTurnTimes[,1]<=endLearningStage))
-              # }
               endLearningStage = endLearningStage/2
               x@probMatrix = baseModel@probMatFunc(hybridRatdata,x,testModel,x@sim)
               likelihood = baseModel@likelihoodFunc(hybridRatdata,x,testModel,x@sim)

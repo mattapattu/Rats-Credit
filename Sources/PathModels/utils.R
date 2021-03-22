@@ -357,7 +357,7 @@ getTurnsMatrix=function(allpaths,enreg,turnsModel)
   colnames(turnTimes) <- c("Action", "Path", "State","Turn","Session", "Duration" )
   turnIdx = 1;
   boxIndices = as.numeric(allpaths[,3])
-  uniqSess = uniq(as.numeric(allpaths[,4]))$b
+  uniqSess = unique(as.numeric(allpaths[,4]))
   
   for(ses in uniqSess)
   {

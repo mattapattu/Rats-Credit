@@ -71,7 +71,7 @@ Edge softmax_action_sel(Graph graph, std::vector<Edge> edges)
 Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel, arma::vec turnStages)
 {
   arma::mat allpaths = Rcpp::as<arma::mat>(ratdata.slot("allpaths"));
-  std::string model = Rcpp::as<double>(modelData.slot("Model"));
+  std::string model = Rcpp::as<std::string>(modelData.slot("Model"));
   arma::mat turnTimes;
   if(model == "Turns")
   {
@@ -307,7 +307,7 @@ Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 te
 std::vector<double> getTurnsLikelihood(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel, int sim)
 {
   arma::mat allpaths = Rcpp::as<arma::mat>(ratdata.slot("allpaths"));
-  std::string model = Rcpp::as<double>(modelData.slot("Model"));
+  std::string model = Rcpp::as<std::string>(modelData.slot("Model"));
   arma::mat turnTimes;
   if(model == "Turns")
   {
@@ -533,7 +533,7 @@ std::vector<double> getTurnsLikelihood(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcp
 arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel, int sim, bool debug = false)
 {
   arma::mat allpaths = Rcpp::as<arma::mat>(ratdata.slot("allpaths"));
-  std::string model = Rcpp::as<double>(modelData.slot("Model"));
+  std::string model = Rcpp::as<std::string>(modelData.slot("Model"));
   arma::mat turnTimes;
   if(model == "Turns")
   {

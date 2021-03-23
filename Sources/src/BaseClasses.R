@@ -1,4 +1,6 @@
-allModels = new("AllModels",Paths = "Dummy", Turns = TurnModel,Hybrid1 = Hybrid1,Hybrid2 = Hybrid2, Hybrid3 = Hybrid3,Hybrid4 = Hybrid4)
+
+Paths = new("Model", Name = "PathsDummy")
+allModels = new("AllModels",Paths = Paths, Turns = TurnModel,Hybrid1 = Hybrid1,Hybrid2 = Hybrid2, Hybrid3 = Hybrid3,Hybrid4 = Hybrid4)
 
 setClass("RatData", 
          slots = list(
@@ -71,7 +73,7 @@ setClass("AllModelRes",
 
 #### func setModelParams ###
 setGeneric("setModelParams", function(x,modelParams) standardGeneric("setModelParams"))
-setGeneric("callOptimize", function(x,ratdata,cluster)  standardGeneric("callOptimize"))
+setGeneric("getArgList", function(x,ratdata)  standardGeneric("getArgList"))
 setGeneric("setModelResults", function(x,ratdata, allModels)  standardGeneric("setModelResults"))
 setGeneric("simulateData", function(x,ratdata,allModels) standardGeneric("simulateData"))
 setGeneric("addModelData", function(x,modelData) standardGeneric("addModelData"))
@@ -93,8 +95,8 @@ setMethod("setModelParams",  signature=c("ModelData","numeric"),
 )
 
 
-setMethod("callOptimize",  signature=c("ModelData","RatData","ANY"),
-          definition=function(x,ratdata,cluster)
+setMethod("getArgList",  signature=c("ModelData","RatData"),
+          definition=function(x,ratdata)
           {
             
             endLearningStage = getEndIndex(ratdata@allpaths,sim=x@sim, limit=0.95)
@@ -109,48 +111,6 @@ setMethod("callOptimize",  signature=c("ModelData","RatData","ANY"),
                            modelData = x,
                            testModel = testModel,
                            sim = x@sim)
-            #debug(optimize)
-            # if(model == "Paths")
-            # {
-            #   endLearningStage = endLearningStage/2
-            #   argList = list(lower = c(0,0,0), 
-            #                  upper = c(1,1,1),
-            #                  ratdata = ratdata, 
-            #                  half_index = endLearningStage, 
-            #                  modelData = x,
-            #                  testModel = "Paths", 
-            #                  sim = x@sim)
-            #   
-            #   #res = optimize(aca_negLogLik1,argList,cluster)
-            # }
-            # else if(model == "Turns")
-            # {
-            #   endLearningStage = endLearningStage/2
-            #   argList = list(lower = c(0,0,0), 
-            #                  upper = c(1,1,1),
-            #                  ratdata = ratdata,
-            #                  half_index = endLearningStage, 
-            #                  modelData = x,
-            #                  testModel = TurnModel,
-            #                  sim = x@sim)
-            #   #res = optimize(negLogLikFunc,argList,cluster)
-            # }
-            # else
-            # {
-            #   testModel = slot(allModels,model)
-            #   testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
-            #   endLearningStage = endLearningStage/2
-            # 
-            #   argList = list(lower = c(0,0,0), 
-            #                  upper = c(1,1,1),
-            #                  ratdata = ratdata,
-            #                  half_index = endLearningStage, 
-            #                  modelData = x,
-            #                  testModel = testModel,
-            #                  sim = x@sim)
-            #   
-            #   #res = optimize(negLogLikFunc,argList,cluster)
-            # }
 
             return(argList)
           }
@@ -172,26 +132,16 @@ setMethod("setModelResults",  signature=c("ModelData","RatData","AllModels"),
               likelihood = baseModel@likelihoodFunc(ratdata@allpaths,x@alpha,x@gamma1,x@gamma2,x@sim)
               x@likelihood = (-1) * sum(likelihood[-(1:endLearningStage)])
             }
-            else if(model == "Turns")
+            else
             {
-              testTurnTimes = ratdata@turnTimes
               endLearningStage = endLearningStage/2
-              x@probMatrix = baseModel@probMatFunc(ratdata, x,TurnModel,x@sim)
-              likelihood = baseModel@likelihoodFunc(ratdata, x,TurnModel,x@sim)
+              testModel = slot(allModels,model)
+              x@probMatrix = baseModel@probMatFunc(ratdata, x,testModel,x@sim)
+              likelihood = baseModel@likelihoodFunc(ratdata, x,testModel,x@sim)
               x@likelihood = (-1) * sum(likelihood[-(1:endLearningStage)])
               
             }
-            else
-            {
-              testModel = slot(allModels,model)
-              testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
-              hybridRatdata = new("RatData",allpaths=ratdata@allpaths,turnTimes =testTurnTimes )
-              endLearningStage = endLearningStage/2
-              x@probMatrix = baseModel@probMatFunc(hybridRatdata,x,testModel,x@sim)
-              likelihood = baseModel@likelihoodFunc(hybridRatdata,x,testModel,x@sim)
-              x@likelihood = (-1) *sum(likelihood[-(1:endLearningStage)])
-            }
-            return(x)
+           return(x)
           }
         )
 

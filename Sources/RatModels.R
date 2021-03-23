@@ -7,60 +7,34 @@
 #library(pracma)
 #library(sp) #for spatial polygons
 #library(doMPI)
-library(Rmpi)
+#library(Rmpi)
 library(doParallel)
 
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/ValidationFunc.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/ModelUpdateFunc.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/ModelClasses.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/TurnModel.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel1.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel2.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel3.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel4.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/src/BaseClasses.R")
-source("/home/amoongat/Projects/Rats-Credit/Sources/PathModels/utils.R")
-
-
-
-
-#options(error = recover)
-
-
-#Load SDM and SDL folders (SDM113,SDL101, etc.)
-
-#load("DATA.RData")
-load("/home/amoongat/Projects/Rats-Credit/data_journeys.Rdata")
-
-#rats=DATA$Get('name', filterFun = function(x) x$level == 3)
 rats = c("rat_101","rat_103","rat_106","rat_112","rat_113","rat_114")
-### set dirpath where all plots will be saved 
-setwd('..')
-path = getwd()
-time1 = format(Sys.time(), "%F %H-%M")
 names=c('e','f','g','c','d','h','i','j','a','b','k')
 
-#cl <- makeCluster(mpi.universe.size()-1, type='MPI')
-#registerDoParallel(cl)
+### Options Linux/Windows ####
 
-#cl <- startMPIcluster() 
-#registerDoMPI(cl)
+src.dir = file.path("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src")
+#src.dir = file.path("/home/amoongat/Projects/Rats-Credit/Sources/src")
 
+setup.hpc = FALSE
+#setup.hpc = TRUE
 
-#worker.nodes = mpi.universe.size()-1
-#print(sprintf("worker.nodes=%i",worker.nodes))
-#cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
-#registerDoParallel(cl)
+data.path = file.path("C:/Rats-Credits/Data/data_journeys.RData")
+#data.path = file.path("/home/amoongat/Projects/Rats-Credit")
 
-#clusterEvalQ(cl, .libPaths("/home/amoongat/R/x86_64-redhat-linux-gnu-library/3.6"))
+load(data.path)
 
-#clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/ModelClasses.R"))
-#clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/TurnModel.R"))
-#clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel1.R"))
-#clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel2.R"))
-#clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel3.R"))
-#clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/HybridModel4.R"))
-#clusterEvalQ(cl, source("/home/amoongat/Projects/Rats-Credit/Sources/src/BaseClasses.R"))
+source(paste(src.dir,"ModelClasses.R", sep="/"))
+source(paste(src.dir,"TurnModel.R", sep="/"))
+source(paste(src.dir,"HybridModel1.R", sep="/"))
+source(paste(src.dir,"HybridModel2.R", sep="/"))
+source(paste(src.dir,"HybridModel2.R", sep="/"))
+source(paste(src.dir,"HybridModel3.R", sep="/"))
+source(paste(src.dir,"HybridModel4.R", sep="/"))
+source(paste(src.dir,"BaseClasses.R", sep="/"))
+source(paste(src.dir,"../PathModels/utils.R", sep="/"))
 
 ### Loop through the enreg of all 6 rats
 for (i in c(2:2)) {
@@ -83,10 +57,9 @@ for (i in c(2:2)) {
   # ##### Model Selection On Acutal Data #########################3
   
   #debug(getModelResults)
-  allmodelRes = getModelResults(ratdata,testData,sim=2, cl)
+  allmodelRes = getModelResults(ratdata,testData,sim=2, src.dir, setup.hpc)
   min_method = getMinimumLikelihood(allmodelRes,testData)
   print(sprintf("%s is best model for %s",min_method,rats[i]))
   save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))
 }
 
-stopCluster(cl)

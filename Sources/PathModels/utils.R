@@ -997,12 +997,18 @@ populateRatModel=function(rat,allpaths,enreg,turnsModel)
   allpaths_num = cbind(allpaths_num,as.numeric(allpaths[,3]))
   #debug(getTurnsMatrix)
   turnTimes = getTurnsMatrix(allpaths,enreg,turnsModel)
-  hybrid1 = convertTurnTimes(ratdata,TurnModel,"Hybrid1",sim=2)
-  hybrid2 = convertTurnTimes(ratdata,TurnModel,"Hybrid2",sim=2)
-  hybrid3 = convertTurnTimes(ratdata,TurnModel,"Hybrid3",sim=2)
-  hybrid4 = convertTurnTimes(ratdata,TurnModel,"Hybrid4",sim=2)
   
-  ratdata = new("RatData", rat = rat,allpaths = allpaths_num,turnTimes = turnTimes,hybridModel1 = hybrid1, hybridModel2 = hybrid2, hybridModel3 = hybrid3, hybridModel4 = hybrid4)
+  ratdata = new("RatData", rat = rat,allpaths = allpaths_num,turnTimes = turnTimes)
+  
+  hybrid1 = convertTurnTimes(ratdata,TurnModel,Hybrid1,sim=2)
+  hybrid2 = convertTurnTimes(ratdata,TurnModel,Hybrid2,sim=2)
+  hybrid3 = convertTurnTimes(ratdata,TurnModel,Hybrid3,sim=2)
+  hybrid4 = convertTurnTimes(ratdata,TurnModel,Hybrid4,sim=2)
+  
+  ratdata@hybridModel1 = hybrid1
+  ratdata@hybridModel2 = hybrid2
+  ratdata@hybridModel3 = hybrid3
+  ratdata@hybridModel4 = hybrid4
   
   return(ratdata)
   

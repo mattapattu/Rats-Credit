@@ -1,11 +1,12 @@
 #library(GA)
 #library(DEoptim)
+library(Rmpi)
 library(rgenoud)
 library(rlist)
 library(foreach)
-library(Rmpi)
-library(snow);
-
+library(doParallel)
+#library(doMPI);
+#library(snow);
 
 getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
 {
@@ -23,15 +24,17 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   {
     worker.nodes = mpi.universe.size()-1
     print(sprintf("worker.nodes=%i",worker.nodes))
-    #cl <- makeCluster(mpi.universe.size()-1, type='MPI')
-    cl <- makeMPIcluster(worker.nodes)
+    cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
+    registerDoParallel(cl)
+    #cl <- startMPIcluster(worker.nodes)
+    #registerDoMPI(cl)
     
   }
   else
   {
     cl <- makeCluster(detectCores()-1, outfile = "")
+    registerDoParallel(cl)
   }
-  registerDoParallel(cl)
   
   capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc","src.dir")),file='NUL')
   capture.output(clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/"))),file='NUL')
@@ -47,17 +50,18 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc")),file='NUL')
 
   time <- system.time(
+
  
    resMatrix <-
       foreach(model=models, .combine='rbind') %:%
         foreach(method=creditAssignment, .combine='rbind') %dopar% {
           modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
           argList<-getArgList(modelData,ratdata)
-          nvar = length(argList$lower)
+          nvars = length(argList$lower)
           out<-do.call("genoud",list.append(argList[3:7],
                                         fn=negLogLikFunc,
                                         nvars = nvars,
-                                        pop.size=3000,
+                                        pop.size=1000,
                                         max=FALSE,
                                         boundary.enforcement =2,
                                         wait.generations=5,
@@ -74,7 +78,17 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
    print(time) 
     #modelData = updateModelData(ratdata,resMatrix, models)
     allmodelRes = getAllModelResults(ratdata, resMatrix,testingdata, sim) 
-    stopCluster(cl)
+   
+   if(setup.hpc)
+   {
+      stopCluster(cl)	
+      #closeCluster(cl)
+   }
+   else
+   {
+     stopCluster(cl)
+   }
+    
   
   return(allmodelRes)
 }

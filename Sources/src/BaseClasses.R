@@ -1,4 +1,4 @@
-allModels = new("AllModels",Turns = TurnModel,Hybrid1 = Hybrid1,Hybrid2 = Hybrid2, Hybrid3 = Hybrid3,Hybrid4 = Hybrid4)
+allModels = new("AllModels",Paths = "Dummy", Turns = TurnModel,Hybrid1 = Hybrid1,Hybrid2 = Hybrid2, Hybrid3 = Hybrid3,Hybrid4 = Hybrid4)
 
 setClass("RatData", 
          slots = list(
@@ -99,51 +99,60 @@ setMethod("callOptimize",  signature=c("ModelData","RatData","ANY"),
             
             endLearningStage = getEndIndex(ratdata@allpaths,sim=x@sim, limit=0.95)
             model = x@Model
+            testModel = slot(allModels,model)
+            endLearningStage = endLearningStage/2
+            
+            argList = list(lower = c(0,0,0), 
+                           upper = c(1,1,1),
+                           ratdata = ratdata,
+                           half_index = endLearningStage, 
+                           modelData = x,
+                           testModel = testModel,
+                           sim = x@sim)
             #debug(optimize)
-            if(model == "Paths")
-            {
-              endLearningStage = endLearningStage/2
-              argList = list(lower = c(0,0,0), 
-                             upper = c(1,1,1),
-                             allpaths = ratdata@allpaths, 
-                             half_index = endLearningStage, 
-                             model = 5, 
-                             sim = x@sim)
-              
-              res = optimize(aca_negLogLik1,argList,cluster)
-            }
-            else if(model == "Turns")
-            {
-              testTurnTimes = ratdata@turnTimes
-              endLearningStage = endLearningStage/2
-              argList = list(lower = c(0,0,0), 
-                             upper = c(1,1,1),
-                             ratdata = ratdata,
-                             half_index = endLearningStage, 
-                             modelData = x,
-                             testModel = TurnModel,
-                             sim = x@sim)
-              res = optimize(negLogLikFunc,argList,cluster)
-            }
-            else
-            {
-              testModel = slot(allModels,model)
-              testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
-              ratdata@turnTimes = testTurnTimes
-              endLearningStage = endLearningStage/2
+            # if(model == "Paths")
+            # {
+            #   endLearningStage = endLearningStage/2
+            #   argList = list(lower = c(0,0,0), 
+            #                  upper = c(1,1,1),
+            #                  ratdata = ratdata, 
+            #                  half_index = endLearningStage, 
+            #                  modelData = x,
+            #                  testModel = "Paths", 
+            #                  sim = x@sim)
+            #   
+            #   #res = optimize(aca_negLogLik1,argList,cluster)
+            # }
+            # else if(model == "Turns")
+            # {
+            #   endLearningStage = endLearningStage/2
+            #   argList = list(lower = c(0,0,0), 
+            #                  upper = c(1,1,1),
+            #                  ratdata = ratdata,
+            #                  half_index = endLearningStage, 
+            #                  modelData = x,
+            #                  testModel = TurnModel,
+            #                  sim = x@sim)
+            #   #res = optimize(negLogLikFunc,argList,cluster)
+            # }
+            # else
+            # {
+            #   testModel = slot(allModels,model)
+            #   testTurnTimes = convertTurnTimes(ratdata,TurnModel,testModel,sim=x@sim)
+            #   endLearningStage = endLearningStage/2
+            # 
+            #   argList = list(lower = c(0,0,0), 
+            #                  upper = c(1,1,1),
+            #                  ratdata = ratdata,
+            #                  half_index = endLearningStage, 
+            #                  modelData = x,
+            #                  testModel = testModel,
+            #                  sim = x@sim)
+            #   
+            #   #res = optimize(negLogLikFunc,argList,cluster)
+            # }
 
-              argList = list(lower = c(0,0,0), 
-                             upper = c(1,1,1),
-                             ratdata = ratdata,
-                             half_index = endLearningStage, 
-                             modelData = x,
-                             testModel = testModel,
-                             sim = x@sim)
-              
-              res = optimize(negLogLikFunc,argList,cluster)
-            }
-
-            return(res)
+            return(argList)
           }
 )
 

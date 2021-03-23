@@ -68,10 +68,31 @@ Edge softmax_action_sel(Graph graph, std::vector<Edge> edges)
 
 //allpaths_num,turnTimes,0,1,model=1,turnMethod = 1
 // [[Rcpp::export()]]
-Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, arma::mat testTurnTimes, Rcpp::S4 modelData, Rcpp::S4 testModel, arma::vec turnStages)
+Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel, arma::vec turnStages)
 {
   arma::mat allpaths = Rcpp::as<arma::mat>(ratdata.slot("allpaths"));
-  arma::mat turnTimes = Rcpp::as<arma::mat>(ratdata.slot("turnTimes"));
+  std::string model = Rcpp::as<double>(modelData.slot("Model"));
+  arma::mat turnTimes;
+  if(model == "Turns")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("turnTimes"));
+  }
+  else if(model == "Hybrid1")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel1"));
+  }
+  else if(model == "Hybrid2")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel2"));
+  }
+  else if(model == "Hybrid3")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel3"));
+  }
+  else if(model == "Hybrid4")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel4"));
+  }
   Rcpp::List nodeGroups = Rcpp::as<Rcpp::List>(testModel.slot("nodeGroups"));
 
   double alpha = Rcpp::as<double>(modelData.slot("alpha"));
@@ -169,7 +190,7 @@ Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, arma::mat testTurnTimes, Rcpp::
         std::string turnSelected = edgeSelected.dest->node;
         int turnNb = graph.getNodeIndex(turnSelected);
         currNode = edgeSelected.dest;
-        double turnTime = simulateTurnDuration(testTurnTimes, allpaths, turnNb, (turnIdx+1), turnStages,nodeGroups);
+        double turnTime = simulateTurnDuration(turnTimes, allpaths, turnNb, (turnIdx+1), turnStages,nodeGroups);
 
         turnNames.push_back(turnSelected);
         episodeTurns.push_back(currNode->node);
@@ -286,7 +307,29 @@ Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, arma::mat testTurnTimes, Rcpp::
 std::vector<double> getTurnsLikelihood(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel, int sim)
 {
   arma::mat allpaths = Rcpp::as<arma::mat>(ratdata.slot("allpaths"));
-  arma::mat turnTimes = Rcpp::as<arma::mat>(ratdata.slot("turnTimes"));
+  std::string model = Rcpp::as<double>(modelData.slot("Model"));
+  arma::mat turnTimes;
+  if(model == "Turns")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("turnTimes"));
+  }
+  else if(model == "Hybrid1")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel1"));
+  }
+  else if(model == "Hybrid2")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel2"));
+  }
+  else if(model == "Hybrid3")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel3"));
+  }
+  else if(model == "Hybrid4")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel4"));
+  }
+
   //Rcpp::List nodeGroups = Rcpp::as<Rcpp::List>(testModel.slot("nodeGroups"));
 
   double alpha = Rcpp::as<double>(modelData.slot("alpha"));
@@ -490,7 +533,28 @@ std::vector<double> getTurnsLikelihood(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcp
 arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel, int sim, bool debug = false)
 {
   arma::mat allpaths = Rcpp::as<arma::mat>(ratdata.slot("allpaths"));
-  arma::mat turnTimes = Rcpp::as<arma::mat>(ratdata.slot("turnTimes"));
+  std::string model = Rcpp::as<double>(modelData.slot("Model"));
+  arma::mat turnTimes;
+  if(model == "Turns")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("turnTimes"));
+  }
+  else if(model == "Hybrid1")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel1"));
+  }
+  else if(model == "Hybrid2")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel2"));
+  }
+  else if(model == "Hybrid3")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel3"));
+  }
+  else if(model == "Hybrid4")
+  {
+    turnTimes = Rcpp::as<arma::mat>(ratdata.slot("hybridModel4"));
+  }
   //Rcpp::List nodeGroups = Rcpp::as<Rcpp::List>(testModel.slot("nodeGroups"));
 
   double alpha = Rcpp::as<double>(modelData.slot("alpha"));

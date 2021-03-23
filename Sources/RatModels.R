@@ -15,14 +15,14 @@ names=c('e','f','g','c','d','h','i','j','a','b','k')
 
 ### Options Linux/Windows ####
 
-src.dir = file.path("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src")
-#src.dir = file.path("/home/amoongat/Projects/Rats-Credit/Sources/src")
+#src.dir = file.path("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src")
+src.dir = file.path("/home/amoongat/Projects/Rats-Credit/Sources/src")
 
-setup.hpc = FALSE
-#setup.hpc = TRUE
+#setup.hpc = FALSE
+setup.hpc = TRUE
 
-data.path = file.path("C:/Rats-Credits/Data/data_journeys.RData")
-#data.path = file.path("/home/amoongat/Projects/Rats-Credit")
+#data.path = file.path("C:/Rats-Credits/Data/data_journeys.RData")
+data.path = file.path("/home/amoongat/Projects/Rats-Credit/data_journeys.Rdata")
 
 load(data.path)
 
@@ -34,6 +34,8 @@ source(paste(src.dir,"HybridModel2.R", sep="/"))
 source(paste(src.dir,"HybridModel3.R", sep="/"))
 source(paste(src.dir,"HybridModel4.R", sep="/"))
 source(paste(src.dir,"BaseClasses.R", sep="/"))
+source(paste(src.dir,"ModelUpdateFunc.R", sep="/"))
+source(paste(src.dir,"ValidationFunc.R", sep="/"))
 source(paste(src.dir,"../PathModels/utils.R", sep="/"))
 
 ### Loop through the enreg of all 6 rats

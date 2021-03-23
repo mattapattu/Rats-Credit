@@ -1,8 +1,11 @@
 #library(GA)
-library(DEoptim)
+#library(DEoptim)
+library(rgenoud)
 library(rlist)
 library(foreach)
-library(doParallel)    
+library(Rmpi)
+library(snow);
+
 
 getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
 {
@@ -20,7 +23,8 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   {
     worker.nodes = mpi.universe.size()-1
     print(sprintf("worker.nodes=%i",worker.nodes))
-    cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
+    #cl <- makeCluster(mpi.universe.size()-1, type='MPI')
+    cl <- makeMPIcluster(worker.nodes)
     
   }
   else
@@ -39,21 +43,35 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   capture.output(clusterEvalQ(cl, source(paste(src.dir,"BaseClasses.R", sep="/"))),file='NUL')
   capture.output(clusterEvalQ(cl, library("TTR")))
   capture.output(clusterEvalQ(cl, library("rlist")))
-  capture.output(clusterEvalQ(cl, library("DEoptim")))
+  capture.output(clusterEvalQ(cl, library("rgenoud")))
   capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc")),file='NUL')
+
+  time <- system.time(
  
-  resMatrix <-
+   resMatrix <-
       foreach(model=models, .combine='rbind') %:%
         foreach(method=creditAssignment, .combine='rbind') %dopar% {
           modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
           argList<-getArgList(modelData,ratdata)
-          np.val = length(argList$lower) * 10
-          myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9, trace = FALSE, itermax = 200,parallelType = 2)
-          out<-do.call("DEoptim",list.append(argList, fn=negLogLikFunc, myList))
-          res <-unname(out$optim$bestmem)
+          nvar = length(argList$lower)
+          out<-do.call("genoud",list.append(argList[3:7],
+                                        fn=negLogLikFunc,
+                                        nvars = nvars,
+                                        pop.size=3000,
+                                        max=FALSE,
+                                        boundary.enforcement =2,
+                                        wait.generations=5,
+                                        solution.tolerance = 0.5,
+					cluster = cl,
+                                        print.level=0,
+                                        gradient.check= FALSE,
+                                        Domains = cbind(c(argList[[1]]),c(argList[[2]]))
+                                        )
+                   )
+       	res <-out$par
       }
-    
-    
+   )   
+   print(time) 
     #modelData = updateModelData(ratdata,resMatrix, models)
     allmodelRes = getAllModelResults(ratdata, resMatrix,testingdata, sim) 
     stopCluster(cl)

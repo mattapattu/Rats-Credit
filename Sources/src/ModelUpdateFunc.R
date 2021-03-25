@@ -7,6 +7,7 @@ library(foreach)
 library(doParallel)
 #library(doMPI);
 #library(snow);
+#library(doSNOW);
 
 getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
 {
@@ -19,23 +20,44 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   
   models = testingdata@Models
   creditAssignment = testingdata@creditAssignment
+
+  forloops = length(models) * length(creditAssignment)
  
   if(setup.hpc)
   {
     worker.nodes = mpi.universe.size()-1
     print(sprintf("worker.nodes=%i",worker.nodes))
-    cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
-    registerDoParallel(cl)
-    #cl <- startMPIcluster(worker.nodes)
-    #registerDoMPI(cl)
-    
+    #nodefile <- Sys.getenv("OAR_NODEFILE")
+    #nodes <- readLines(nodefile)
+    #print(sprintf("nodes=%s",nodes))
+    if(forloops < worker.nodes)
+    {
+      workers = forloops
+    }
+    else
+    {
+      workers = worker.nodes
+    }
+    print(sprintf("workers=%i",workers))
+    cl <- makeCluster( workers, type='PSOCK')
+    #cl <- makeMPIcluster(length(nodes))
+    #registerDoSNOW(cl)
   }
   else
   {
     cl <- makeCluster(detectCores()-1, outfile = "")
-    registerDoParallel(cl)
   }
-  
+ 
+  if(worker.nodes > forloops)
+  {
+    clusWorkers = 2*round(worker.nodes/forloops)
+  }
+  else
+   {
+    clusWorkers = round(worker.nodes/3) 
+   }
+   print(sprintf("clusWorkers=%i",clusWorkers))
+ 
   capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc","src.dir")),file='NUL')
   capture.output(clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/"))),file='NUL')
   capture.output(clusterEvalQ(cl, source(paste(src.dir,"TurnModel.R", sep="/"))),file='NUL')
@@ -47,17 +69,33 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   capture.output(clusterEvalQ(cl, library("TTR")))
   capture.output(clusterEvalQ(cl, library("rlist")))
   capture.output(clusterEvalQ(cl, library("rgenoud")))
-  capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc")),file='NUL')
 
+   clusterCall(cl, function() {
+    library(doParallel)
+  })
+  
+  registerDoParallel(cl)
   time <- system.time(
 
- 
    resMatrix <-
       foreach(model=models, .combine='rbind') %:%
         foreach(method=creditAssignment, .combine='rbind') %dopar% {
           modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
           argList<-getArgList(modelData,ratdata)
           nvars = length(argList$lower)
+          cl2 <- makeCluster(30)
+          capture.output(clusterExport(cl2, varlist = c("src.dir")),file='NUL')
+          clusterCall(cl2, function() {
+            source(paste(src.dir,"ModelClasses.R", sep="/"))
+            source(paste(src.dir,"TurnModel.R", sep="/"))
+            source(paste(src.dir,"HybridModel1.R", sep="/"))
+            source(paste(src.dir,"HybridModel2.R", sep="/"))
+            source(paste(src.dir,"HybridModel3.R", sep="/"))
+            source(paste(src.dir,"HybridModel4.R", sep="/"))
+            source(paste(src.dir,"BaseClasses.R", sep="/"))
+            NULL
+          })
+          registerDoParallel(cl2)
           out<-do.call("genoud",list.append(argList[3:7],
                                         fn=negLogLikFunc,
                                         nvars = nvars,
@@ -65,23 +103,65 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
                                         max=FALSE,
                                         boundary.enforcement =2,
                                         wait.generations=5,
-                                        solution.tolerance = 0.5,
-					cluster = cl,
+                                        solution.tolerance = 0.01,
+					cluster = cl2,
                                         print.level=0,
                                         gradient.check= FALSE,
                                         Domains = cbind(c(argList[[1]]),c(argList[[2]]))
                                         )
                    )
        	res <-out$par
-      }
-   )   
-   print(time) 
+      } 
+   )
+print(time)
+## END IF
+
+if(FALSE)
+{
+modelData =  new("ModelData", Model="Hybrid4", creditAssignment = "aca3", sim=sim)
+     argList<-getArgList(modelData,ratdata)
+          nvars = length(argList$lower)
+          cl2 <- makeCluster(8)
+          capture.output(clusterExport(cl2, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc","src.dir")),file='NUL')
+	  capture.output(clusterEvalQ(cl2, source(paste(src.dir,"ModelClasses.R", sep="/"))),file='NUL')
+	  capture.output(clusterEvalQ(cl2, source(paste(src.dir,"TurnModel.R", sep="/"))),file='NUL')
+	  capture.output(clusterEvalQ(cl2, source(paste(src.dir,"HybridModel1.R", sep="/"))),file='NUL')
+	  capture.output(clusterEvalQ(cl2, source(paste(src.dir,"HybridModel2.R", sep="/"))),file='NUL')
+	  capture.output(clusterEvalQ(cl2, source(paste(src.dir,"HybridModel3.R", sep="/"))),file='NUL')
+	  capture.output(clusterEvalQ(cl2, source(paste(src.dir,"HybridModel4.R", sep="/"))),file='NUL')
+	  capture.output(clusterEvalQ(cl2, source(paste(src.dir,"BaseClasses.R", sep="/"))),file='NUL')
+	  capture.output(clusterEvalQ(cl2, library("TTR")))
+	  capture.output(clusterEvalQ(cl2, library("rlist")))
+	  capture.output(clusterEvalQ(cl2, library("rgenoud")))
+	  #capture.output(clusterExport(cl2, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc")),file='NUL')
+          registerDoParallel(cl2)
+          out<-do.call("genoud",list.append(argList[3:7],
+                                        fn=negLogLikFunc,
+                                        nvars = nvars,
+                                        pop.size=1000,
+                                        max=FALSE,
+                                        boundary.enforcement =2,
+                                        wait.generations=5,
+                                        solution.tolerance = 5,
+                                        cluster = cl2,
+                                        print.level=2,
+                                        gradient.check= FALSE,
+ 					BFGS = FALSE,
+                                        P9 = 0,
+                                        Domains = cbind(c(argList[[1]]),c(argList[[2]]))
+                                        )
+                   )
+
+
+      resMatrix = out$par
+ }  
     #modelData = updateModelData(ratdata,resMatrix, models)
     allmodelRes = getAllModelResults(ratdata, resMatrix,testingdata, sim) 
    
    if(setup.hpc)
    {
       stopCluster(cl)	
+      stopImplicitCluster()
       #closeCluster(cl)
    }
    else

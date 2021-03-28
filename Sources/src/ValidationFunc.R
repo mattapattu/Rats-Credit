@@ -1,10 +1,8 @@
 
-
-
-HoldoutTest=function(ratdata, testingdata)
+HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
 {
-  models = testingdata@Models
-  creditAssignment = testingdata@creditAssignment
+  models = testData@Models
+  creditAssignment = testData@creditAssignment
 
   modelNames = as.vector(sapply(creditAssignment, function(x) paste(models, x, sep=".")))
 
@@ -15,52 +13,98 @@ HoldoutTest=function(ratdata, testingdata)
 
   print(sprintf("models: %s",toString(modelNames)))
   
-  for(model in modelNames){
-    print(sprintf("model= %s",model))
+  
+  #iter = 1
+  
+  if(setup.hpc)
+  {
+    worker.nodes = mpi.universe.size()-1
+    print(sprintf("worker.nodes=%i",worker.nodes))
+    cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
     
-    modelName = strsplit(model,"\\.")[[1]][1]
-    creditAssignment = strsplit(model,"\\.")[[1]][2]
-    trueModelData = new("ModelData", Model = modelName, creditAssignment = creditAssignment, sim=2)
-    trueModelData = updateModelData(ratdata,trueModelData)
-    
-    
-    iter = 1
-    start_index = 0
-    end_index = 0
-    missedOptimalIter = 0
-    while(iter <= 1){
-      total_trials = length(allpaths[,1])
-      init_state = as.numeric(allpaths[1,2])-1
-      
-      generated_data = simulateData(trueModelData,ratdata,allModels)
-      
-      end_index = getEndIndex(generated_data@allpaths, sim=1, limit=0.95)
-      
-      if(end_index == -1){
-        missedOptimalIter=missedOptimalIter+1
-        if(missedOptimalIter>1000)
+    #cl <- startMPIcluster(worker.nodes)
+    #registerDoMPI(cl)
+  }
+  else
+  {
+    cl <- makeCluster(3, outfile = "")
+    #registerDoParallel(cl)
+  }
+  
+  capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","simulateData","src.dir","populateSimRatModel","getMinimumLikelihood")),file='NUL')
+  capture.output(clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/"))),file='NUL')
+  capture.output(clusterEvalQ(cl, source(paste(src.dir,"TurnModel.R", sep="/"))),file='NUL')
+  capture.output(clusterEvalQ(cl, source(paste(src.dir,"HybridModel1.R", sep="/"))),file='NUL')
+  capture.output(clusterEvalQ(cl, source(paste(src.dir,"HybridModel2.R", sep="/"))),file='NUL')
+  capture.output(clusterEvalQ(cl, source(paste(src.dir,"HybridModel3.R", sep="/"))),file='NUL')
+  capture.output(clusterEvalQ(cl, source(paste(src.dir,"HybridModel4.R", sep="/"))),file='NUL')
+  capture.output(clusterEvalQ(cl, source(paste(src.dir,"BaseClasses.R", sep="/"))),file='NUL')
+  capture.output(clusterExport(cl, varlist = c("allModelRes","creditAssignment"),envir=environment()),file='NUL')
+  capture.output(clusterEvalQ(cl, library("TTR")),file='NUL')
+  capture.output(clusterEvalQ(cl, library("dplyr")),file='NUL')
+
+  clusterCall(cl, function() {
+    library(doParallel)
+    NULL
+  })
+  
+  registerDoParallel(cl)
+  
+  resVec <- 
+    foreach(model=modelNames, .combine='rbind') %:%
+    #print(sprintf("model= %s",model))
+    #capture.output(clusterExport(cl, varlist = c("trueModelData"),envir=environment()),file='NUL')
+      foreach(i=c(1:2), .combine='rbind', .inorder=FALSE) %dopar%{
+        
+        modelName = strsplit(model,"\\.")[[1]][1]
+        creditAssignment = strsplit(model,"\\.")[[1]][2]
+        trueModelData = slot(slot(allModelRes,modelName),creditAssignment)
+        
+        end_index = -1
+        missedOptimalIter = 0
+
+        while(end_index == -1){
+          generated_data = simulateData(trueModelData,ratdata,allModels)
+          end_index = getEndIndex(generated_data@allpaths, sim=1, limit=0.95)
+          
+          missedOptimalIter=missedOptimalIter+1
+          
+          if(missedOptimalIter>200)
+          {
+            break
+          }
+          set.seed(NULL)
+        }
+        
+        if(end_index > -1)
         {
-          break
+          generated_data = populateSimRatModel(generated_data,modelName)
+          allmodelRes = getModelResults(generated_data,testData,sim=1, src.dir, setup.hpc)
+          min_method = getMinimumLikelihood(allmodelRes,testData)
+          
         }
         else
         {
-          next
+          min_method = "Not converging"
         }
-        
-      }
-      
-      allmodelRes = getModelResults(generated_data,testingdata,sim=1)
-      min_method = getMinimumLikelihood(allmodelRes,testingdata)
-      mat_res[toString(model),toString(min_method)] = mat_res[toString(model),toString(min_method)] + 1
-      
-      #print(sprintf("iter=%i", iter))
-      iter=iter+1
+  
+        res_vec = c(toString(model),toString(min_method))
+
     }
-    
     #save(mat_res, file = paste0(rat,"_mat_res.Rdata"))
-    print(sprintf("Nb of iterations where optimal behaviour was not learned=%i", missedOptimalIter))
-    print(mat_res)
-    
+    #print(sprintf("Nb of iterations where optimal behaviour was not learned=%i", missedOptimalIter))
+    #print(mat_res)
+  if(setup.hpc)
+  {
+    stopCluster(cl)
+    stopImplicitCluster()
+    #closeCluster(cl)
+  }
+  else
+  {
+    stopCluster(cl)
+    stopImplicitCluster()
+  }
     
     #boxplotMse(mat_res,model,rat)
     
@@ -69,16 +113,8 @@ HoldoutTest=function(ratdata, testingdata)
     #   break
     # }
     
-  }
-  
-  print(sprintf("Returning mat_res")) 
-  return(mat_res)
 }
-
-
-
-
-
+  
 
 getMinimumLikelihood=function(allmodelRes,testingdata)
 {

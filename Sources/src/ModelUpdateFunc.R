@@ -1,6 +1,6 @@
 #library(GA)
 #library(DEoptim)
-library(Rmpi)
+#library(Rmpi)
 library(rgenoud)
 library(rlist)
 library(foreach)
@@ -25,17 +25,17 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
     worker.nodes = mpi.universe.size()-1
     print(sprintf("worker.nodes=%i",worker.nodes))
     cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
-    registerDoParallel(cl)
+    
     #cl <- startMPIcluster(worker.nodes)
     #registerDoMPI(cl)
     
   }
   else
   {
-    cl <- makeCluster(detectCores()-1, outfile = "")
-    registerDoParallel(cl)
+    cl <- makeCluster(3, outfile = "")
+    #registerDoParallel(cl)
   }
-  
+
   capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc","src.dir")),file='NUL')
   capture.output(clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/"))),file='NUL')
   capture.output(clusterEvalQ(cl, source(paste(src.dir,"TurnModel.R", sep="/"))),file='NUL')
@@ -49,8 +49,13 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   capture.output(clusterEvalQ(cl, library("rgenoud")))
   capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc")),file='NUL')
 
-  time <- system.time(
-
+  clusterCall(cl, function() {
+    library(doParallel)
+    NULL
+  })
+  
+  registerDoParallel(cl)
+  
  
    resMatrix <-
       foreach(model=models, .combine='rbind') %:%
@@ -58,6 +63,18 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
           modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
           argList<-getArgList(modelData,ratdata)
           nvars = length(argList$lower)
+          cl2 <- makeCluster(5)
+          clusterCall(cl2, function() {
+            source(paste(src.dir,"ModelClasses.R", sep="/"))
+            source(paste(src.dir,"TurnModel.R", sep="/"))
+            source(paste(src.dir,"HybridModel1.R", sep="/"))
+            source(paste(src.dir,"HybridModel2.R", sep="/"))
+            source(paste(src.dir,"HybridModel3.R", sep="/"))
+            source(paste(src.dir,"HybridModel4.R", sep="/"))
+            source(paste(src.dir,"BaseClasses.R", sep="/"))
+            NULL
+          })
+          registerDoParallel(cl2)
           out<-do.call("genoud",list.append(argList[3:7],
                                         fn=negLogLikFunc,
                                         nvars = nvars,
@@ -66,7 +83,7 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
                                         boundary.enforcement =2,
                                         wait.generations=5,
                                         solution.tolerance = 0.5,
-					cluster = cl,
+					                              cluster = cl2,
                                         print.level=0,
                                         gradient.check= FALSE,
                                         Domains = cbind(c(argList[[1]]),c(argList[[2]]))
@@ -74,19 +91,21 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
                    )
        	res <-out$par
       }
-   )   
-   print(time) 
+      
+   #print(time) 
     #modelData = updateModelData(ratdata,resMatrix, models)
     allmodelRes = getAllModelResults(ratdata, resMatrix,testingdata, sim) 
    
    if(setup.hpc)
    {
-      stopCluster(cl)	
+      stopCluster(cl)
+      stopImplicitCluster()
       #closeCluster(cl)
    }
    else
    {
      stopCluster(cl)
+     stopImplicitCluster()
    }
     
   

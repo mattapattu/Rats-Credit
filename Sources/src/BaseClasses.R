@@ -175,12 +175,11 @@ setMethod("simulateData",  signature=c("ModelData","RatData","AllModels"),
               testModel = TurnModel
               testTurnTimes = ratdata@turnTimes
               argList = list(ratdata = ratdata, 
-                             testTurnTimes = testTurnTimes,
                              modelData = x,
                              testModel = testModel,
                              turnstages = turnstages)
               
-              generated_data = TurnsNew::simulateTurnsModels(ratdata,testTurnTimes,x,testModel,turnstages)
+              generated_data = TurnsNew::simulateTurnsModels(ratdata,x,testModel,turnstages)
             }
             else
             {
@@ -194,16 +193,41 @@ setMethod("simulateData",  signature=c("ModelData","RatData","AllModels"),
               turnstages = c(1,turnIdxStage1,turnIdxStage2,turnIdxStage3)
               
               argList = list(ratdata = ratdata, 
-                             testTurnTimes = testTurnTimes,
                              modelData = x,
                              testModel = testModel,
                              turnstages = turnstages)
               
-              generated_data = TurnsNew::simulateTurnsModels(ratdata,testTurnTimes,x,testModel,turnstages)
+              generated_data = TurnsNew::simulateTurnsModels(ratdata,x,testModel,turnstages,debug=FALSE)
             }
             
+            simData = new("RatData", rat = "simulation",allpaths = generated_data$PathData)
             
-            simData = new("RatData", rat = "simulation",allpaths = generated_data$PathData, turnTimes = generated_data$TurnData)
+           
+            if(model=="Paths")
+            {
+              slot(simData, "turnTimes") = generated_data$TurnData 
+            }
+            else if(model == "Turns")
+            {
+              slot(simData, "turnTimes") = generated_data$TurnData
+            }
+            else if(model == "Hybrid1")
+            {
+              slot(simData, "hybridModel1") = generated_data$TurnData
+            }
+            else if(model == "Hybrid2")
+            {
+              slot(simData, "hybridModel2") = generated_data$TurnData
+            }
+            else if(model == "Hybrid3")
+            {
+              slot(simData, "hybridModel3") = generated_data$TurnData
+            }
+            else if(model == "Hybrid4")
+            {
+              slot(simData, "hybridModel4") = generated_data$TurnData
+            }
+            
             return(simData)
           }
 )

@@ -66,9 +66,8 @@ Edge softmax_action_sel(Graph graph, std::vector<Edge> edges)
   return (edges[action_selected]);
 }
 
-//allpaths_num,turnTimes,0,1,model=1,turnMethod = 1
 // [[Rcpp::export()]]
-Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel, arma::vec turnStages)
+Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel, arma::vec turnStages, bool debug = false)
 {
   arma::mat allpaths = Rcpp::as<arma::mat>(ratdata.slot("allpaths"));
   std::string model = Rcpp::as<std::string>(modelData.slot("Model"));
@@ -150,8 +149,8 @@ Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 te
     std::vector<int> episodeTurnStates;
     std::vector<double> episodeTurnTimes;
 
-    arma::mat generated_PathData_sess(nrow, 6);
-    arma::mat generated_TurnsData_sess((nrow * 3), 6);
+    arma::mat generated_PathData_sess(nrow, 7);
+    arma::mat generated_TurnsData_sess((nrow * 3), 7);
     generated_PathData_sess.fill(-1);
     generated_TurnsData_sess.fill(-1);
     unsigned int turnIdx = 0; // counter for turn model
@@ -190,13 +189,13 @@ Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 te
         std::string turnSelected = edgeSelected.dest->node;
         int turnNb = graph.getNodeIndex(turnSelected);
         currNode = edgeSelected.dest;
-        double turnTime = simulateTurnDuration(turnTimes, allpaths, turnNb, (turnIdx+1), turnStages,nodeGroups);
-
+        arma::vec durationVec = simulateTurnDuration(turnTimes, allpaths, turnNb, (turnIdx+1), turnStages,nodeGroups,debug);
+        double turnTime = durationVec(1);
         turnNames.push_back(turnSelected);
         episodeTurns.push_back(currNode->node);
         episodeTurnStates.push_back(S);
-        episodeTurnTimes.push_back(turnTime);
-        //turns_index.push_back(turnIdx);
+        episodeTurnTimes.push_back(0);
+        turns_index.push_back(turnIdx);
         pathDuration = pathDuration+ turnTime;
 
         generated_TurnsData_sess(turnIdx, 0) = turnNb;
@@ -206,6 +205,7 @@ Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 te
         //Rcpp::Rcout << "Turn=" << currTurn <<", turn duration="<< generated_TurnsData_sess(turnIdx, 3)<<std::endl;
         generated_TurnsData_sess(turnIdx, 4) = sessId;
         generated_TurnsData_sess(turnIdx, 5) = actionNb;
+        generated_TurnsData_sess(turnIdx, 6) = durationVec(0);
         turnIdx++;
       
         edges = graph.getOutgoingEdges(currNode->node);
@@ -220,6 +220,9 @@ Rcpp::List simulateTurnsModels(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 te
       {
        A = S1.getPathFromTurns(turnNames); 
       }
+
+      //arma::mat durationMat = simulatePathTime(turnTimes, allpaths, actionNb, A, pathStages,nodeGroups);
+
       //Rcpp::Rcout <<"A=" << A << ", S=" << S << ", sessId=" <<sessId<< std::endl;
       generated_PathData_sess(i, 0) = A;
       generated_PathData_sess(i, 1) = S;

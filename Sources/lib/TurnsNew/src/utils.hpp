@@ -10,6 +10,8 @@
 #include <RcppArmadillo.h>
 #include <RcppArmadilloExtensions/sample.h>
 #include "tree.hpp"
+#include "Debugger.hpp"
+
 
 
 
@@ -53,9 +55,12 @@ std::vector<double> quartiles(std::vector<double> samples)
 }
 
 // [[Rcpp::export]]
-double simulateTurnDuration(arma::mat turnTimes, arma::mat allpaths, int turnId, int turnNb, arma::vec turnStages, Rcpp::List nodeGroups)
+arma::vec simulateTurnDuration(arma::mat turnTimes, arma::mat allpaths, int turnId, int turnNb, arma::vec turnStages, Rcpp::List nodeGroups, bool debug = false)
 {
-  
+  Debugger logger;
+  logger.setDebug(debug);
+  std::ostringstream msg; 
+
   int start = -1;
   int end = 0;
   if(turnNb < turnStages(1))
@@ -105,16 +110,36 @@ double simulateTurnDuration(arma::mat turnTimes, arma::mat allpaths, int turnId,
   arma::uvec arma_idx = Rcpp::as<arma::uvec>(idx);
   //Rcpp::Rcout <<"arma_idx=" <<arma_idx << std::endl;
  
-  arma::vec turndurations_submat = turnTimes_submat.col(5);
-  arma::vec sample = turndurations_submat.elem(arma_idx);
+  //arma::vec turndurations_submat = turnTimes_submat.col(5);
+  arma::mat submat_sample = turnTimes_submat.rows(arma_idx);
+  msg.str("");
+  msg << "submat_sample=";
+   logger.PrintArmaMat(msg.str(),submat_sample); 
+  arma::vec sample = submat_sample.col(5);
   std::vector<double> q = quartiles(arma::conv_to<std::vector<double>>::from(sample));
   arma::uvec final_sample_ids = arma::find(sample >= q[0] && sample <= q[2]);
-  arma::vec fin_sample = sample.elem(final_sample_ids);
-  arma::vec pvec(fin_sample.n_elem); 
-  double probability = (double) 1/(double) fin_sample.n_elem;
+  //arma::vec fin_sample = sample.elem(final_sample_ids);
+  arma::vec pvec(final_sample_ids.n_elem); 
+  double probability = (double) 1/(double) final_sample_ids.n_elem;
   pvec.fill(probability);
-  double duration = Rcpp::RcppArmadillo::sample(fin_sample, 1, true, pvec)[0];
-  return(duration);
+  arma::uword sampled_id = Rcpp::RcppArmadillo::sample(final_sample_ids, 1, true, pvec)[0];
+    msg.str("");
+    msg << "sampled_id=" <<sampled_id;
+   logger.Print(msg.str()); 
+
+  arma::rowvec turnRow = submat_sample.row(sampled_id);
+  arma::uvec cols = {0,5}; //3 = ActionNb, 5 = actionNb
+
+   msg.str("");
+   msg << "turnRow=";
+   logger.PrintArmaRowVec(msg.str(),turnRow); 
+  arma::vec turnDurations = turnRow.elem(cols);
+
+    msg.str("");
+   msg << "turnDurations=";
+   logger.PrintArmaVec(msg.str(),turnDurations); 
+
+  return(turnDurations);
 }
 
 

@@ -39,8 +39,8 @@ source(paste(src.dir,"ValidationFunc.R", sep="/"))
 source(paste(src.dir,"../PathModels/utils.R", sep="/"))
 
 ### Loop through the enreg of all 6 rats
-for (i in c(3:3)) {
-  
+for (i in c(2:6)) {
+
   
   
   enregres = enregCombine(donnees_ash[[i]],rats[i])
@@ -50,10 +50,10 @@ for (i in c(3:3)) {
   ratdata = populateRatModel(allpaths=allpaths,rat=rats[i],donnees_ash[[i]],TurnModel)
   
   #testData = new("TestModels", Models=c("Paths","Hybrid1","Hybrid2","Hybrid3","Hybrid4","Turns"), creditAssignment=c("aca3"))
-  testData = new("TestModels", Models=c("Hybrid4","Turns"), creditAssignment=c("aca3"))
+  testData = new("TestModels", Models=c("Paths","Hybrid1","Hybrid2","Hybrid3","Hybrid4","Turns"), creditAssignment=c("aca3"))
+  #testData = new("TestModels", Models=c("Hybrid3"), creditAssignment=c("aca3"))
   
-  # ##### Model Selection On Acutal Data #########################3
-  
+
   #debug(getModelResults)
   allmodelRes = getModelResults(ratdata,testData,sim=2, src.dir, setup.hpc)
   #min_method = getMinimumLikelihood(allmodelRes,testData)
@@ -64,7 +64,7 @@ for (i in c(3:3)) {
   
   # #### Holdout Validation ########################################
   
-  debug(HoldoutTest)
+  #debug(HoldoutTest)
   HoldoutTest(ratdata,allmodelRes,testData,src.dir,setup.hpc)
 }
-
+print(sprintf("End of script"))

@@ -15,14 +15,14 @@ names=c('e','f','g','c','d','h','i','j','a','b','k')
 
 ### Options Linux/Windows ####
 
-#src.dir = file.path("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src")
-src.dir = file.path("/home/amoongat/Projects/Rats-Credit/Sources/src")
+src.dir = file.path("C:/Users/matta/OneDrive/Documents/Rats-Credit/Sources/src")
+#src.dir = file.path("/home/amoongat/Projects/Rats-Credit/Sources/src")
 
-#setup.hpc = FALSE
-setup.hpc = TRUE
+setup.hpc = FALSE
+#setup.hpc = TRUE
 
-#data.path = file.path("C:/Rats-Credits/Data/data_journeys.RData")
-data.path = file.path("/home/amoongat/Projects/Rats-Credit/data_journeys.Rdata")
+data.path = file.path("C:/Rats-Credits/Data/data_journeys.RData")
+#data.path = file.path("/home/amoongat/Projects/Rats-Credit/data_journeys.Rdata")
 
 load(data.path)
 
@@ -39,7 +39,7 @@ source(paste(src.dir,"ValidationFunc.R", sep="/"))
 source(paste(src.dir,"../PathModels/utils.R", sep="/"))
 
 ### Loop through the enreg of all 6 rats
-for (i in c(2:2)) {
+for (i in c(3:3)) {
   
   
   
@@ -49,19 +49,22 @@ for (i in c(2:2)) {
   
   ratdata = populateRatModel(allpaths=allpaths,rat=rats[i],donnees_ash[[i]],TurnModel)
   
-  testData = new("TestModels", Models=c("Paths","Hybrid1","Hybrid2","Hybrid3","Hybrid4","Turns"), creditAssignment=c("aca3"))
+  #testData = new("TestModels", Models=c("Paths","Hybrid1","Hybrid2","Hybrid3","Hybrid4","Turns"), creditAssignment=c("aca3"))
+  testData = new("TestModels", Models=c("Hybrid4","Turns"), creditAssignment=c("aca3"))
   
-  
-  # #### Holdout Validation ########################################
-  
-  #debug(HoldoutTest)
-  #HoldoutTest(ratdata, testData)
   # ##### Model Selection On Acutal Data #########################3
   
   #debug(getModelResults)
   allmodelRes = getModelResults(ratdata,testData,sim=2, src.dir, setup.hpc)
-  min_method = getMinimumLikelihood(allmodelRes,testData)
-  print(sprintf("%s is best model for %s",min_method,rats[i]))
-  save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))
+  #min_method = getMinimumLikelihood(allmodelRes,testData)
+  #print(sprintf("%s is best model for %s",min_method,rats[i]))
+  #save(allmodelRes,file=paste0("allmodelRes_",rats[i],".Rdata"))
+  
+  
+  
+  # #### Holdout Validation ########################################
+  
+  debug(HoldoutTest)
+  HoldoutTest(ratdata,allmodelRes,testData,src.dir,setup.hpc)
 }
 

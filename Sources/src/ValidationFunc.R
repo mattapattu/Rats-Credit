@@ -18,9 +18,9 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
   
   if(setup.hpc)
   {
-    worker.nodes = mpi.universe.size()-1
-    print(sprintf("worker.nodes=%i",worker.nodes))
-    cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
+    #worker.nodes = mpi.universe.size()-1
+    #print(sprintf("worker.nodes=%i",worker.nodes))
+    cl <- makeCluster(100, type='PSOCK')
     
     #cl <- startMPIcluster(worker.nodes)
     #registerDoMPI(cl)
@@ -54,7 +54,7 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
     foreach(model=modelNames, .combine='rbind') %:%
     #print(sprintf("model= %s",model))
     #capture.output(clusterExport(cl, varlist = c("trueModelData"),envir=environment()),file='NUL')
-      foreach(i=c(1:2), .combine='rbind', .inorder=FALSE) %dopar%{
+      foreach(i=c(1:100), .combine='rbind', .inorder=FALSE) %dopar%{
         
         modelName = strsplit(model,"\\.")[[1]][1]
         creditAssignment = strsplit(model,"\\.")[[1]][2]
@@ -105,6 +105,9 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
     stopCluster(cl)
     stopImplicitCluster()
   }
+
+ rat = ratdata@rat
+ save(resVec, file = paste0(rat,"_resVec.Rdata"))
     
     #boxplotMse(mat_res,model,rat)
     

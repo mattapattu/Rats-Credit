@@ -25,9 +25,9 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
  
   if(setup.hpc)
   {
-    worker.nodes = mpi.universe.size()-1
-    print(sprintf("worker.nodes=%i",worker.nodes))
-    cl <- makeCluster(mpi.universe.size()-1, type='PSOCK')
+    #worker.nodes = mpi.universe.size()-1
+    #print(sprintf("worker.nodes=%i",worker.nodes))
+    cl <- makeCluster(5, type='PSOCK')
     
     #cl <- startMPIcluster(worker.nodes)
     #registerDoMPI(cl)

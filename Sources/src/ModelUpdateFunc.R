@@ -1,7 +1,7 @@
 #library(GA)
-#library(DEoptim)
+library(DEoptim)
 #library(Rmpi)
-library(rgenoud)
+#library(rgenoud)
 library(rlist)
 library(foreach)
 library(doParallel)
@@ -35,23 +35,23 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   }
   else
   {
-    cl <- makeCluster(3, outfile = "")
+    cl <- makeCluster(3)
     #registerDoParallel(cl)
   }
 
 
 
-  capture.output(clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc","src.dir")),file='NUL')
-  capture.output(clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/"))),file='NUL')
-  capture.output(clusterEvalQ(cl, source(paste(src.dir,"TurnModel.R", sep="/"))),file='NUL')
-  capture.output(clusterEvalQ(cl, source(paste(src.dir,"HybridModel1.R", sep="/"))),file='NUL')
-  capture.output(clusterEvalQ(cl, source(paste(src.dir,"HybridModel2.R", sep="/"))),file='NUL')
-  capture.output(clusterEvalQ(cl, source(paste(src.dir,"HybridModel3.R", sep="/"))),file='NUL')
-  capture.output(clusterEvalQ(cl, source(paste(src.dir,"HybridModel4.R", sep="/"))),file='NUL')
-  capture.output(clusterEvalQ(cl, source(paste(src.dir,"BaseClasses.R", sep="/"))),file='NUL')
-  capture.output(clusterEvalQ(cl, library("TTR")))
-  capture.output(clusterEvalQ(cl, library("rlist")))
-  capture.output(clusterEvalQ(cl, library("rgenoud")))
+  clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc","src.dir"))
+  clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"TurnModel.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel1.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel2.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel3.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel4.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"BaseClasses.R", sep="/")))
+  clusterEvalQ(cl, library("TTR"))
+  clusterEvalQ(cl, library("rlist"))
+  clusterEvalQ(cl, library("DEoptim"))
 
   clusterCall(cl, function() {
     library(doParallel)
@@ -61,11 +61,6 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
   registerDoParallel(cl)
   
  
-   clusterCall(cl, function() {
-    library(doParallel)
-  })
-  
-  registerDoParallel(cl)
   time <- system.time(
 
    resMatrix <-
@@ -75,7 +70,7 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
           argList<-getArgList(modelData,ratdata)
           nvars = length(argList$lower)
           cl2 <- makeCluster(5)
-          capture.output(clusterExport(cl2, varlist = c("src.dir")),file='NUL')
+          clusterExport(cl2, varlist = c("src.dir"))
           clusterCall(cl2, function() {
             source(paste(src.dir,"ModelClasses.R", sep="/"))
             source(paste(src.dir,"TurnModel.R", sep="/"))
@@ -84,24 +79,13 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
             source(paste(src.dir,"HybridModel3.R", sep="/"))
             source(paste(src.dir,"HybridModel4.R", sep="/"))
             source(paste(src.dir,"BaseClasses.R", sep="/"))
-            NULL
+            NULL 
           })
           registerDoParallel(cl2)
-          out<-do.call("genoud",list.append(argList[3:7],
-                                        fn=negLogLikFunc,
-                                        nvars = nvars,
-                                        pop.size=1000,
-                                        max=FALSE,
-                                        boundary.enforcement =2,
-                                        wait.generations=5,
-                                        solution.tolerance = 0.5,
-					                              cluster = cl2,
-                                        print.level=0,
-                                        gradient.check= FALSE,
-                                        Domains = cbind(c(argList[[1]]),c(argList[[2]]))
-                                        )
-                   )
-       	res <-out$par
+          np.val = length(argList$lower) * 10
+          myList <- DEoptim.control(NP=np.val, F=2, CR = 0.9,trace = FALSE, itermax = 200,parallelType=2)
+          out<-do.call("DEoptim",list.append(argList, fn=negLogLikFunc, myList))
+          out$optim$bestmem
       }
       
    #print(time) 
@@ -116,15 +100,76 @@ print(time)
    if(setup.hpc)
    {
       stopCluster(cl)	
-      stopImplicitCluster()
+      #stopImplicitCluster()
       #closeCluster(cl)
    }
    else
    {
      stopCluster(cl)
-     stopImplicitCluster()
+     #stopImplicitCluster()
    }
     
+  
+  return(allmodelRes)
+}
+
+getModelResultsSeq=function(ratdata, testingdata, sim, src.dir)
+{
+  
+  models = testingdata@Models
+  creditAssignment = testingdata@creditAssignment
+  
+  cl2 <- makeCluster(5)
+  clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc","src.dir"))
+  clusterCall(cl2, function() {
+    source(paste(src.dir,"ModelClasses.R", sep="/"))
+    source(paste(src.dir,"TurnModel.R", sep="/"))
+    source(paste(src.dir,"HybridModel1.R", sep="/"))
+    source(paste(src.dir,"HybridModel2.R", sep="/"))
+    source(paste(src.dir,"HybridModel3.R", sep="/"))
+    source(paste(src.dir,"HybridModel4.R", sep="/"))
+    source(paste(src.dir,"BaseClasses.R", sep="/"))
+    NULL
+  })
+  clusterEvalQ(cl, library("TTR"))
+  clusterEvalQ(cl, library("rlist"))
+  clusterEvalQ(cl, library("DEoptim"))
+  registerDoParallel(cl2)
+
+  time <- system.time( 
+  resMatrix <-
+    foreach(model=models, .combine='rbind') %:%
+      foreach(method=creditAssignment, .combine='rbind') %do% {
+        modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
+        argList<-getArgList(modelData,ratdata)
+        nvars = length(argList$lower)
+
+        
+        np.val = length(argList$lower) * 10
+        myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9,trace = FALSE, itermax = 200,parallelType=2)
+        out<-do.call("DEoptim",list.append(argList, fn=negLogLikFunc, myList))
+        out$optim$bestmem
+    }
+  )
+
+
+print(time)
+  
+  #modelData = updateModelData(ratdata,resMatrix, models)
+  allmodelRes = getAllModelResults(ratdata, resMatrix,testingdata, sim) 
+  
+  if(setup.hpc)
+  {
+    stopCluster(cl2)	
+    #stopImplicitCluster()
+    #closeCluster(cl)
+  }
+  else
+  {
+    stopCluster(cl2)
+    #stopImplicitCluster()
+  }
+  
   
   return(allmodelRes)
 }

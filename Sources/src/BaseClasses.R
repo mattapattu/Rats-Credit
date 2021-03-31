@@ -202,7 +202,7 @@ setMethod("simulateData",  signature=c("ModelData","RatData","AllModels"),
             
             simData = new("RatData", rat = "simulation",allpaths = generated_data$PathData)
             
-           
+            model = x@Model          
             if(model=="Paths")
             {
               slot(simData, "turnTimes") = generated_data$TurnData 

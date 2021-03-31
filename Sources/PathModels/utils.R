@@ -573,6 +573,7 @@ convertTurnTimes=function(ratdata, turnsModel, hybridModel, sim)
 
 
 ### Just for sim=1
+### get TurnTimes from hybrid turn data
 getTurnTimesMat=function(trueRatdata, generatedData, modelName)
 {
   

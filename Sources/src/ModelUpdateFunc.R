@@ -92,8 +92,8 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
    #print(time) 
        
    )
-print(time)
-## END IF
+  print(time)
+ ## END IF
 
     #modelData = updateModelData(ratdata,resMatrix, models)
     allmodelRes = getAllModelResults(ratdata, resMatrix,testingdata, sim) 
@@ -210,15 +210,14 @@ getAllModelResults=function(ratdata, resMatrix, testingdata, sim)
 }
 
 
-
 negLogLikFunc=function(par,ratdata,half_index,modelData,testModel,sim) {
   
   alpha = par[1]
   Model = modelData@Model
   creditAssignment = modelData@creditAssignment
-
+  
   if(Model == "Paths")
- {
+  {
     if(creditAssignment == "aca3"){
       Hinit = matrix(0,2,6)
       gamma1 = par[2]
@@ -245,6 +244,18 @@ negLogLikFunc=function(par,ratdata,half_index,modelData,testModel,sim) {
       }
       
     }
+  }
+  else
+  {
+    if(creditAssignment == "aca3"){
+      gamma1 = par[2]
+      gamma2 = par[3]
+      # reward = par[4]
+      # reward = 1+reward*9
+      reward = 1
+      # 
+      modelData@alpha = alpha
+      modelData@gamma1 = gamma1
       modelData@gamma2 = gamma2
       probMatrix = TurnsNew::getProbMatrix(ratdata,modelData,testModel,sim)
       path4Probs = probMatrix[which(probMatrix[,4]>0),4]
@@ -271,7 +282,7 @@ negLogLikFunc=function(par,ratdata,half_index,modelData,testModel,sim) {
       
     }   
   }  
- 
+  
   negLogLik = (-1) *sum(lik)
   # print(sprintf("negLogLik = %f",negLogLik))
   if(is.infinite(negLogLik)){

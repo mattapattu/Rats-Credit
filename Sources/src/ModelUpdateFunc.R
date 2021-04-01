@@ -83,8 +83,9 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
           })
           registerDoParallel(cl2)
           np.val = length(argList$lower) * 10
-          myList <- DEoptim.control(NP=np.val, F=2, CR = 0.9,trace = FALSE, itermax = 200,parallelType=2)
+          myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9,trace = FALSE, itermax = 200,parallelType=2)
           out<-do.call("DEoptim",list.append(argList, fn=negLogLikFunc, myList))
+          stopCluster(cl2)
           out$optim$bestmem
       }
       
@@ -120,56 +121,67 @@ getModelResultsSeq=function(ratdata, testingdata, sim, src.dir)
   creditAssignment = testingdata@creditAssignment
   
   cl2 <- makeCluster(5)
+  models = testingdata@Models
+  creditAssignment = testingdata@creditAssignment
+  
+  forloops = length(models) * length(creditAssignment)
+  
+  if(setup.hpc)
+  {
+    cl <- makeCluster(5, type='PSOCK')
+  }
+  else
+  {
+    cl <- makeCluster(3)
+    #registerDoParallel(cl)
+  }
+  
+  
+  
   clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","negLogLikFunc","src.dir"))
-  clusterCall(cl2, function() {
-    source(paste(src.dir,"ModelClasses.R", sep="/"))
-    source(paste(src.dir,"TurnModel.R", sep="/"))
-    source(paste(src.dir,"HybridModel1.R", sep="/"))
-    source(paste(src.dir,"HybridModel2.R", sep="/"))
-    source(paste(src.dir,"HybridModel3.R", sep="/"))
-    source(paste(src.dir,"HybridModel4.R", sep="/"))
-    source(paste(src.dir,"BaseClasses.R", sep="/"))
-    NULL
-  })
+  clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"TurnModel.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel1.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel2.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel3.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel4.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"BaseClasses.R", sep="/")))
   clusterEvalQ(cl, library("TTR"))
   clusterEvalQ(cl, library("rlist"))
   clusterEvalQ(cl, library("DEoptim"))
-  registerDoParallel(cl2)
-
-  time <- system.time( 
-  resMatrix <-
-    foreach(model=models, .combine='rbind') %:%
-      foreach(method=creditAssignment, .combine='rbind') %do% {
-        modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
-        argList<-getArgList(modelData,ratdata)
-        nvars = length(argList$lower)
-
-        
-        np.val = length(argList$lower) * 10
-        myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9,trace = FALSE, itermax = 200,parallelType=2)
-        out<-do.call("DEoptim",list.append(argList, fn=negLogLikFunc, myList))
-        out$optim$bestmem
-    }
+  
+  clusterCall(cl, function() {
+    library(doParallel)
+    NULL
+  })
+  
+  registerDoParallel(cl)
+  
+  resMatrix <- matrix("",0,2)
+    
+  time <- system.time(
+    
+      for(model in models)
+      {
+        for(method in creditAssignment)
+        {
+          modelData =  new("ModelData", Model=model, creditAssignment = method, sim=sim)
+          argList<-getArgList(modelData,ratdata)
+          np.val = length(argList$lower) * 10
+          myList <- DEoptim.control(NP=np.val, F=2, CR = 0.9,trace = FALSE, itermax = 200,cluster = cl)
+          out<-do.call("DEoptim",list.append(argList, fn=negLogLikFunc, myList))
+          resMatrix =rbind(resMatrix, unname(out$optim$bestmem))
+          
+        }
+      }
   )
-
-
-print(time)
+  print(time)
+  ## END IF
   
   #modelData = updateModelData(ratdata,resMatrix, models)
   allmodelRes = getAllModelResults(ratdata, resMatrix,testingdata, sim) 
   
-  if(setup.hpc)
-  {
-    stopCluster(cl2)	
-    #stopImplicitCluster()
-    #closeCluster(cl)
-  }
-  else
-  {
-    stopCluster(cl2)
-    #stopImplicitCluster()
-  }
-  
+  stopCluster(cl)	
   
   return(allmodelRes)
 }
@@ -233,18 +245,6 @@ negLogLikFunc=function(par,ratdata,half_index,modelData,testModel,sim) {
       }
       
     }
- }
-  else
-  {
-    if(creditAssignment == "aca3"){
-      gamma1 = par[2]
-      gamma2 = par[3]
-      # reward = par[4]
-      # reward = 1+reward*9
-      reward = 1
-      # 
-      modelData@alpha = alpha
-      modelData@gamma1 = gamma1
       modelData@gamma2 = gamma2
       probMatrix = TurnsNew::getProbMatrix(ratdata,modelData,testModel,sim)
       path4Probs = probMatrix[which(probMatrix[,4]>0),4]

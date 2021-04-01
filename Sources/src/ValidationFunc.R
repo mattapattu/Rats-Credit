@@ -42,6 +42,7 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
   clusterExport(cl, varlist = c("ratdata","allModelRes","testData","creditAssignment"),envir=environment())
   clusterEvalQ(cl, library("TTR"))
   clusterEvalQ(cl, library("dplyr"))
+  clusterEvalQ(cl, library("DEoptim"))
 
   clusterCall(cl, function() {
     library(doParallel)
@@ -85,8 +86,8 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
         if(end_index > -1)
         {
           generated_data = populateSimRatModel(generated_data,modelName)
-          #allmodelRes = getModelResultsSeq(ratdata,testData,sim=1, src.dir)
-          allmodelRes = getModelResults(generated_data,testData,sim=1, src.dir, setup.hpc)
+          allmodelRes = getModelResultsSeq(generated_data,testData,sim=1, src.dir, setup.hpc)
+          #allmodelRes = getModelResults(generated_data,testData,sim=1, src.dir, setup.hpc)
           min_method = getMinimumLikelihood(allmodelRes,testData)
           
         }

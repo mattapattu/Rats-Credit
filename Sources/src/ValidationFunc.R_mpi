@@ -24,7 +24,7 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
     #print(sprintf("worker.nodes=%i",worker.nodes))
     #cl <- makeCluster(30, type='PSOCK',outfile = "")
     
-    cl <- startMPIcluster(100)
+    cl <- startMPIcluster()
     #print(mpi.comm.rank(0))
 
     #registerDoMPI(cl)
@@ -61,7 +61,7 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
 time1 <-system.time( 
   generatedDataList <-  
    foreach(i=1:length(modelNames), .options.mpi=opts,.packages = c("rlist","DEoptim","dplyr","TTR"),.export=c("testData")) %:%
-    foreach(generation=1:50) %dopar%
+    foreach(generation=1:3) %dopar%
     {
       model = modelNames[i] 
       modelName = strsplit(model,"\\.")[[1]][1]

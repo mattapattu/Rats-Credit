@@ -1,6 +1,6 @@
 #library(foreach)
-#library(doParallel)
-library(doMPI)
+library(doParallel)
+#library(doMPI)
 library(rlist)
 
 HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
@@ -22,9 +22,9 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
   {
     #worker.nodes = mpi.universe.size()-1
     #print(sprintf("worker.nodes=%i",worker.nodes))
-    #cl <- makeCluster(30, type='PSOCK',outfile = "")
-    
-    cl <- startMPIcluster(100)
+    #cl <- makeCluster(12, type='MPI',outfile = "")
+    cl <- makeCluster(12, type='PSOCK',outfile = "") 
+    #cl <- startMPIcluster()
     #print(mpi.comm.rank(0))
 
     #registerDoMPI(cl)
@@ -34,34 +34,27 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
     cl <- makeCluster(3, outfile = "")
     #registerDoParallel(cl)
   }
+
+  clusterExport(cl, varlist = c("src.dir"))
+  clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"TurnModel.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel1.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel2.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel3.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel4.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"BaseClasses.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"exportFunctions.R", sep="/")))
+  clusterEvalQ(cl, library("TTR"))
+  clusterEvalQ(cl, library("DEoptim"))
+  clusterEvalQ(cl, library("doParallel"))
+
+  registerDoParallel(cl)
   
-  exportDoMPI(cl, c("src.dir"),envir=environment())
-  registerDoMPI(cl)
- 
-  #cat(sprintf('mpi.universe.size=\n', mpi.universe.size()))
-  cat(sprintf('Running validation with %d worker(s)\n', getDoParWorkers()))
-
-  
-
-  initWorkers <-  function() {
-     source(paste(src.dir,"ModelClasses.R", sep="/"))
-     source(paste(src.dir,"TurnModel.R", sep="/"))
-     source(paste(src.dir,"HybridModel1.R", sep="/"))
-     source(paste(src.dir,"HybridModel2.R", sep="/"))
-     source(paste(src.dir,"HybridModel3.R", sep="/"))
-     source(paste(src.dir,"HybridModel4.R", sep="/"))
-     source(paste(src.dir,"BaseClasses.R", sep="/"))
-     source(paste(src.dir,"exportFunctions.R", sep="/"))
-     source(paste(src.dir,"ModelUpdateFunc.R", sep="/"))
-     #attach(myEnv, name="sourced_scripts")
-   }
-
-  opts <- list(initEnvir=initWorkers)
 
 time1 <-system.time( 
   generatedDataList <-  
-   foreach(i=1:length(modelNames), .options.mpi=opts,.packages = c("rlist","DEoptim","dplyr","TTR"),.export=c("testData")) %:%
-    foreach(generation=1:50) %dopar%
+   foreach(i=1:length(modelNames), .packages = c("rlist","DEoptim","dplyr","TTR"),.export=c("testData")) %:%
+    foreach(generation=1:100) %dopar%
     {
       model = modelNames[i] 
       modelName = strsplit(model,"\\.")[[1]][1]
@@ -99,10 +92,14 @@ print(time1)
   allData<-unlist(generatedDataList)
   modelNum =  length(allData)
 
-
+resList <- list()
 time2<- system.time(  
-  resList<-
-   foreach(i = 1:modelNum, .options.mpi=opts) %:%
+ #for(loop in c(1:25))
+ #{
+  #start = (loop-1)*2+1
+  #end = loop*2
+  #res1<-
+   foreach(i = 1:modelNum) %:%
     foreach(model = modelNames) %dopar% {
       generated_data = allData[[i]]
       modelName = strsplit(model,"\\.")[[1]][1]
@@ -112,13 +109,19 @@ time2<- system.time(
       np.val = length(argList$lower) * 10
       myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9,trace = FALSE, itermax = 200)
       out <-DEoptim(negLogLikFunc,argList$lower,argList$upper,ratdata=argList[[3]],half_index=argList[[4]],modelData=argList[[5]],testModel = argList[[6]],sim = argList[[7]],myList)
+      stopCluster(cl2)
       modelData = setModelParams(modelData, unname(out$optim$bestmem))
       modelData = setModelResults(modelData,generated_data,allModels)
       list(data=generated_data,res=modelData)
     }
+   resList <- list.append(resList,res1)	
+  #}
  )
-  
-print(time2)
+ 
+  print(time2)
+  save(resList,  file = paste0(ratdata@rat, format(Sys.time(),'_%Y%m%d_%H%M%S'),"_resList.Rdata"))
+
+
   for(i in 1:modelNum)
   {
     min_method = ""
@@ -143,15 +146,14 @@ print(time2)
     mat_res[gen_modelname,res_modelname] = mat_res[gen_modelname,res_modelname]+1
   }
   
-  rat = ratdata@rat
-  save(mat_res, generatedDataList,resList,  file = paste0(rat, format(Sys.time(),'_%Y%m%d_%H%M%S'),"_mat_res.Rdata"))
+  save(mat_res, generatedDataList,resList,  file = paste0(ratdata@rat, format(Sys.time(),'_%Y%m%d_%H%M%S'),"_mat_res.Rdata"))
 
 
   if(setup.hpc)
   {
-    #stopCluster(cl)
+    stopCluster(cl)
     #stopImplicitCluster()
-    closeCluster(cl)
+    #closeCluster(cl)
   }
   else
   {

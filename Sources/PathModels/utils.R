@@ -1154,7 +1154,7 @@ populateRatModel=function(rat,allpaths,enreg,turnsModel)
 }
 
 
-populateSimRatModel=function(generated_data,testModelName)
+populateSimRatModel=function(ratdata,generated_data,testModelName)
 {
   if(testModelName=="Paths")
   {

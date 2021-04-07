@@ -10,8 +10,11 @@ setClass("RatData",
            hybridModel1 = "matrix",
            hybridModel2 = "matrix",
            hybridModel3 = "matrix",
-           hybridModel4 = "matrix")
-)
+           hybridModel4 = "matrix",
+	   simModel = "character",
+           simMethod = "character"
+	   )
+	)
 
 
 setClass("TestModels", 
@@ -19,7 +22,7 @@ setClass("TestModels",
            Models="character",
            creditAssignment = "character"
            )
-)
+	)
 
 setClass("BaseModel", 
          slots = list(
@@ -167,8 +170,8 @@ setMethod("simulateData",  signature=c("ModelData","RatData","AllModels"),
             else if(x@Model == "Turns")
             {
               
-              turnIdxStage1 = last(which(ratdata@turnTimes[,1]<=endStage1))
-              turnIdxStage2 = last(which(ratdata@turnTimes[,1]<=endStage2))
+              turnIdxStage1 = dplyr::last(which(ratdata@turnTimes[,1]<=endStage1))
+              turnIdxStage2 = dplyr::last(which(ratdata@turnTimes[,1]<=endStage2))
               turnIdxStage3 = length(ratdata@turnTimes[,1])
               turnstages = c(1,turnIdxStage1,turnIdxStage2,turnIdxStage3)
               model = x@Model

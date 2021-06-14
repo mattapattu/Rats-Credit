@@ -83,7 +83,7 @@ getModelResults=function(ratdata, testingdata, sim, src.dir, setup.hpc)
           })
           registerDoParallel(cl2)
           np.val = length(argList$lower) * 10
-          myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9,trace = FALSE, itermax = 200,parallelType=2)
+          myList <- DEoptim.control(NP=30, F=2, CR = 0.9,trace = FALSE, itermax = 200,parallelType=2)
           out<-do.call("DEoptim",list.append(argList, fn=negLogLikFunc, myList))
           stopCluster(cl2)
           out$optim$bestmem

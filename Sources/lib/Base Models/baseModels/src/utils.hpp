@@ -124,7 +124,7 @@ arma::mat empiricalProbMat(arma::mat allpaths, int window)
 {
 
   int nrow = allpaths.n_rows;
-  arma::mat probMatrix = arma::zeros(nrow, 12);
+  arma::mat probMatrix = arma::zeros(nrow, 13);
 
   for (int i = 0; i < nrow; i++)
   {
@@ -153,7 +153,7 @@ arma::mat empiricalProbMat(arma::mat allpaths, int window)
     if (S == 1)
     {
       probMatrix.submat(i, 6, i, 11) = arma::zeros(1, 6);
-      for (int act = 1; act < 7; act++)
+      for (int act = 1; act <= 6; act++)
       {
         arma::uvec act_idx = arma::find(actions_in_state == act);
         double x = act_idx.n_elem / (1.0 * state_idx.n_elem);
@@ -163,7 +163,7 @@ arma::mat empiricalProbMat(arma::mat allpaths, int window)
     else if (S == 2)
     {
       probMatrix.submat(i, 0, i, 5) = arma::zeros(1, 6);
-      for (int act = 1; act < 7; act++)
+      for (int act = 1; act <= 6; act++)
       {
 
         arma::uvec act_idx = arma::find(actions_in_state == act);

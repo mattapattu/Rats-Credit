@@ -130,9 +130,9 @@ arma::vec simulateTurnDuration(arma::mat turnTimes, arma::mat allpaths, int turn
   arma::rowvec turnRow = submat_sample.row(sampled_id);
   arma::uvec cols = {0,5}; //3 = ActionNb, 5 = actionNb
 
-   msg.str("");
-   msg << "turnRow=";
-   logger.PrintArmaRowVec(msg.str(),turnRow); 
+   //msg.str("");
+   //msg << "turnRow=";
+  //logger.PrintArmaRowVec(msg.str(),turnRow); 
   arma::vec turnDurations = turnRow.elem(cols);
 
     msg.str("");

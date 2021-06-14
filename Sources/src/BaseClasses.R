@@ -120,25 +120,27 @@ setMethod("getArgList",  signature=c("ModelData","RatData"),
 setMethod("setModelResults",  signature=c("ModelData","RatData","AllModels"),
           definition=function(x,ratdata,allModels)
           {
-            endLearningStage = getEndIndex(ratdata@allpaths,sim=x@sim, limit=0.95)
+            #endLearningStage = getEndIndex(ratdata@allpaths,sim=x@sim, limit=0.95)
             baseModel = getBaseModel(x@Model)
             
             model = x@Model
             
             if(model == "Paths")
             {
-              endLearningStage = endLearningStage/2
+              #endLearningStage = endLearningStage/2
               x@probMatrix = baseModel@probMatFunc(ratdata@allpaths,x@alpha,x@gamma1,x@gamma2,x@sim)
               likelihood = baseModel@likelihoodFunc(ratdata@allpaths,x@alpha,x@gamma1,x@gamma2,x@sim)
-              x@likelihood = (-1) * sum(likelihood[-(1:endLearningStage)])
+              #x@likelihood = (-1) * sum(likelihood[-(1:endLearningStage)])
+              x@likelihood = as.numeric(likelihood)
             }
             else
             {
-              endLearningStage = endLearningStage/2
+              #endLearningStage = endLearningStage/2
               testModel = slot(allModels,model)
               x@probMatrix = baseModel@probMatFunc(ratdata, x,testModel,x@sim)
               likelihood = baseModel@likelihoodFunc(ratdata, x,testModel,x@sim)
-              x@likelihood = (-1) * sum(likelihood[-(1:endLearningStage)])
+              #x@likelihood = (-1) * sum(likelihood[-(1:endLearningStage)])
+              x@likelihood = likelihood
               
             }
            return(x)
@@ -197,33 +199,33 @@ setMethod("simulateData",  signature=c("ModelData","RatData","AllModels"),
                              testModel = testModel,
                              turnstages = turnstages)
               
-              generated_data = TurnsNew::simulateTurnsModels(ratdata,x,testModel,turnstages,debug=FALSE)
+              generated_data = TurnsNew::simulateTurnsModels(ratdata,x,testModel,turnstages)
             }
             
             simData = new("RatData", rat = "simulation",allpaths = generated_data$PathData)
             
-            model = x@Model          
-            if(model=="Paths")
+           
+            if(x@Model=="Paths")
             {
               slot(simData, "turnTimes") = generated_data$TurnData 
             }
-            else if(model == "Turns")
+            else if(x@Model == "Turns")
             {
               slot(simData, "turnTimes") = generated_data$TurnData
             }
-            else if(model == "Hybrid1")
+            else if(x@Model == "Hybrid1")
             {
               slot(simData, "hybridModel1") = generated_data$TurnData
             }
-            else if(model == "Hybrid2")
+            else if(x@Model == "Hybrid2")
             {
               slot(simData, "hybridModel2") = generated_data$TurnData
             }
-            else if(model == "Hybrid3")
+            else if(x@Model == "Hybrid3")
             {
               slot(simData, "hybridModel3") = generated_data$TurnData
             }
-            else if(model == "Hybrid4")
+            else if(x@Model == "Hybrid4")
             {
               slot(simData, "hybridModel4") = generated_data$TurnData
             }

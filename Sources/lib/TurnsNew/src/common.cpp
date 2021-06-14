@@ -415,23 +415,18 @@ std::vector<double> getTurnsLikelihood(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcp
         score_episode = score_episode + 1;
       }
 
-      if (sim == 1)
-      {
-        A = actions_sess(i);
-      }
-      else
-      {
-        A = actions_sess(i) - 1;
-      }
-
       int S_prime = 0;
       if (sim == 1)
       {
+        S = states_sess(i);
+        A = actions_sess(i);
         S_prime = states_sess(i + 1);
       }
       else
       {
-        S_prime = states_sess(i + 1) - 1;
+        S = states_sess(i)-1;
+        A = actions_sess(i) - 1;
+        S_prime = states_sess(i + 1)-1;
       }
 
       if (S_prime != initState)
@@ -522,7 +517,7 @@ std::vector<double> getTurnsLikelihood(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcp
       }
       S0.decayCredits(gamma1);
       S1.decayCredits(gamma1);
-      S = S_prime;
+      //S = S_prime;
       //trial=trial+1;
     }
     S0.decayCredits(gamma2);
@@ -654,23 +649,19 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
         score_episode = score_episode + 1;
       }
 
-      if (sim == 1)
-      {
-        A = actions_sess(i);
-      }
-      else
-      {
-        A = actions_sess(i) - 1;
-      }
-
+     
       int S_prime = 0;
       if (sim == 1)
       {
+        S = states_sess(i);
+        A = actions_sess(i);
         S_prime = states_sess(i + 1);
       }
       else
       {
-        S_prime = states_sess(i + 1) - 1;
+        S = states_sess(i)-1;
+        A = actions_sess(i) - 1;
+        S_prime = states_sess(i + 1)-1;
       }
 
       if (S_prime != initState)
@@ -685,7 +676,7 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
       
       //Rcpp::Rcout <<"i="<< i << ", S=" << S <<", A=" << A<<std::endl;
        std::ostringstream msg; 
-       msg << "i="<< i << ", S=" << S <<", A=" << A;
+       msg << "i="<< i << ", S=" << S <<", A=" << A <<", pathNb=" << allpaths_pathNb_sess(i);;
        logger.Print(msg.str()); 
 
       Rcpp::StringVector turns;
@@ -817,7 +808,6 @@ arma::mat getProbMatrix(Rcpp::S4 ratdata, Rcpp::S4 modelData, Rcpp::S4 testModel
       
       S0.decayCredits(gamma1);
       S1.decayCredits(gamma1);
-      S = S_prime;
       
       // msg.str("");
       // msg <<"Here2";

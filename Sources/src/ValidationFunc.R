@@ -69,7 +69,6 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
         
         end_index = -1
         missedOptimalIter = 0
-
         while(end_index == -1){
           generated_data = simulateData(trueModelData,ratdata,allModels)
           end_index = getEndIndex(generated_data@allpaths, sim=1, limit=0.95)
@@ -88,7 +87,7 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
           generated_data = populateSimRatModel(generated_data,modelName)
           allmodelRes = getModelResultsSeq(generated_data,testData,sim=1, src.dir, setup.hpc)
           #allmodelRes = getModelResults(generated_data,testData,sim=1, src.dir, setup.hpc)
-          min_method = getMinimumLikelihood(allmodelRes,testData)
+          min_method = getMinimumLikelihood(generated_data,allmodelRes,testData,sim=1)
           
         }
         else
@@ -131,23 +130,121 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
     # }
     
 }
+
+
+
+testParamEstimation=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
+{
+  models = testData@Models
+  creditAssignment = testData@creditAssignment
+  
+  paramTest = list()
+  modelNames = as.vector(sapply(creditAssignment, function(x) paste(models, x, sep=".")))
+  
+  
+  if(setup.hpc)
+  {
+    #worker.nodes = mpi.universe.size()-1
+    #print(sprintf("worker.nodes=%i",worker.nodes))
+    cl <- makeCluster(30, type='PSOCK',outfile = "")
+    
+    #cl <- startMPIcluster(worker.nodes)
+    #registerDoMPI(cl)
+  }
+  else
+  {
+    cl <- makeCluster(3, outfile = "")
+    #registerDoParallel(cl)
+  }
+  
+  clusterExport(cl, varlist = c("getEndIndex", "convertTurnTimes","simulateData","src.dir","populateSimRatModel","getMinimumLikelihood","getModelResults","negLogLikFunc","getAllModelResults","getTurnTimesMat","getModelResultsSeq"))
+  clusterEvalQ(cl, source(paste(src.dir,"ModelClasses.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"TurnModel.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel1.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel2.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel3.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"HybridModel4.R", sep="/")))
+  clusterEvalQ(cl, source(paste(src.dir,"BaseClasses.R", sep="/")))
+  clusterExport(cl, varlist = c("ratdata","allModelRes","testData","creditAssignment"),envir=environment())
+  clusterEvalQ(cl, library("TTR"))
+  clusterEvalQ(cl, library("dplyr"))
+  clusterEvalQ(cl, library("DEoptim"))
+  
+  clusterCall(cl, function() {
+    library(doParallel)
+    NULL 
+  })
+  
+  registerDoParallel(cl)
+  
+  
+  for(i in 1:length(modelNames))
+  {
+      model = modelNames[i] 
+      modelName = strsplit(model,"\\.")[[1]][1]
+      creditAssignment = strsplit(model,"\\.")[[1]][2]
+      trueModelData = slot(slot(allModelRes,modelName),creditAssignment)
+      end_index = -1
+      missedOptimalIter = 0
+      
+      # while(end_index == -1){
+      #   generated_data = simulateData(trueModelData,ratdata,allModels)
+      #   #generated_data@simModel = trueModelData@Model
+      #   #generated_data@simMethod = trueModelData@creditAssignment
+      #   end_index = getEndIndex(generated_data@allpaths, sim=1, limit=0.95)
+      #   #cat('i=',i, ', j=',j,' end_index=', end_index, '.\n', sep = '') 
+      #   missedOptimalIter=missedOptimalIter+1
+      #   
+      #   if(missedOptimalIter>500)
+      #   {
+      #     break
+      #   }
+      #   set.seed(NULL)
+      # }
+      
+      if(end_index > -1)
+      {
+        iter=as.integer(floor(length(generated_data@allpaths[,1])/200))
+        resMat <- 
+          foreach(j=c(1:iter), .combine='rbind', .inorder=TRUE) %dopar%{
+            rowEnd = j*100
+            modelData =  new("ModelData", Model=modelName, creditAssignment = creditAssignment, sim=1)
+            argList<-getArgList(modelData,generated_data)
+            np.val = length(argList$lower) * 10
+            myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9,trace = FALSE, itermax = 200)
+            out <-DEoptim(negLogLikFunc,argList$lower,argList$upper,ratdata=argList[[3]],half_index=rowEnd,modelData=argList[[5]],testModel = argList[[6]],sim = argList[[7]],myList)
+            modelData = setModelParams(modelData, unname(out$optim$bestmem))
+            c(rowEnd,modelData@alpha, modelData@gamma1, modelData@gamma2)
+            
+          }   
+      }
+      paramTest = list.append(paramTest,list(model=trueModelData,resMat=resMat))
+  }
+  rat = ratdata@rat
+  save(paramTest, file = paste0(rat, format(Sys.time(),'_%Y%m%d_%H%M%S'),"_paramTest.Rdata")) 
+}
+
   
 
-getMinimumLikelihood=function(allmodelRes,testingdata)
+getMinimumLikelihood=function(ratdata, allmodelRes,testingdata,sim)
 {
   min_index = 0
   min = 100000
   min_method = "null"
-  
+  endLearningStage = getEndIndex(ratdata@allpaths,sim=sim, limit=0.95)
+  #endLearningStage = endLearningStage/2
+  half_stage = endLearningStage/2
   for(m in testingdata@Models)
   {
     for(crAssgn in testingdata@creditAssignment)
     {
       modelData = getModelData(allmodelRes,m,crAssgn)
       lik = modelData@likelihood
+      lik = (-1)*sum(lik[-(1:half_stage)])
+      #lik = (-1)*sum(lik[(half_stage:endLearningStage)])
       modelName = paste(modelData@Model,modelData@creditAssignment,sep=".")
       
-      #print(sprintf("model=%s,likelihood=%f",modelName,lik))
+      print(sprintf("model=%s,likelihood=%f",modelName,lik))
       
       if(lik < min)
       {

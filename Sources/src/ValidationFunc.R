@@ -25,6 +25,7 @@ HoldoutTest=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
     #cl <- makeCluster(30, type='PSOCK',outfile = "")
     
     cl <- startMPIcluster(100)
+    setRngDoMPI(cl, seed=1234)
     #print(mpi.comm.rank(0))
 
     #registerDoMPI(cl)
@@ -119,6 +120,8 @@ time2<- system.time(
  )
   
 print(time2)
+rat = ratdata@rat
+save(resList,  file = paste0(rat, format(Sys.time(),'_%Y%m%d_%H%M%S'),"_resList.Rdata"))
   for(i in 1:modelNum)
   {
     min_method = ""
@@ -167,6 +170,106 @@ print(time2)
     #   break
     # }
     
+}
+
+
+
+#######Func testParamEstimation ############
+testParamEstimation=function(ratdata,allModelRes,testData,src.dir,setup.hpc)
+{
+  models = testData@Models
+  creditAssignment = testData@creditAssignment
+  
+  paramTest = list()
+  modelNames = as.vector(sapply(creditAssignment, function(x) paste(models, x, sep=".")))
+  
+  
+  if(setup.hpc)
+  {
+    #worker.nodes = mpi.universe.size()-1
+    #print(sprintf("worker.nodes=%i",worker.nodes))
+    #cl <- makeCluster(30, type='PSOCK',outfile = "")
+
+    cl <- startMPIcluster(50)
+    setRngDoMPI(cl, seed=1234)
+    #print(mpi.comm.rank(0))
+
+    #registerDoMPI(cl)
+  }
+  else
+  {
+    cl <- makeCluster(3, outfile = "")
+    #registerDoParallel(cl)
+  }
+
+  exportDoMPI(cl, c("src.dir"),envir=environment())
+  registerDoMPI(cl)
+ 
+  initWorkers <-  function() {
+     source(paste(src.dir,"ModelClasses.R", sep="/"))
+     source(paste(src.dir,"TurnModel.R", sep="/"))
+     source(paste(src.dir,"HybridModel1.R", sep="/"))
+     source(paste(src.dir,"HybridModel2.R", sep="/"))
+     source(paste(src.dir,"HybridModel3.R", sep="/"))
+     source(paste(src.dir,"HybridModel4.R", sep="/"))
+     source(paste(src.dir,"BaseClasses.R", sep="/"))
+     source(paste(src.dir,"exportFunctions.R", sep="/"))
+     source(paste(src.dir,"ModelUpdateFunc.R", sep="/"))
+     #attach(myEnv, name="sourced_scripts")
+   }
+
+  opts <- list(initEnvir=initWorkers) 
+  
+  for(i in 1:length(modelNames))
+  {
+      model = modelNames[i] 
+      #cat(sprintf('Model is %s\n', model))
+      modelName = strsplit(model,"\\.")[[1]][1]
+      creditAssignment = strsplit(model,"\\.")[[1]][2]
+      trueModelData = slot(slot(allModelRes,modelName),creditAssignment)
+      end_index = -1
+      missedOptimalIter = 0
+      
+      while(end_index == -1){
+        generated_data = simulateData(trueModelData,ratdata,allModels)
+        #generated_data@simModel = trueModelData@Model
+        #generated_data@simMethod = trueModelData@creditAssignment
+        end_index = getEndIndex(generated_data@allpaths, sim=1, limit=0.95)
+        #cat('i=',i, ', j=',j,' end_index=', end_index, '.\n', sep = '') 
+        missedOptimalIter=missedOptimalIter+1
+        
+        if(missedOptimalIter>500)
+        {
+          break
+        }
+        cat(sprintf('model = %s, missedOptimalIter=%i\n', model, missedOptimalIter))
+        set.seed(missedOptimalIter)
+      }
+     rat = ratdata@rat
+     save(generated_data, file = paste0(rat, "_", modelName,"_genData.Rdata")) 
+      if(end_index > -1)
+      {
+        iter=as.integer(floor(length(generated_data@allpaths[,1])/100))-1
+        resMat <- 
+          foreach(j=c(1:iter), .combine='rbind', .options.mpi=opts,.packages = c("rlist","DEoptim","dplyr","TTR"), .inorder=TRUE) %dopar%{
+            rowEnd = j*100
+            #cat(sprintf('rowEnd = %i\n', rowEnd))
+            modelData =  new("ModelData", Model=modelName, creditAssignment = creditAssignment, sim=1)
+            argList<-getArgList(modelData,generated_data)
+            np.val = length(argList$lower) * 10
+            myList <- DEoptim.control(NP=np.val, F=0.8, CR = 0.9,trace = FALSE, itermax = 200)
+            out <-DEoptim(negLogLikFunc,argList$lower,argList$upper,ratdata=argList[[3]],half_index=rowEnd,modelData=argList[[5]],testModel = argList[[6]],sim = argList[[7]],myList)
+            modelData = setModelParams(modelData, unname(out$optim$bestmem))
+            #cat(sprintf('Success\n'))
+            c(rowEnd,modelData@alpha, modelData@gamma1, modelData@gamma2)
+            
+          }   
+      }
+      paramTest = list.append(paramTest,list(model=trueModelData,resMat=resMat))
+  }
+  rat = ratdata@rat
+  save(paramTest, file = paste0(rat, format(Sys.time(),'_%Y%m%d_%H%M%S'),"_paramTest.Rdata")) 
+  closeCluster(cl)
 }
   
 

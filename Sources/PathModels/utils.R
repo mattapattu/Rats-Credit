@@ -972,6 +972,7 @@ getStartIndex = function(generated_data){
 }
 
 getEndIndex = function(generated_data, sim, limit){
+
   if(sim==1){
     generated_data[,1:2] = generated_data[,1:2] + 1
   }
@@ -985,8 +986,8 @@ getEndIndex = function(generated_data, sim, limit){
       break
     }
   }
-  
-  
+
+
   end_index2=0
   s2 <- which(generated_data[,2]==2)
   l<-which(SMA(generated_data[s2,3],30)>=limit)
@@ -997,16 +998,15 @@ getEndIndex = function(generated_data, sim, limit){
       break
     }
   }
-  
+
   if(end_index1==0 || end_index2 ==0){
     end_index = -1
   }else{
+    #end_index = round(length(generated_data[,1]))/2 
     end_index = max(s1[end_index1],s2[end_index2])
   }
-  
-  #print(sprintf("end_index=%i", end_index))
-  
-  return(end_index)
+ 
+ return(end_index) 
 }
 
 simulateTurnTime=function(turnTimes, allpaths,turnId, turnNb)

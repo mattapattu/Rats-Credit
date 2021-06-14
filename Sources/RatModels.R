@@ -8,7 +8,7 @@
 #library(sp) #for spatial polygons
 #library(doMPI)
 #library(Rmpi)
-library(doParallel)
+#library(doParallel)
 
 rats = c("rat_101","rat_103","rat_106","rat_112","rat_113","rat_114")
 names=c('e','f','g','c','d','h','i','j','a','b','k')
@@ -39,7 +39,7 @@ source(paste(src.dir,"ValidationFunc.R", sep="/"))
 source(paste(src.dir,"../PathModels/utils.R", sep="/"))
 
 ### Loop through the enreg of all 6 rats
-for (i in c(2:2)) {
+for (i in c(6)) {
 
   
   
@@ -63,8 +63,11 @@ for (i in c(2:2)) {
   
   
   # #### Holdout Validation ########################################
-  
+  #load(paste0(ratdata@rat,"_allmodelRes.Rdata")) 
   #debug(HoldoutTest)
-  HoldoutTest(ratdata,allmodelRes,testData,src.dir,setup.hpc)
+  #HoldoutTest(ratdata,allmodelRes,testData,src.dir,setup.hpc)
+   
+  testParamEstimation(ratdata,allmodelRes,testData,src.dir,setup.hpc)
 }
 print(sprintf("End of script"))
+#mpi.exit()
